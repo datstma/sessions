@@ -15,7 +15,7 @@ This is a work record, not authorization to implement everything. The user expli
 
 ## Suggested sequence
 
-End-of-day state: the user confirmed the default stopping flow (SESS-018) and Start menu picker (SESS-019) work, then stopped for the day. No next task is selected. Suggested follow-ups are draft-close protection (SESS-006), accessibility/scaling (SESS-010), and invalid-field guidance (SESS-011). Remaining native checks stay under SESS-001, including UAC cancellation and the narrower Playnite-specific confirmation in SESS-017; do not treat the overall stopping flow as still failing. SRS start/stop is confirmed under SESS-016. The first execution slice and its prerequisites are implemented under SESS-002/003/004/005/007.
+The user confirmed the default stopping flow (SESS-018) and Start menu picker (SESS-019), then requested a README as the first step toward GitHub and eventual public releases (SESS-020). No next app feature is selected. Suggested app follow-ups are draft-close protection (SESS-006), accessibility/scaling (SESS-010), and invalid-field guidance (SESS-011). Remaining native checks stay under SESS-001, including UAC cancellation and the narrower Playnite-specific confirmation in SESS-017; do not treat the overall stopping flow as still failing. SRS start/stop is confirmed under SESS-016. The first execution slice and its prerequisites are implemented under SESS-002/003/004/005/007.
 
 ## SESS-001 — Review the first native UI with the user
 
@@ -210,6 +210,21 @@ Discovery reads `.lnk` metadata on a background STA thread without activating, r
 Evidence: zero build warnings/errors; **101 checks pass (23 Core, 58 regular App, 20 opt-in native)**. Isolated native shortcut fixtures verify metadata, duplicate roots, invalid entries, cancellation, and unchanged shortcut bytes. A read-only scan of the actual Start menu passes. UI tests exercise 80-entry scrolling, searching, keyboard switching, retained choices, duplicates, draft settings, and source failure/retry. Light/dark picker layouts were reviewed at default/minimum sizes. The user's apps and saved library were not changed by validation.
 
 User confirmation at the end of the day: “it's working!” The Start menu picker is confirmed in their setup; this does not imply complete Microsoft Store coverage or completion of the broader accessibility review.
+
+## SESS-020 — Prepare the public GitHub project and downloadable releases
+
+**P1 · Open · README and GitHub setup complete; license and releases pending · 2026-09-08**  
+Source: user wants a proper GitHub repository, starting with a clever public-facing README, and is considering public distribution with downloadable releases eventually.
+
+Implemented: root README explains the app, examples, setup flow, ownership and full-stop behaviour, preview limitations, local storage, source build/test commands, and links to project documentation. Downloads are explicitly future work; no invented repository URL, release badge, license grant, or supported installer is advertised.
+
+README validation: full solution build has zero warnings/errors, all 23 Core tests pass, and all 52 local documentation links and anchors resolve. App code is unchanged; the earlier 78 App checks remain the latest App test result.
+
+Repository: the user created public `datstma/sessions` and supplied its URL to connect this project. The remote was verified empty before the initial push; `origin` uses HTTPS and the branch is `main`. README includes the real clone command and issue tracker. The original source checkpoint and subsequent README/handoff changes are retained in Git history.
+
+Remaining: select a project license with the user and decide the first release version and packaging approach. Before offering binaries, verify installation/launch on a clean Windows environment, runtime requirements, upgrade behaviour and library preservation, and document signing status and release notes. These are release-preparation items, not permission to publish releases automatically or commitments to an installer, CI provider, or release date.
+
+Done when: the chosen repository and license are in place and a tested Windows release has accurate download/setup instructions. Keep completed README work distinct from the still-unavailable downloads. Screenshots can be added from representative app states when preparing the public listing.
 
 ## Completed baseline
 
