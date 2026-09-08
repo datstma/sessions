@@ -123,4 +123,10 @@ Before proposing a substantial change, read the product scope and architecture. 
 
 ## License
 
-A project license has not been selected yet. Licensing is part of the preparation for public distribution.
+Copyright (c) 2026 datstma and contributors.
+
+Sessions is licensed under the **GNU General Public License, version 3 only** (`GPL-3.0-only`). See [LICENSE](LICENSE) for the full terms.
+
+You may use, modify, and redistribute Sessions, including commercially, under those terms. If you distribute modified versions, they must remain GPLv3-licensed and recipients must have access to the corresponding source code. Sessions is provided without warranty; see the license for details.
+
+Third-party dependencies and assets retain their own licenses.

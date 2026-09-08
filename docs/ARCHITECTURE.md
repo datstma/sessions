@@ -14,6 +14,10 @@ Start/End Session are implemented through `SessionRunner` in Core and `WindowsSe
 
 ## Decisions already made
 
+### Project licensing
+
+Sessions uses `GPL-3.0-only`; see [LICENSE](../LICENSE). App and Core declare the SPDX expression in project metadata. The App project copies the full license into build and publish output. Third-party license notices and corresponding source for each distributed build must be addressed during release preparation (SESS-020); a license file alone does not complete binary-release preparation.
+
 ### Technology and platform
 
 - C# and .NET 10.

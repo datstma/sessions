@@ -213,7 +213,7 @@ User confirmation at the end of the day: “it's working!” The Start menu pick
 
 ## SESS-020 — Prepare the public GitHub project and downloadable releases
 
-**P1 · Open · README and GitHub setup complete; license and releases pending · 2026-09-08**  
+**P1 · Open · README, GitHub, and GPLv3 setup complete; releases pending · 2026-09-08**  
 Source: user wants a proper GitHub repository, starting with a clever public-facing README, and is considering public distribution with downloadable releases eventually.
 
 Implemented: root README explains the app, examples, setup flow, ownership and full-stop behaviour, preview limitations, local storage, source build/test commands, and links to project documentation. Downloads are explicitly future work; no invented repository URL, release badge, license grant, or supported installer is advertised.
@@ -222,7 +222,11 @@ README validation: full solution build has zero warnings/errors, all 23 Core tes
 
 Repository: the user created public `datstma/sessions` and supplied its URL to connect this project. The remote was verified empty before the initial push; `origin` uses HTTPS and the branch is `main`. README includes the real clone command and issue tracker. The original source checkpoint and subsequent README/handoff changes are retained in Git history.
 
-Remaining: select a project license with the user and decide the first release version and packaging approach. Before offering binaries, verify installation/launch on a clean Windows environment, runtime requirements, upgrade behaviour and library preservation, and document signing status and release notes. These are release-preparation items, not permission to publish releases automatically or commitments to an installer, CI provider, or release date.
+License: the user selected GPLv3. The project uses GPL-3.0-only; the unmodified full text is in LICENSE, the README and App/Core metadata declare it, and the App copies it into build/publish output. Dependencies and third-party assets retain their own licenses.
+
+Licensing validation: clean build and local Debug publish; output LICENSE hashes match the root file. 23 Core and 58 regular App tests pass (20 opt-in native checks skipped); 55 local links/anchors resolve. This does not establish dependency-license compatibility or readiness of a public binary release; those checks remain below.
+
+Remaining: decide the first release version and packaging approach. Before offering binaries, review the actual shipped dependencies/assets and include their required license notices; provide matching corresponding source and build instructions for each GPLv3 release. Verify installation/launch on a clean Windows environment, runtime requirements, upgrade behaviour and library preservation, and document signing status and release notes. These are release-preparation items, not permission to publish releases automatically or commitments to an installer, CI provider, or release date.
 
 Done when: the chosen repository and license are in place and a tested Windows release has accurate download/setup instructions. Keep completed README work distinct from the still-unavailable downloads. Screenshots can be added from representative app states when preparing the public listing.
 

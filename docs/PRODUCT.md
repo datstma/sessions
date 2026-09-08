@@ -127,6 +127,8 @@ Correct Session execution semantics take priority over visual polish. The initia
 
 The core application must require no account. Local-first is the default, and the product should avoid unnecessary dependence on commercial services.
 
+Sessions is licensed under GNU GPL version 3 only (`GPL-3.0-only`), selected by the user on 2026-09-08. The repository's [LICENSE](../LICENSE) contains the full terms; third-party dependencies and assets retain their own licenses. Distributed builds must meet the license's corresponding-source requirements. The project does not include an “or any later version” grant.
+
 Prefer understandable code, documented behaviour, portable configurations, minimal proprietary dependencies, and clear extension points.
 
 Sessions should save configuration locally. Configuration should remain readable and portable so Sessions can eventually be exported, imported, shared, and stored in source control. These future uses do not require cloud sync or an online community.
