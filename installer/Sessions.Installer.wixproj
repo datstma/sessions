@@ -1,0 +1,21 @@
+<Project Sdk="WixToolset.Sdk/7.0.0">
+  <PropertyGroup>
+    <!-- Project owner authorized WiX 7 EULA acceptance on 2026-09-09. -->
+    <AcceptEula>wix7</AcceptEula>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <OutputName>Sessions-$(Version)-win-x64</OutputName>
+    <DefineConstants>$(DefineConstants);ReleaseVersion=$(Version);PublishDirectory=$(PublishDirectory)</DefineConstants>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- ICE91 warns about per-machine installs into user folders. This package
+         only supports per-user installs and explicitly rejects ALLUSERS. -->
+    <SuppressIces>ICE91</SuppressIces>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="WixToolset.Util.wixext" Version="7.0.0" />
+    <Compile Include="$(PayloadSource)" Condition="'$(PayloadSource)' != ''" />
+  </ItemGroup>
+  <Target Name="RequirePublishedPayload" BeforeTargets="PrepareForBuild">
+    <Error Condition="!Exists('$(PayloadSource)') Or !Exists('$(PublishDirectory)/Sessions.App.exe')"
+           Text="Build the installer through scripts/Build-Installer.ps1 to supply a fresh self-contained payload." />
+  </Target>
+</Project>

@@ -2,7 +2,104 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — end of day 2026-09-08
+## Resume next session — release preparation 2026-09-09
+
+The user explicitly requested **“update the documentation, commit and publish the
+release please.”** Publication of the unsigned 0.1.0 preview is authorized. The
+release commit includes packaging, public download instructions, and reader-facing
+release notes. Next steps for this checkpoint are to push the commit and `v0.1.0`,
+run the manual workflow, verify its exact assets, and publish the draft. Do not
+move a published tag or replace published binaries. Record the resulting release
+and workflow links here when complete.
+
+The dependency inventory and notice coverage were reviewed: published NuGet
+metadata/notices, bundled .NET notices, and the pinned supplemental notices cover
+the shipped dependencies and Inter font. The workflow also supplies the matching
+WiX 7 source archive because its native utility action is embedded in the MSI.
+The Sessions source archive comes from the same Git tag as the binary. This is a
+packaging/source review, not a legal opinion. Standard-user and installed real-app/
+UAC checks remain explicitly disclosed preview limits; they are not represented as
+passing checks. SESS-020 tracks publication; SESS-001 retains native validation work.
+
+The previous local installer evidence below applies to the pre-commit package.
+The release must be rebuilt from the tag and its downloaded assets verified.
+
+## Previous checkpoint — packaging follow-up 2026-09-09
+
+The user accepted the proposed shared-version, self-contained MSI, and on-demand
+GitHub draft-release workflow. Packaging files have been authored locally (not
+committed/pushed). Start version is 0.1.0; SDK is pinned to the installed 10.0.400.
+Read [RELEASING.md](RELEASING.md) and SESS-020 before continuing. The local unsigned
+MSI is `artifacts/releases/0.1.0/Sessions-0.1.0-win-x64.msi`, with a SHA-256 sidecar.
+No release has been published or remote workflow run.
+
+The user explicitly authorized WiX terms acceptance with **“you may”** after the
+terms question. `AcceptEula=wix7` is configured in the project; the previous WIX7015
+blocker is resolved. Do not ask for this acceptance again for the current setup.
+
+Compilation exposed two authoring issues, now fixed: file components with HKCU key
+paths need explicit GUIDs, and WiX 7 requires `override` when rescheduling the
+utility action. File component GUIDs are deterministic from a stable product,
+architecture, scope, and relative path namespace. ICE91 is the sole exclusion:
+Microsoft documents it as harmless for exclusively per-user installs, and this
+MSI explicitly rejects ALLUSERS. All other ICE checks and warnings-as-errors remain.
+Fresh per-build intermediate directories avoid a reproduced WiX stale-output issue
+when building a higher-version fixture from the same payload.
+
+Current validation: Debug and Release full-solution builds pass with zero
+warnings/errors; **23 Core + 58 regular App tests pass**, 20 opt-in native checks
+skipped. Release win-x64 self-contained publishing succeeds, as do notice
+collection and per-user payload generation. Initial notice collection exposed a
+missing optional NuGet projectUrl under strict mode; this is fixed. MSI compilation
+and configured ICE validation pass with zero warnings/errors. GitHub execution
+remains unverified. Reproduce packaging with
+`./scripts/Build-Installer.ps1` in PowerShell 7; `-SkipTests` is for local iteration
+after tests pass. Staging/output is ignored under `artifacts/`.
+
+Additional checks: all five PowerShell scripts parse; matching version tags pass
+and mismatched tags fail; the staged payload has unique definitions,
+existing sources, and HKCU component key paths. Published executable metadata is
+0.1.0.0 with the source commit in ProductVersion. Workflow YAML and manual-only,
+draft, and permission checks pass; all 69 local documentation links/anchors resolve.
+All 274 files extracted from the final MSI match their published sources by SHA-256;
+the MSI checksum matches its sidecar. The 273 shared file-component GUIDs remain
+identical across separate build directories. The final MSI is 59,389,757 bytes and
+unsigned; SHA-256 is `788e0a8b4a35639855af0e596b64d620eab3516fe9677e6b0fdae5e7d63ff655`.
+The real MSI sequence table confirms running-app detection/refusal at 1398/1399,
+before InstallValidate (1400), and RemoveExistingProducts at 1501, inside the
+transaction after InstallInitialize (1500). WiX's decompiler misleadingly rendered
+the latter as afterInstallFinalize; raw MSI table values are authoritative.
+
+Windows Sandbox verification now passes for the final MSI: fresh install, installed
+app window without a shared .NET runtime, shortcut creation, refusal of upgrade
+and uninstall while Sessions runs (1603 with the intended message, app remains
+running), normal app close, upgrade to a test-only 0.1.1 MSI, one per-user product
+registration, downgrade rejection, removed-file cleanup, uninstall/reinstall, and
+byte-for-byte library preservation. The higher-version fixture reuses the app
+payload from an earlier packaging build; it tests MSI replacement mechanics, not
+a separately released app version. The default Sandbox account was used; an
+ordinary nonadministrator account and installed real-app/UAC cleanup remain.
+
+Evidence is under ignored `artifacts/sandbox-msi/` (MSI logs, scripts, and final
+`results/result.json` with status passed). Harness corrections were needed for a
+two-minute timeout, IntPtr.Zero window polling, Select-String parameter binding,
+and using the Windows Installer API rather than assuming an HKCU Uninstall key.
+Those were test-harness errors, not app defects. Fresh MSI operations in the
+offline Sandbox took about 124 seconds; the cause is not established. The successful
+continuation used five-minute timeouts. No changes were made to the host's real
+Session library or installed apps. The disposable Sandbox was stopped after the
+successful checks.
+
+New evidence: published dependency metadata omits some upstream license files.
+Supplemental unmodified licenses/notices are checked into `installer/licenses/`
+with pinned provenance. The bundled Inter font identifies itself as
+`3.019;git-0a5106e0b` under SIL OFL 1.1. The collector inventories the published
+dependency manifest, copies available package notices, and includes .NET runtime
+notices separately. This supports release review, not a claim of a completed legal
+audit. The WiX 7 source license is also included because the MSI embeds its native
+utility action. The draft release notes retain final notice/source review checks.
+
+## Previous stopping point — end of day 2026-09-08
 
 The user confirmed the Start menu picker: **“it's working!”** Today's app features and end-of-day documentation were committed as `85c1db5`, the repository's first source checkpoint; README/GitHub setup followed in `93ea4a8`. The public repository is `datstma/sessions`, `origin` is `https://github.com/datstma/sessions.git`, and `main` tracks `origin/main`. The user then selected GPLv3: the project uses **GPL-3.0-only**, without an optional later-version grant. LICENSE contains the full text from SPDX's official license list; README and App/Core metadata declare it, and App build/publish outputs include LICENSE. Third-party dependencies retain their own licenses. No binary release has been published. Remaining release preparation is tracked in SESS-020; no next app feature has been selected. Generated `output/ui-review/` PNGs are ignored and can be regenerated; `output/session-ux-options.html` preserves the original three-option design comparison.
 

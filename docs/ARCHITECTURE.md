@@ -18,6 +18,38 @@ Start/End Session are implemented through `SessionRunner` in Core and `WindowsSe
 
 Sessions uses `GPL-3.0-only`; see [LICENSE](../LICENSE). App and Core declare the SPDX expression in project metadata. The App project copies the full license into build and publish output. Third-party license notices and corresponding source for each distributed build must be addressed during release preparation (SESS-020); a license file alone does not complete binary-release preparation.
 
+### Release packaging
+
+Windows releases use a self-contained `win-x64` publish and a separate WiX MSI
+project under `installer/`. `Directory.Build.props` supplies one numeric application
+and MSI version; `global.json` pins the build SDK. Packaging stays outside
+`Sessions.slnx` so normal application builds do not require installer tooling.
+The local script and manually dispatched GitHub workflow share the same build path.
+The workflow builds an existing matching version tag and creates an unpublished
+draft containing an MSI, matching Sessions and WiX source archives, and checksums. There is no
+automatic publication or in-app updater.
+
+Authored installation scope is per-user, with binaries in
+`%LOCALAPPDATA%\Programs\Sessions`, a Start menu shortcut, and a stable MSI upgrade
+identity. The library in `%LOCALAPPDATA%\Sessions` is outside installer ownership
+and must survive upgrades and uninstall. Running `Sessions.App.exe` blocks installer
+changes through a detection-only action; installer-driven close/termination and
+Restart Manager shutdown are disabled to preserve the application's confirmation
+and ownership behavior. Generated payload components use stable relative-path IDs
+and HKCU key paths for per-user MSI validation. File components have explicit
+deterministic GUIDs derived from a stable product/platform/scope/path namespace;
+WiX cannot automatically generate GUIDs for registry-keyed components containing
+files. Each packaging run uses independent intermediate outputs. ICE91 is excluded
+because it warns about user folders in per-machine packages; this MSI rejects
+`ALLUSERS`. All other ICE validation remains enabled.
+
+The user authorized WiX 7 EULA acceptance on 2026-09-09, recorded by the project's
+`AcceptEula=wix7` property. MSI compilation and the configured ICE checks pass.
+Release-readiness checks and remote GitHub workflow execution remain tracked
+separately from packaging compilation. See [RELEASING.md](RELEASING.md) for operational instructions
+and [BACKLOG.md](BACKLOG.md#sess-020--prepare-the-public-github-project-and-downloadable-releases)
+for outstanding release work.
+
 ### Technology and platform
 
 - C# and .NET 10.

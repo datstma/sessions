@@ -1,0 +1,42 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+  <!-- Keep this identity and the per-user scope stable across all releases. -->
+  <Package Name="Sessions" Manufacturer="Sessions contributors" Version="$(ReleaseVersion)"
+           UpgradeCode="86DBAE3B-9C84-4F13-B59B-23F0E7E231CC" Scope="perUser" Language="1033">
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Sessions is already installed."
+                  Schedule="afterInstallInitialize" />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+    <Property Id="ARPNOMODIFY" Value="1" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/datstma/sessions" />
+    <!-- Do not let Restart Manager close an active Session behind its confirmation UI. -->
+    <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable" />
+    <Launch Condition="NOT ALLUSERS" Message="Sessions installs for the current user only. Remove the ALLUSERS option and retry." />
+
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="ProgramsFolder" Name="Programs">
+        <Directory Id="INSTALLFOLDER" Name="Sessions" />
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Component Id="StartMenuShortcut" Guid="*">
+        <Shortcut Id="SessionsShortcut" Name="Sessions" Target="[INSTALLFOLDER]Sessions.App.exe"
+                  WorkingDirectory="INSTALLFOLDER" />
+        <RegistryValue Root="HKCU" Key="Software\Sessions\Installer" Name="StartMenuShortcut"
+                       Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+
+    <!-- Detection only: no close/end-session messages, termination, or reboot request. -->
+    <util:CloseApplication Id="DetectSessions" Target="Sessions.App.exe"
+                           CloseMessage="no" RebootPrompt="no" Property="SESSIONS_RUNNING" />
+    <CustomAction Id="RequireSessionsClosed" Error="Close Sessions before installing, upgrading, or uninstalling. End any active Session or explicitly leave its apps open, then close Sessions and retry." />
+    <InstallExecuteSequence>
+      <Custom Action="override Wix4CloseApplications_X64" Before="InstallValidate" />
+      <Custom Action="RequireSessionsClosed" After="Wix4CloseApplications_X64" Condition="SESSIONS_RUNNING" />
+    </InstallExecuteSequence>
+
+    <Feature Id="SessionsFeature" Title="Sessions" Level="1">
+      <ComponentGroupRef Id="PublishedFiles" />
+      <ComponentRef Id="StartMenuShortcut" />
+    </Feature>
+  </Package>
+</Wix>

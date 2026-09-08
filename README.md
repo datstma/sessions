@@ -52,9 +52,17 @@ If an app cannot be stopped or safely tracked, Sessions explains the problem and
 
 ## Downloads
 
-**Sessions is currently a development preview.** Packaged downloads are not available yet. The plan is to publish Windows builds through GitHub Releases so you can use Sessions without building it yourself.
+**Sessions 0.1.0 is a development preview.** Download the
+[Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.1.0/Sessions-0.1.0-win-x64.msi)
+from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.1.0).
+The installer includes .NET and installs for your Windows user, with a Start menu
+shortcut. Installer and application binaries are unsigned.
 
-For now, use the source instructions below. Installer format, signing, and the release process are still to be decided.
+Close Sessions before installing, updating, or uninstalling. Updates and uninstall
+preserve your saved Sessions. To update, download and run a newer MSI; there is no
+automatic updater. The release page includes checksums, source, and validation limits.
+
+See [Building and releasing Sessions](docs/RELEASING.md) for versioning and packaging.
 
 ### Current boundaries
 
@@ -68,7 +76,8 @@ For now, use the source instructions below. Installer format, signing, and the r
 
 ## Build from source
 
-Use Windows with the **.NET 10 SDK** installed. Rider is optional; the command line is enough.
+Use Windows with **.NET SDK 10.0.400**, pinned in [global.json](global.json).
+Rider is optional; the command line is enough.
 
 Clone the repository and run these commands:
 
@@ -92,7 +101,7 @@ dotnet test tests/Sessions.Core.Tests/Sessions.Core.Tests.csproj
 dotnet test tests/Sessions.App.Tests/Sessions.App.Tests.csproj
 ```
 
-Core tests cover execution, ownership, ordering, persistence, and failure handling. App tests cover interaction and rendered UI. Native Windows checks are opt-in; see the [verification instructions](docs/DEVELOPMENT_NOTES.md#resume-next-session--end-of-day-2026-09-08) for enabling them.
+Core tests cover execution, ownership, ordering, persistence, and failure handling. App tests cover interaction and rendered UI. Native Windows checks are opt-in; see the [verification instructions](docs/DEVELOPMENT_NOTES.md#previous-stopping-point--end-of-day-2026-09-08) for enabling them.
 
 ### Where your Sessions live
 

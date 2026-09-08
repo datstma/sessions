@@ -213,10 +213,10 @@ User confirmation at the end of the day: “it's working!” The Start menu pick
 
 ## SESS-020 — Prepare the public GitHub project and downloadable releases
 
-**P1 · Open · README, GitHub, and GPLv3 setup complete; releases pending · 2026-09-08**  
+**P1 · Open · Publication authorized; release build pending · 2026-09-09**
 Source: user wants a proper GitHub repository, starting with a clever public-facing README, and is considering public distribution with downloadable releases eventually.
 
-Implemented: root README explains the app, examples, setup flow, ownership and full-stop behaviour, preview limitations, local storage, source build/test commands, and links to project documentation. Downloads are explicitly future work; no invented repository URL, release badge, license grant, or supported installer is advertised.
+Implemented: root README explains the app, examples, setup flow, ownership and full-stop behaviour, preview limitations, local storage, source build/test commands, and links to project documentation. It now includes the 0.1.0 preview download and setup instructions.
 
 README validation: full solution build has zero warnings/errors, all 23 Core tests pass, and all 52 local documentation links and anchors resolve. App code is unchanged; the earlier 78 App checks remain the latest App test result.
 
@@ -226,9 +226,19 @@ License: the user selected GPLv3. The project uses GPL-3.0-only; the unmodified 
 
 Licensing validation: clean build and local Debug publish; output LICENSE hashes match the root file. 23 Core and 58 regular App tests pass (20 opt-in native checks skipped); 55 local links/anchors resolve. This does not establish dependency-license compatibility or readiness of a public binary release; those checks remain below.
 
-Remaining: decide the first release version and packaging approach. Before offering binaries, review the actual shipped dependencies/assets and include their required license notices; provide matching corresponding source and build instructions for each GPLv3 release. Verify installation/launch on a clean Windows environment, runtime requirements, upgrade behaviour and library preservation, and document signing status and release notes. These are release-preparation items, not permission to publish releases automatically or commitments to an installer, CI provider, or release date.
+Accepted on 2026-09-09: start at 0.1.0 with a shared numeric version, per-user self-contained Windows x64 MSI, local packaging script, and manually triggered GitHub Actions workflow that creates a draft from a matching version tag. Normal pushes/tags do not publish releases. Source archive, checksums, release notes, and notice collection are included. Details and validation requirements are in [RELEASING.md](RELEASING.md).
 
-Done when: the chosen repository and license are in place and a tested Windows release has accurate download/setup instructions. Keep completed README work distinct from the still-unavailable downloads. Screenshots can be added from representative app states when preparing the public listing.
+Implemented configuration: shared version and pinned SDK, separate WiX 7 project, fresh publish/intermediate staging, per-user payload generation with HKCU key paths and deterministic component GUIDs, detection-only running-app refusal, and draft-release workflow. NuGet/runtime notices and pinned supplemental Avalonia/Inter/MicroCom/Tmds/WiX notices are collected. The user explicitly authorized WiX 7 terms acceptance; `AcceptEula=wix7` resolves WIX7015. The local unsigned 0.1.0 MSI and checksum are produced under `artifacts/releases/0.1.0/`; no public release has been published.
+
+Validation on 2026-09-09: full Debug and Release solution builds succeed with zero warnings/errors; 23 Core and 58 regular App tests pass (20 opt-in native checks skipped). Self-contained Release publishing, notice collection, payload generation, MSI compilation, and configured ICE validation pass. ICE91 is the only exclusion, documented for exclusively per-user installs; ALLUSERS is rejected. Raw MSI tables confirm the running-app check precedes changes and old-version removal is inside the install transaction. Remote GitHub workflow execution is not yet verified.
+
+Installer evidence: the final MSI's 274 extracted files match the publish payload and its SHA-256 sidecar verifies. Windows Sandbox passes install and installed app launch without shared .NET, running-app refusal, per-user registration, upgrade to a test-only 0.1.1 fixture with one remaining product, removed-file cleanup, downgrade rejection, uninstall/reinstall, and byte-for-byte library preservation. All 69 local links/anchors and workflow YAML/permission checks pass. The default Sandbox account was used, and real-app/UAC cleanup was not tested. Offline fresh MSI operations took about two minutes; the cause is not established.
+
+Publication authorized on 2026-09-09: the user explicitly requested documentation, commit, and release publication. Dependency/asset inventory and notice coverage have been reviewed; the workflow provides matching Sessions source/build materials and WiX utility-action source. Reader-facing release notes disclose unsigned binaries, the default Sandbox account, and the remaining ordinary nonadministrator and installed real-app/UAC checks. Keep automated fixture coverage distinct from hands-on real-app/UAC verification (SESS-001).
+
+Remaining for publication: push the release commit/tag, run the GitHub draft workflow, verify the exact downloaded assets, and publish the preview.
+
+Done when: the chosen repository and license are in place and a tested Windows preview has accurate download/setup instructions and disclosed validation limits. Screenshots can be added from representative app states when preparing the public listing.
 
 ## Completed baseline
 

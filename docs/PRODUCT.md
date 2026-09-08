@@ -4,6 +4,17 @@ This document is the source of truth for product intent, user-visible behaviour,
 
 See [DEVELOPMENT_NOTES.md](DEVELOPMENT_NOTES.md) for design rationale and findings, and [BACKLOG.md](BACKLOG.md) for outstanding work. Those records do not override the scope in this document.
 
+## Distribution
+
+The accepted Windows distribution direction is occasional self-contained x64 MSI
+releases on GitHub. Installations are per-user, include the .NET runtime, and add a
+Start menu shortcut. Upgrades and uninstall preserve saved Sessions. Users install
+a newer MSI to update; an automatic updater is outside the implemented scope.
+Installer changes require Sessions to be closed through its normal confirmation
+flow. Version 0.1.0 is the first unsigned development preview, distributed through
+[GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.1.0).
+See [RELEASING.md](RELEASING.md) for the build and release process and validation limits.
+
 ## Vision
 
 **Sessions** is an open-source desktop application for creating, launching, managing, and ending reusable computer sessions.
