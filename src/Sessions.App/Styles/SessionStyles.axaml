@@ -1,0 +1,77 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Styles.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="SessionBackground">#FAFBFA</SolidColorBrush>
+                    <SolidColorBrush x:Key="SessionSidebar">#F0F3F0</SolidColorBrush>
+                    <SolidColorBrush x:Key="SessionSurface">#FFFFFF</SolidColorBrush>
+                    <SolidColorBrush x:Key="SessionForeground">#202B25</SolidColorBrush>
+                    <SolidColorBrush x:Key="SessionMuted">#58665E</SolidColorBrush>
+                    <SolidColorBrush x:Key="SessionBorder">#DDE4DE</SolidColorBrush>
+                    <SolidColorBrush x:Key="SessionAccent">#276C4D</SolidColorBrush>
+                    <SolidColorBrush x:Key="SessionAccentText">#FFFFFF</SolidColorBrush>
+                    <SolidColorBrush x:Key="SessionSelection">#DCEDE2</SolidColorBrush>
+                    <SolidColorBrush x:Key="SessionError">#9C352A</SolidColorBrush>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="SessionBackground">#202522</SolidColorBrush>
+                    <SolidColorBrush x:Key="SessionSidebar">#191E1B</SolidColorBrush>
+                    <SolidColorBrush x:Key="SessionSurface">#282F2A</SolidColorBrush>
+                    <SolidColorBrush x:Key="SessionForeground">#EDF3ED</SolidColorBrush>
+                    <SolidColorBrush x:Key="SessionMuted">#ADBBAF</SolidColorBrush>
+                    <SolidColorBrush x:Key="SessionBorder">#39443C</SolidColorBrush>
+                    <SolidColorBrush x:Key="SessionAccent">#9CDBB4</SolidColorBrush>
+                    <SolidColorBrush x:Key="SessionAccentText">#183224</SolidColorBrush>
+                    <SolidColorBrush x:Key="SessionSelection">#304C3A</SolidColorBrush>
+                    <SolidColorBrush x:Key="SessionError">#FFB4A8</SolidColorBrush>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Styles.Resources>
+    <Style Selector="Window">
+        <Setter Property="FontFamily" Value="avares://Avalonia.Fonts.Inter/Assets#Inter" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Background" Value="{DynamicResource SessionBackground}" />
+        <Setter Property="Foreground" Value="{DynamicResource SessionForeground}" />
+    </Style>
+    <Style Selector="TextBlock"><Setter Property="Foreground" Value="{DynamicResource SessionForeground}" /></Style>
+    <Style Selector="TextBlock.muted"><Setter Property="Foreground" Value="{DynamicResource SessionMuted}" /></Style>
+    <Style Selector="TextBlock.eyebrow">
+        <Setter Property="Foreground" Value="{DynamicResource SessionMuted}" />
+        <Setter Property="FontSize" Value="11" /><Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="LetterSpacing" Value="1.5" />
+    </Style>
+    <Style Selector="TextBlock.section"><Setter Property="FontSize" Value="17" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+    <Style Selector="Button">
+        <Setter Property="MinHeight" Value="38" /><Setter Property="Padding" Value="16,9" /><Setter Property="CornerRadius" Value="7" />
+    </Style>
+    <Style Selector="Button.primary">
+        <Setter Property="Background" Value="{DynamicResource SessionAccent}" />
+        <Setter Property="Foreground" Value="{DynamicResource SessionAccentText}" />
+        <Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Padding" Value="22,12" />
+    </Style>
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SessionAccent}" />
+        <Setter Property="Foreground" Value="{DynamicResource SessionAccentText}" /><Setter Property="Opacity" Value="0.86" />
+    </Style>
+    <Style Selector="Button.quiet">
+        <Setter Property="Background" Value="Transparent" /><Setter Property="BorderBrush" Value="{DynamicResource SessionBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="TextBox">
+        <Setter Property="MinHeight" Value="40" /><Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Background" Value="{DynamicResource SessionSurface}" />
+    </Style>
+    <Style Selector="ListBox.sessions"><Setter Property="Background" Value="Transparent" /></Style>
+    <Style Selector="ListBox.sessions ListBoxItem">
+        <Setter Property="Padding" Value="12,11" /><Setter Property="Margin" Value="0,0,0,4" /><Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="ListBox.sessions ListBoxItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SessionSelection}" />
+    </Style>
+    <Style Selector="Border.surface">
+        <Setter Property="Background" Value="{DynamicResource SessionSurface}" /><Setter Property="BorderBrush" Value="{DynamicResource SessionBorder}" />
+        <Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="10" />
+    </Style>
+</Styles>

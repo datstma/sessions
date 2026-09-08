@@ -1,0 +1,265 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Sessions.App.ViewModels"
+        xmlns:views="using:Sessions.App.Views"
+        x:Class="Sessions.App.Views.MainWindow" x:DataType="vm:MainViewModel" x:CompileBindings="True"
+        Width="1120" Height="800" MinWidth="860" MinHeight="620"
+        WindowStartupLocation="CenterScreen" Title="Sessions">
+    <Grid>
+    <Grid RowDefinitions="72,*,Auto" IsEnabled="{Binding IsMainContentEnabled}">
+        <Border BorderBrush="{DynamicResource SessionBorder}" BorderThickness="0,0,0,1" Padding="28,0">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <Border Width="30" Height="30" CornerRadius="8" Background="{DynamicResource SessionAccent}">
+                        <Path Data="M 8,8 L 16,8 L 16,16 L 8,16 Z M 14,14 L 22,14 L 22,22 L 14,22 Z"
+                              Stroke="{DynamicResource SessionAccentText}" StrokeThickness="1.8" />
+                    </Border>
+                    <TextBlock Text="Sessions" FontSize="19" FontWeight="SemiBold" VerticalAlignment="Center" />
+                </StackPanel>
+                <TextBlock Grid.Column="2" Text="On this computer" Classes="muted" FontSize="12" VerticalAlignment="Center" />
+            </Grid>
+        </Border>
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
+            <Border Width="236" IsVisible="{Binding HasSessions}" Background="{DynamicResource SessionSidebar}"
+                    BorderBrush="{DynamicResource SessionBorder}" BorderThickness="0,0,1,0">
+                <Grid RowDefinitions="Auto,*,Auto" Margin="16,28,16,20">
+                    <StackPanel Spacing="16" Margin="4,0,4,20">
+                        <TextBlock Text="YOUR SESSIONS" Classes="eyebrow" />
+                        <Button Content="+  New Session" Classes="quiet" HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left" Command="{Binding NewSessionCommand}" />
+                    </StackPanel>
+                    <ListBox Grid.Row="1" x:Name="SessionList" Classes="sessions" ItemsSource="{Binding Sessions}"
+                             SelectedItem="{Binding SelectedSession}" IsEnabled="{Binding CanBrowse}"
+                             AutomationProperties.Name="Your Sessions">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:SessionViewModel">
+                                <Grid ColumnDefinitions="36,*">
+                                    <Border Width="30" Height="32" Background="{DynamicResource SessionSurface}" CornerRadius="7">
+                                        <TextBlock Text="{Binding Initial}" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="SemiBold" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Spacing="3" Margin="7,0,0,0">
+                                        <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" FontWeight="Medium" />
+                                        <TextBlock Text="{Binding AppCount}" Classes="muted" FontSize="11" />
+                                        <TextBlock Text="● Active" IsVisible="{Binding IsActive}" Foreground="{DynamicResource SessionAccent}" FontSize="11" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <TextBlock Grid.Row="2" Text="{Binding LibraryCount}" Classes="muted" FontSize="12" Margin="12,20,0,0" />
+                </Grid>
+            </Border>
+            <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*">
+                <Border IsVisible="{Binding HasError}" Margin="28,20,28,0" Classes="surface" Padding="16">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" />
+                        <Button Content="Try loading again" Command="{Binding LoadCommand}" IsVisible="{Binding CanRetryLoad}" />
+                    </StackPanel>
+                </Border>
+                <Border Grid.Row="1" IsVisible="{Binding HasRuntime}" Margin="28,16,28,0" Classes="surface" Padding="16">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{Binding RuntimeTitle}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding Runtime.Message}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                        <WrapPanel Orientation="Horizontal">
+                            <Button x:Name="EndSessionButton" Content="{Binding EndLabel}" Command="{Binding EndSessionCommand}" IsVisible="{Binding HasActiveRun}" Classes="quiet" Margin="0,0,8,6" />
+                            <Button Content="View active Session" Command="{Binding ViewActiveSessionCommand}" IsVisible="{Binding ShowActiveNavigation}" Classes="quiet" Margin="0,0,8,6" />
+                            <Button Content="Finish and leave apps open" Command="{Binding FinishSessionCommand}" IsVisible="{Binding NeedsCleanup}" Classes="quiet" Margin="0,0,0,6" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+                <Grid Grid.Row="2">
+                    <StackPanel IsVisible="{Binding ShowLoading}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                        <ProgressBar IsIndeterminate="True" Width="180" />
+                        <TextBlock Text="Loading your Sessions…" Classes="muted" />
+                    </StackPanel>
+                    <ScrollViewer IsVisible="{Binding IsEmpty}" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel MaxWidth="640" Margin="44,70,44,44" Spacing="24">
+                            <Border Width="66" Height="66" CornerRadius="18" Background="{DynamicResource SessionSelection}" HorizontalAlignment="Left">
+                                <Path Data="M 18,18 L 36,18 L 36,36 L 18,36 Z M 30,30 L 48,30 L 48,48 L 30,48 Z"
+                                      Stroke="{DynamicResource SessionAccent}" StrokeThickness="2.4" />
+                            </Border>
+                            <StackPanel Spacing="14">
+                                <TextBlock Text="What are you getting ready for?" FontSize="36" FontWeight="SemiBold" TextWrapping="Wrap" LineHeight="44" />
+                                <TextBlock Text="Work, gaming, or a little time to create. Bring the apps you need together in a Session, ready when you are."
+                                           Classes="muted" FontSize="16" TextWrapping="Wrap" LineHeight="26" />
+                            </StackPanel>
+                            <Button x:Name="CreateFirstButton" Content="+  Create your first Session" Classes="primary" Command="{Binding NewSessionCommand}" />
+                            <Border Height="1" Background="{DynamicResource SessionBorder}" Margin="0,16,0,0" />
+                            <Grid ColumnDefinitions="*,*,*" Margin="0,4,0,0">
+                                <StackPanel Spacing="7" Margin="0,0,16,0"><TextBlock Text="01  Make it yours" FontWeight="Medium" /><TextBlock Text="Name your context." Classes="muted" FontSize="12" TextWrapping="Wrap" /></StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="7" Margin="0,0,16,0"><TextBlock Text="02  Add your apps" FontWeight="Medium" /><TextBlock Text="Set what opens, and when." Classes="muted" FontSize="12" TextWrapping="Wrap" /></StackPanel>
+                                <StackPanel Grid.Column="2" Spacing="7"><TextBlock Text="03  Settle in" FontWeight="Medium" /><TextBlock Text="Your context is ready to go." Classes="muted" FontSize="12" TextWrapping="Wrap" /></StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </ScrollViewer>
+                    <Grid IsVisible="{Binding ShowDetails}">
+                        <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel DataContext="{Binding SelectedSession}" x:DataType="vm:SessionViewModel"
+                                        Spacing="30" Margin="44,38,44,36" MaxWidth="800">
+                                <StackPanel Spacing="12">
+                                    <TextBlock Text="YOUR SESSION" Classes="eyebrow" />
+                                    <TextBlock Text="{Binding Name}" FontSize="34" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding Description}" Classes="muted" FontSize="15" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel Spacing="12" IsVisible="{Binding $parent[Window].((vm:MainViewModel)DataContext).ShowStart}">
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <Button Content="Start Session" Classes="primary"
+                                                IsVisible="{Binding $parent[Window].((vm:MainViewModel)DataContext).ShowStart}"
+                                                Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).StartSessionCommand}" />
+                                        <Button Content="Edit Session" Classes="quiet"
+                                                Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).EditSessionCommand}" />
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding $parent[Window].((vm:MainViewModel)DataContext).StartHint}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel Spacing="16">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Text="Apps in this Session" Classes="section" />
+                                        <TextBlock Grid.Column="1" Text="{Binding AppCount}" Classes="muted" VerticalAlignment="Center" />
+                                    </Grid>
+                                    <Border Classes="surface" Padding="8,0" IsVisible="{Binding HasApps}">
+                                        <ItemsControl ItemsSource="{Binding Apps}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:SessionAppRow">
+                                                    <Grid ColumnDefinitions="36,*,Auto" RowDefinitions="Auto,Auto" Margin="12,12">
+                                                        <TextBlock Text="{Binding Order}" Classes="muted" VerticalAlignment="Center" />
+                                                        <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center" Margin="0,0,12,0">
+                                                            <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" FontWeight="Medium" ToolTip.Tip="{Binding ExecutablePath}" />
+                                                            <TextBlock Text="{Binding Role}" Classes="muted" FontSize="12" />
+                                                            <TextBlock Text="{Binding RunMessage}" IsVisible="{Binding HasRunMessage}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                                                        </StackPanel>
+                                                        <Button Grid.Column="2" Classes="quiet" Command="{Binding FocusCommand}" MinHeight="40" IsVisible="{Binding HasWindow}"
+                                                                Padding="10,8" VerticalAlignment="Center" FontSize="12"
+                                                                ToolTip.Tip="{Binding StatusHint}" AutomationProperties.Name="{Binding StatusHint}">
+                                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                                <Ellipse Width="8" Height="8" Fill="{DynamicResource SessionAccent}" IsVisible="{Binding IsRunning}" />
+                                                                <Ellipse Width="8" Height="8" Fill="{DynamicResource SessionMuted}" IsVisible="{Binding !IsRunning}" />
+                                                                <TextBlock Text="{Binding StatusLabel}" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Button>
+                                                        <Button Grid.Column="2" Classes="quiet" Command="{Binding LaunchCommand}" MinHeight="40" IsVisible="{Binding HasLaunchAction}"
+                                                                Padding="10,8" VerticalAlignment="Center" FontSize="12"
+                                                                ToolTip.Tip="{Binding StatusHint}" AutomationProperties.Name="{Binding StatusHint}">
+                                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                                <TextBlock Text="▶" Classes="muted" FontSize="10" VerticalAlignment="Center" />
+                                                                <TextBlock Text="{Binding StatusLabel}" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Button>
+                                                        <Border Grid.Column="2" IsVisible="{Binding HasPassiveStatus}" Padding="10,8" MinHeight="40"
+                                                                VerticalAlignment="Center" ToolTip.Tip="{Binding StatusHint}" AutomationProperties.Name="{Binding StatusHint}">
+                                                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                                <Ellipse Width="8" Height="8" Fill="{DynamicResource SessionAccent}" IsVisible="{Binding IsRunning}" />
+                                                                <Ellipse Width="8" Height="8" Fill="{DynamicResource SessionMuted}" IsVisible="{Binding !IsRunning}" />
+                                                                <TextBlock Text="{Binding StatusLabel}" Classes="muted" FontSize="12" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                        <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding FocusMessage}"
+                                                                   IsVisible="{Binding HasFocusMessage}" Foreground="{DynamicResource SessionError}"
+                                                                   TextWrapping="Wrap" FontSize="12" Margin="0,8,0,0" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </Border>
+                                    <Border Classes="surface" Padding="22" IsVisible="{Binding !HasApps}">
+                                        <TextBlock Text="No apps added yet. Edit this Session to choose what opens." Classes="muted" TextWrapping="Wrap" />
+                                    </Border>
+                                    <TextBlock Text="{Binding $parent[Window].((vm:MainViewModel)DataContext).AppInteractionHint}" Classes="muted" FontSize="12"
+                                               TextWrapping="Wrap" IsVisible="{Binding HasApps}" />
+                                </StackPanel>
+                                <StackPanel Spacing="14">
+                                    <TextBlock Text="When you're finished" Classes="section" />
+                                    <TextBlock Text="{Binding EndSummary}" TextWrapping="Wrap" />
+                                    <TextBlock Text="Save your work before confirming End Session. Apps opened by this Session will close, then force quit if needed. Apps already open stay open."
+                                               Classes="muted" TextWrapping="Wrap" LineHeight="22" />
+                                </StackPanel>
+                                <Button x:Name="DeleteSessionButton" Content="Delete Session…" Classes="quiet"
+                                        Foreground="{DynamicResource SessionError}"
+                                        Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).RequestDeleteSessionCommand}" />
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                    <Grid IsVisible="{Binding IsEditing}" RowDefinitions="*,Auto">
+                        <ScrollViewer HorizontalScrollBarVisibility="Disabled" IsEnabled="{Binding !IsBusy}">
+                            <views:SessionEditorView DataContext="{Binding Editor}" Margin="40,30,40,24" MaxWidth="800" />
+                        </ScrollViewer>
+                        <Border Grid.Row="1" BorderBrush="{DynamicResource SessionBorder}" BorderThickness="0,1,0,0" Padding="40,18">
+                            <Grid ColumnDefinitions="*,Auto,Auto">
+                                <TextBlock Text="Nothing opens until you start." Classes="muted" FontSize="12" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,16,0" />
+                                <Button Grid.Column="1" Content="Cancel" Command="{Binding CancelEditCommand}" Classes="quiet" Margin="0,0,12,0" />
+                                <Button Grid.Column="2" Content="{Binding Editor.SaveLabel}" Command="{Binding SaveSessionCommand}" Classes="primary" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Grid>
+        <Border Grid.Row="2" BorderBrush="{DynamicResource SessionBorder}" BorderThickness="0,1,0,0" Padding="28,11">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="Saved locally. Always yours." Classes="muted" FontSize="11" />
+                <TextBlock Grid.Column="1" Text="Local workspace" Classes="muted" FontSize="11" />
+            </Grid>
+        </Border>
+    </Grid>
+    <Border IsVisible="{Binding IsEndConfirmation}" Background="#88000000">
+        <Border Classes="surface" MaxWidth="520" MaxHeight="520" Margin="32" Padding="28" HorizontalAlignment="Center" VerticalAlignment="Center"
+                KeyboardNavigation.TabNavigation="Cycle" AutomationProperties.Name="{Binding EndConfirmationTitle}">
+            <Border.KeyBindings><KeyBinding Gesture="Escape" Command="{Binding CancelEndSessionCommand}" /></Border.KeyBindings>
+            <Grid RowDefinitions="*,Auto">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Spacing="14">
+                        <TextBlock Text="{Binding EndConfirmationTitle}" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" />
+                        <TextBlock Text="Save your work before continuing." FontWeight="SemiBold" TextWrapping="Wrap" />
+                        <TextBlock Text="Sessions will ask its apps to close, then force quit any that stay running. Unsaved changes may be lost." TextWrapping="Wrap" />
+                        <ItemsControl ItemsSource="{Binding AppsToStop}">
+                            <ItemsControl.ItemTemplate><DataTemplate x:DataType="x:String"><TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,3" /></DataTemplate></ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="Apps still opening for this Session will also stop. Apps that were already open stay open." Classes="muted" TextWrapping="Wrap" />
+                    </StackPanel>
+                </ScrollViewer>
+                <WrapPanel Grid.Row="1" HorizontalAlignment="Right" Margin="0,22,0,0">
+                    <Button x:Name="CancelEndButton" Content="Cancel" Classes="quiet" IsDefault="True" Command="{Binding CancelEndSessionCommand}" Margin="0,0,10,8" />
+                    <Button x:Name="ConfirmEndButton" Content="Stop apps and end Session" Classes="primary" Command="{Binding ConfirmEndSessionCommand}" Margin="0,0,0,8" />
+                </WrapPanel>
+            </Grid>
+        </Border>
+    </Border>
+    <Border IsVisible="{Binding IsCloseConfirmation}" Background="#88000000">
+        <Border Classes="surface" MaxWidth="500" Margin="32" Padding="28" HorizontalAlignment="Center" VerticalAlignment="Center"
+                KeyboardNavigation.TabNavigation="Cycle" AutomationProperties.Name="Close Sessions">
+            <Border.KeyBindings><KeyBinding Gesture="Escape" Command="{Binding CancelCloseCommand}" /></Border.KeyBindings>
+            <StackPanel Spacing="16">
+                <TextBlock Text="A Session is still active" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" />
+                <TextBlock Text="Save your work before ending. Apps opened by this Session will close, then force quit if needed. Unsaved changes may be lost. Apps already open stay open." TextWrapping="Wrap" />
+                <Button x:Name="KeepSessionsOpenButton" Content="Keep Sessions open" Command="{Binding CancelCloseCommand}" IsDefault="True" Classes="quiet" />
+                <Button Content="End Session and close" Command="{Binding EndAndCloseCommand}" Classes="primary" />
+                <Button Content="Leave apps open and close" Command="{Binding LeaveAppsAndCloseCommand}" Classes="quiet" />
+            </StackPanel>
+        </Border>
+    </Border>
+    <Border IsVisible="{Binding IsConfirmingDelete}" Background="#88000000">
+        <Border Classes="surface" MaxWidth="480" Margin="32" Padding="28" HorizontalAlignment="Center" VerticalAlignment="Center"
+                KeyboardNavigation.TabNavigation="Cycle" AutomationProperties.Name="{Binding DeleteTitle}">
+            <Border.KeyBindings>
+                <KeyBinding Gesture="Escape" Command="{Binding CancelDeleteSessionCommand}" />
+            </Border.KeyBindings>
+            <Grid RowDefinitions="*,Auto">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled" Focusable="False">
+            <StackPanel Spacing="18">
+                <TextBlock Text="{Binding DeleteTitle}" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" />
+                <TextBlock Text="This removes the saved Session and its app settings. This can't be undone." TextWrapping="Wrap" />
+                <TextBlock Text="Your installed apps, files, and running apps will stay as they are." Classes="muted" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding DeleteErrorMessage}" IsVisible="{Binding HasDeleteError}"
+                           Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" />
+            </StackPanel>
+            </ScrollViewer>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" Margin="0,24,0,0">
+                    <Button x:Name="CancelDeleteButton" Content="Cancel" Classes="quiet" IsDefault="True"
+                            Command="{Binding CancelDeleteSessionCommand}" />
+                    <Button x:Name="ConfirmDeleteButton" Content="{Binding DeleteButtonLabel}" Classes="quiet"
+                            Foreground="{DynamicResource SessionError}" Command="{Binding ConfirmDeleteSessionCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Border>
+    </Grid>
+</Window>

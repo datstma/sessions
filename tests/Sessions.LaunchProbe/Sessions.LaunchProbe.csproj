@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Sessions.Core/Sessions.Core.csproj" />
+    <!-- Exercise the production adapter without starting Avalonia or loading a user library. -->
+    <Compile Include="../../src/Sessions.App/Services/WindowsProcessStarter.cs" Link="WindowsProcessStarter.cs" />
+    <Compile Include="../../src/Sessions.App/Services/IIndividualAppLauncher.cs" Link="IIndividualAppLauncher.cs" />
+    <Compile Include="../../src/Sessions.App/Services/IAppPresenceService.cs" Link="IAppPresenceService.cs" />
+    <Compile Include="../../src/Sessions.App/Services/SingleInstanceGuard.cs" Link="SingleInstanceGuard.cs" />
+  </ItemGroup>
+</Project>

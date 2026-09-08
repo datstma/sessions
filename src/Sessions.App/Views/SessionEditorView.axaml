@@ -1,0 +1,76 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Sessions.App.ViewModels" x:Class="Sessions.App.Views.SessionEditorView"
+             x:DataType="vm:SessionEditorViewModel" x:CompileBindings="True">
+    <StackPanel Spacing="26">
+        <StackPanel Spacing="8">
+            <TextBlock Text="{Binding Title}" FontSize="28" FontWeight="SemiBold" />
+            <TextBlock Text="A few choices now. A familiar place to return to." Classes="muted" TextWrapping="Wrap" />
+        </StackPanel>
+        <StackPanel Spacing="8">
+            <TextBlock Text="Name" FontWeight="Medium" />
+            <TextBox x:Name="SessionName" Text="{Binding Name}" PlaceholderText="e.g. Work, Flight sim, or Development" MaxLength="120" AutomationProperties.Name="Session name" />
+            <Expander Header="Description (optional)" HorizontalAlignment="Stretch" Padding="0">
+                <TextBox Text="{Binding Description}" PlaceholderText="What is this Session for?" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70" MaxLength="500" AutomationProperties.Name="Session description" />
+            </Expander>
+        </StackPanel>
+        <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Apps to open" Classes="section" />
+                    <TextBlock Text="They open in the order shown." Classes="muted" FontSize="12" />
+                </StackPanel>
+                <Button x:Name="AddAppsButton" Grid.Column="1" Content="+  Add app" Classes="quiet" Click="AddAppClicked" />
+            </Grid>
+            <Border Classes="surface" Padding="20" IsVisible="{Binding !HasApps}">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Start with the apps you reach for." FontWeight="Medium" />
+                    <TextBlock Text="Find apps in your Start menu, choose running apps, or browse for a file. You can add more later." Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+            <ListBox ItemsSource="{Binding Apps}" SelectedItem="{Binding SelectedApp}" IsVisible="{Binding HasApps}" MaxHeight="190"
+                     Classes="sessions" AutomationProperties.Name="Apps in opening order">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:AppEditorViewModel">
+                        <Grid ColumnDefinitions="32,*">
+                            <TextBlock Text="{Binding Order}" Classes="muted" VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Spacing="3">
+                                <TextBlock Text="{Binding Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding ExecutablePath}" Classes="muted" FontSize="11" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <WrapPanel IsVisible="{Binding HasApps}">
+                <Button Content="Move up" Classes="quiet" Command="{Binding MoveUpCommand}" Margin="0,0,8,6" />
+                <Button Content="Move down" Classes="quiet" Command="{Binding MoveDownCommand}" Margin="0,0,8,6" />
+                <Button Content="Remove" Classes="quiet" Command="{Binding RemoveAppCommand}" Margin="0,0,0,6" />
+            </WrapPanel>
+            <Expander Header="App options" IsVisible="{Binding HasSelectedApp}" HorizontalAlignment="Stretch">
+                <StackPanel DataContext="{Binding SelectedApp}" x:DataType="vm:AppEditorViewModel" Spacing="12">
+                    <StackPanel Spacing="6"><TextBlock Text="Display name" /><TextBox Text="{Binding Name}" MaxLength="120" AutomationProperties.Name="App display name" /></StackPanel>
+                    <StackPanel Spacing="6"><TextBlock Text="Executable" /><TextBox Text="{Binding ExecutablePath}" AutomationProperties.Name="App executable path" /></StackPanel>
+                    <StackPanel Spacing="6"><TextBlock Text="Arguments (optional)" /><TextBox Text="{Binding Arguments}" AutomationProperties.Name="App arguments" /></StackPanel>
+                    <StackPanel Spacing="6"><TextBlock Text="Working directory (optional)" /><TextBox Text="{Binding WorkingDirectory}" AutomationProperties.Name="App working directory" /></StackPanel>
+                    <StackPanel Spacing="4">
+                        <CheckBox Content="Run as administrator" IsChecked="{Binding RunAsAdministrator}" />
+                        <TextBlock Text="Windows asks for approval when opening this app. Useful for apps that otherwise restart to elevate." Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                    </StackPanel>
+                </StackPanel>
+            </Expander>
+        </StackPanel>
+        <StackPanel Spacing="10">
+            <TextBlock Text="When does it end?" Classes="section" />
+            <TextBlock Text="By default, your Session stays active until you press End Session." Classes="muted" TextWrapping="Wrap" />
+            <CheckBox Content="Ask to end when an app closes" IsChecked="{Binding EndWithApp}" />
+            <ComboBox ItemsSource="{Binding Apps}" SelectedItem="{Binding MainApp}" IsVisible="{Binding EndWithApp}"
+                      PlaceholderText="Choose an app" HorizontalAlignment="Stretch" AutomationProperties.Name="App that ends the Session">
+                <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:AppEditorViewModel"><TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" /></DataTemplate></ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Text="{Binding ValidationMessage}" IsVisible="{Binding HasValidationMessage}" Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" />
+        </StackPanel>
+        <Border BorderBrush="{DynamicResource SessionBorder}" BorderThickness="0,1,0,0" Padding="0,18,0,0">
+            <TextBlock Text="Ending asks you to save your work, then stops apps opened by this Session. Apps already open stay open." Classes="muted" FontSize="12" TextWrapping="Wrap" />
+        </Border>
+    </StackPanel>
+</UserControl>

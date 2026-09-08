@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Sessions.App/Sessions.App.csproj" />
+    <Project Path="src/Sessions.Core/Sessions.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Sessions.App.Tests/Sessions.App.Tests.csproj" />
+    <Project Path="tests/Sessions.Core.Tests/Sessions.Core.Tests.csproj" />
+    <Project Path="tests/Sessions.LaunchProbe/Sessions.LaunchProbe.csproj" />
+  </Folder>
+</Solution>

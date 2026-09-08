@@ -1,0 +1,89 @@
+<div id="sessions-concepts" aria-label="Sessions interaction concepts">
+  <style>
+    #sessions-concepts { --ss-bg:light-dark(#fafaf9,#202225); --ss-panel:light-dark(#f0f1ef,#282b2e); --ss-fg:light-dark(#202926,#eef2ef); --ss-muted:light-dark(#58645e,#b4beb8); --ss-line:light-dark(#d4dad5,#424a45); --ss-accent:light-dark(#22674b,#8ad8ac); --ss-on:light-dark(#ffffff,#14251c); color:var(--ss-fg); font:14px/1.5 'Segoe UI',sans-serif; }
+    #sessions-concepts * { box-sizing:border-box; }
+    #sessions-concepts button, #sessions-concepts input, #sessions-concepts select { font:inherit; }
+    #sessions-concepts button { cursor:pointer; min-height:40px; border:1px solid var(--ss-line); border-radius:7px; background:var(--ss-bg); color:var(--ss-fg); padding:8px 14px; }
+    #sessions-concepts button:disabled { cursor:default; opacity:.6; }
+    #sessions-concepts .ss-choice { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+    #sessions-concepts .ss-choice button[aria-pressed=true], #sessions-concepts .ss-primary { background:var(--ss-accent); color:var(--ss-on); border-color:var(--ss-accent); }
+    #sessions-concepts .ss-window { background:var(--ss-bg); border:1px solid var(--ss-line); border-radius:10px; overflow:hidden; }
+    #sessions-concepts .ss-bar { padding:14px 20px; border-bottom:1px solid var(--ss-line); display:flex; gap:16px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    #sessions-concepts .ss-muted { color:var(--ss-muted); }
+    #sessions-concepts .ss-main { min-height:360px; }
+    #sessions-concepts .ss-body { padding:28px; }
+    #sessions-concepts h2 { font-size:26px; font-weight:500; margin:4px 0 10px; }
+    #sessions-concepts h3 { font-size:16px; font-weight:500; margin:0; }
+    #sessions-concepts .ss-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-top:24px; }
+    #sessions-concepts .ss-tile { text-align:left; padding:24px 18px; min-height:145px; background:var(--ss-panel); }
+    #sessions-concepts .ss-tile span { display:block; margin-top:16px; color:var(--ss-muted); }
+    #sessions-concepts .ss-split { display:grid; grid-template-columns:210px minmax(0,1fr); }
+    #sessions-concepts .ss-nav { background:var(--ss-panel); padding:22px 12px; display:flex; flex-direction:column; gap:8px; }
+    #sessions-concepts .ss-nav button { text-align:left; background:transparent; border-color:transparent; }
+    #sessions-concepts .ss-nav button[aria-pressed=true] { background:var(--ss-bg); border-color:var(--ss-line); }
+    #sessions-concepts .ss-detail { max-width:640px; }
+    #sessions-concepts .ss-row { display:flex; justify-content:space-between; gap:18px; flex-wrap:wrap; padding:12px 0; border-bottom:1px solid var(--ss-line); }
+    #sessions-concepts .ss-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; align-items:center; }
+    #sessions-concepts .ss-focus { max-width:650px; margin:auto; padding:38px 28px; }
+    #sessions-concepts .ss-foot { padding:12px 20px; border-top:1px solid var(--ss-line); color:var(--ss-muted); }
+    #sessions-concepts label { display:block; margin:16px 0; }
+    #sessions-concepts input, #sessions-concepts select { display:block; width:100%; padding:10px; margin-top:6px; color:var(--ss-fg); background:var(--ss-bg); border:1px solid var(--ss-line); border-radius:6px; }
+    @media(max-width:600px) { #sessions-concepts .ss-split { grid-template-columns:1fr; } #sessions-concepts .ss-nav { flex-direction:row; flex-wrap:wrap; } #sessions-concepts .ss-grid { grid-template-columns:1fr; } #sessions-concepts .ss-tile { min-height:90px; padding:16px; } #sessions-concepts .ss-body, #sessions-concepts .ss-focus { padding:20px; } }
+  </style>
+  <div class="ss-choice" aria-label="Compare layout concepts">
+    <button type="button" data-layout="library" aria-pressed="false">1 · Session library</button>
+    <button type="button" data-layout="sidebar" aria-pressed="true">2 · Session sidebar</button>
+    <button type="button" data-layout="focus" aria-pressed="false">3 · Focus launcher</button>
+  </div>
+  <div class="ss-window">
+    <div class="ss-bar"><strong>Sessions</strong><span class="ss-muted">Interaction concept · simulated actions</span><button type="button" data-new>+ New Session</button></div>
+    <div class="ss-main" aria-live="polite"></div>
+    <div class="ss-foot"></div>
+  </div>
+  <script>
+    (() => {
+      const root = document.getElementById('sessions-concepts');
+      const main = root.querySelector('.ss-main');
+      const state = { layout:'sidebar', firstRun:false };
+      const sessions = [{name:'Work',apps:['Outlook','Teams'],end:'When I end it'}, {name:'Flight sim',apps:['MOZA Cockpit','SRS','DCS World'],end:'When DCS World closes'}, {name:'Development',apps:['Rider'],end:'When I end it'}];
+      let selected=0, active=null, detail=false, creating=false, completed='';
+      const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      function sessionDetail() {
+        const s=sessions[selected], running=active===selected;
+        return `<div class="ss-detail"><span class="ss-muted">${running?'Active Session':'Ready to start'}</span><h2>${escape(s.name)}</h2><p>${running?'Your environment is ready.':'Open your apps together, in the order shown.'}</p>${s.apps.map((app,i)=>`<div class="ss-row"><span>${i+1}. ${escape(app)}</span><span class="ss-muted">${running?(i===0?'Already open · stays open':'Opened by Sessions · closes on end'):'Open app'}</span></div>`).join('')}<p class="ss-muted">Ends: ${escape(s.end)}${running?'':'. Apps already open will stay open.'}</p><div class="ss-actions"><button type="button" class="ss-primary" data-run ${active!==null&&!running?'disabled':''}>${running?'End Session':'Start Session'}</button>${active!==null&&!running?'<span class="ss-muted">End the active Session to start this one.</span>':''}</div></div>`;
+      }
+      function render() {
+        root.querySelectorAll('[data-layout]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.layout===state.layout)));
+        if(creating) {
+          main.innerHTML='<div class="ss-focus"><h2>Create a Session</h2><form><label>Name<input name="name" placeholder="e.g. Work" required maxlength="60"></label><label>First app<select name="app"><option>Outlook</option><option>Teams</option><option>Rider</option></select></label><label>End this Session<select name="end"><option>When I end it</option><option>When this app closes</option></select></label><p class="ss-muted">Apps already open will stay open when the Session ends.</p><div class="ss-actions"><button class="ss-primary" type="submit">Create Session</button><button type="button" data-cancel>Cancel</button></div></form></div>';
+        } else if(state.firstRun) {
+          main.innerHTML='<div class="ss-focus"><h2>What would you like to get ready for?</h2><p>A Session opens the apps you need for work, gaming, or anything else.</p><button class="ss-primary" type="button" data-new>Create your first Session</button></div>';
+        } else if(state.layout==='library') {
+          main.innerHTML=detail?`<div class="ss-body"><button type="button" data-back>← All Sessions</button><div style="margin-top:20px">${sessionDetail()}</div></div>`:`<div class="ss-body"><h2>Your Sessions</h2><div class="ss-grid">${sessions.map((s,i)=>`<button class="ss-tile" type="button" data-session="${i}"><h3>${escape(s.name)}</h3><span>${s.apps.length} apps · ${active===i?'Active':'Ready'}</span></button>`).join('')}</div></div>`;
+        } else if(state.layout==='sidebar') {
+          main.innerHTML=`<div class="ss-split"><nav class="ss-nav" aria-label="Your Sessions">${sessions.map((s,i)=>`<button type="button" data-session="${i}" aria-pressed="${i===selected}">${escape(s.name)}${active===i?' · Active':''}</button>`).join('')}</nav><div class="ss-body">${sessionDetail()}</div></div>`;
+        } else {
+          main.innerHTML=`<div class="ss-focus"><label>Choose a Session<select data-picker>${sessions.map((s,i)=>`<option value="${i}" ${selected===i?'selected':''}>${escape(s.name)}${active===i?' · Active':''}</option>`).join('')}</select></label>${sessionDetail()}</div>`;
+        }
+        root.querySelector('.ss-foot').textContent=active===null?(completed||'No active Session'):`${sessions[active].name} is active · Apps already open will stay open`;
+      }
+      root.addEventListener('click',e=>{
+        const b=e.target.closest('button'); if(!b||b.type==='submit')return;
+        if(b.dataset.layout){state.layout=b.dataset.layout;detail=false;creating=false;}
+        else if(b.hasAttribute('data-new'))creating=true;
+        else if(b.hasAttribute('data-cancel'))creating=false;
+        else if(b.hasAttribute('data-back'))detail=false;
+        else if(b.hasAttribute('data-session')){selected=Number(b.dataset.session);detail=true;}
+        else if(b.hasAttribute('data-run')){if(active===selected){completed=`${sessions[selected].name} ended · Closed apps opened by Sessions; left existing apps open`;active=null;}else{active=selected;completed='';}}
+        render();
+      });
+      root.addEventListener('change',e=>{if(e.target.hasAttribute('data-picker')){selected=Number(e.target.value);render();}});
+      root.addEventListener('submit',e=>{
+        e.preventDefault();const data=new FormData(e.target),name=String(data.get('name')).trim();if(!name)return;
+        sessions.push({name,apps:[String(data.get('app'))],end:String(data.get('end'))});selected=sessions.length-1;creating=false;state.firstRun=false;detail=true;render();
+      });
+      render();
+      if(globalThis.Tweak){const tweak=new Tweak({container:root,onChange:()=>{creating=false;active=null;completed='';render();}});tweak.addToggle(state,'firstRun',{label:'First launch / no Sessions'});}
+    })();
+  </script>
+</div>

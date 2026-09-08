@@ -1,0 +1,62 @@
+<Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Sessions.App.ViewModels" x:Class="Sessions.App.Views.AppPickerWindow"
+        x:DataType="vm:AppPickerViewModel" x:CompileBindings="True"
+        Title="Add apps" Width="650" Height="620" MinWidth="520" MinHeight="460"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+    <Grid RowDefinitions="Auto,Auto,*,Auto,Auto">
+        <StackPanel Margin="28,24,28,20" Spacing="8">
+            <TextBlock Text="Add apps" FontSize="26" FontWeight="SemiBold" />
+            <TextBlock Text="Find an app in your Start menu or choose one you have open. Select as many as you need." Classes="muted" TextWrapping="Wrap" />
+            <StackPanel Orientation="Horizontal" Spacing="22" Margin="0,8,0,0" IsVisible="{Binding HasStartMenuSource}">
+                <RadioButton x:Name="StartMenuSourceButton" GroupName="AppSources" Content="Start menu" IsChecked="{Binding ShowStartMenu}" />
+                <RadioButton x:Name="RunningSourceButton" GroupName="AppSources" Content="Running apps" IsChecked="{Binding ShowRunningApps}" />
+            </StackPanel>
+        </StackPanel>
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="28,0,28,16">
+            <TextBox x:Name="AppSearch" Text="{Binding SearchText}" PlaceholderText="Search apps" AutomationProperties.Name="Search apps" />
+            <Button Grid.Column="1" Content="Refresh" Classes="quiet" Command="{Binding RefreshCommand}" Margin="12,0,0,0" />
+        </Grid>
+        <Grid Grid.Row="2" Margin="28,0">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled" IsEnabled="{Binding !IsLoading}">
+                <ItemsControl ItemsSource="{Binding VisibleApps}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AppChoiceViewModel">
+                            <CheckBox IsChecked="{Binding IsSelected}" IsEnabled="{Binding CanSelect}"
+                                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="10,12"
+                                      AutomationProperties.Name="{Binding App.Name}" ToolTip.Tip="{Binding App.ExecutablePath}">
+                                <Grid ColumnDefinitions="40,*" Margin="4,0,0,0">
+                                    <Grid Width="30" Height="30" VerticalAlignment="Center">
+                                        <Border Background="{DynamicResource SessionSelection}" CornerRadius="6" IsVisible="{Binding !HasIcon}">
+                                            <TextBlock Text="{Binding Initial}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <Image Source="{Binding Icon}" IsVisible="{Binding HasIcon}" />
+                                    </Grid>
+                                    <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding App.Name}" FontWeight="Medium" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding Status}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Grid>
+                            </CheckBox>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            <StackPanel IsVisible="{Binding IsLoading}" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12">
+                <ProgressBar Width="160" IsIndeterminate="True" />
+                <TextBlock Text="Finding your apps…" Classes="muted" />
+            </StackPanel>
+            <TextBlock IsVisible="{Binding IsEmpty}" Text="{Binding EmptyMessage}" TextWrapping="Wrap" Classes="muted" Margin="12,28" VerticalAlignment="Center" />
+        </Grid>
+        <StackPanel Grid.Row="3" Margin="28,14,28,18" Spacing="10">
+            <TextBlock Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding SourceDescription}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+        </StackPanel>
+        <Border Grid.Row="4" BorderBrush="{DynamicResource SessionBorder}" BorderThickness="0,1,0,0" Padding="28,18">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <Button Content="Browse files…" Classes="quiet" Click="BrowseClicked" IsEnabled="{Binding !IsLoading}" HorizontalAlignment="Left" />
+                <Button x:Name="PickerCancelButton" Grid.Column="1" Content="Cancel" Classes="quiet" Click="CancelClicked" IsCancel="True" Margin="12,0" />
+                <Button x:Name="AddSelectedButton" Grid.Column="2" Content="{Binding AddLabel}" Classes="primary" IsEnabled="{Binding CanAdd}" Click="AddClicked" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
