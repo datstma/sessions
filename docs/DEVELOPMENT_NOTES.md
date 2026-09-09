@@ -2,7 +2,15 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.2.1 prepared and README refined 2026-09-09
+## Resume next session — 0.2.1 release authorized 2026-09-09
+
+The user requested "do a release" after checkpoint `239a28e` was committed and
+pushed. Proceed with the manually triggered exact-tag build, download/check its
+assets and isolated installer smoke testing, then publish 0.2.1 as a preview.
+Update README download/screenshot wording and record final evidence after
+publication. Existing published tags and assets must remain unchanged.
+
+## Previous checkpoint — 0.2.1 prepared and README refined 2026-09-09
 
 The user selected 0.2.1 for the branding refresh and requested a GitHub README
 that looks more like the app and shows its logo/screenshots. Directory.Build.props
