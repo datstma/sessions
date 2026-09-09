@@ -13,6 +13,19 @@ namespace Sessions.App.ViewModels;
 public partial class SessionEditorViewModel : ViewModelBase
 {
     private readonly Guid _id;
+    private readonly DraftSettings _initialSettings;
+    private readonly AppDraft[] _initialApps;
+    // Compare raw editable values, including invalid inputs; building a valid definition would lose them.
+    public bool HasChanges => CaptureSettings() != _initialSettings || !Apps.Select(CaptureApp).SequenceEqual(_initialApps);
+    private DraftSettings CaptureSettings() => new(Name, Description, EndWithApp, MainApp?.Id,
+        LaunchModeIndex, PauseBetweenAppsSeconds, StartupFocusIndex, FocusApp?.Id);
+    private static AppDraft CaptureApp(AppEditorViewModel app) => new(app.Id, app.Name, app.ExecutablePath,
+        app.Arguments, app.WorkingDirectory, app.RunAsAdministrator, app.AllowForceQuit,
+        app.ReadinessIndex, app.ReadinessTimeoutSeconds, app.OverridePause, app.PauseAfterSeconds);
+    private sealed record DraftSettings(string Name, string Description, bool EndWithApp, Guid? MainAppId,
+        int LaunchMode, decimal? Pause, int StartupFocus, Guid? FocusAppId);
+    private sealed record AppDraft(Guid Id, string Name, string Path, string Arguments, string Directory,
+        bool Administrator, bool ForceQuit, int Readiness, decimal? Timeout, bool OverridePause, decimal? Pause);
     public bool IsNew { get; }
     public string Title => IsNew ? "Create a Session" : "Edit Session";
     public string SaveLabel => IsNew ? "Create Session" : "Save changes";
@@ -67,6 +80,8 @@ public partial class SessionEditorViewModel : ViewModelBase
         EndWithApp = MainApp is not null;
         SelectedApp = Apps.FirstOrDefault();
         FocusApp = Apps.FirstOrDefault(app => app.Id == definition?.FocusAppId);
+        _initialSettings = CaptureSettings();
+        _initialApps = Apps.Select(CaptureApp).ToArray();
     }
 
     public void AddApp(string path, string? displayName = null)

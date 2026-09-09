@@ -41,7 +41,8 @@ public partial class MainWindow : Window
         {
             if (DataContext is MainViewModel model)
             {
-                if (!model.IsCloseConfirmation) _closeReturnFocus = FocusManager?.GetFocusedElement() as Control;
+                if (!model.IsCloseConfirmation && !model.IsDraftCloseConfirmation)
+                    _closeReturnFocus = FocusManager?.GetFocusedElement() as Control;
                 if (!model.RequestWindowClose()) e.Cancel = true;
             }
         };
@@ -85,6 +86,7 @@ public partial class MainWindow : Window
     private bool _endWasOpen;
     private bool _closeWasOpen;
     private bool _forceWasOpen;
+    private bool _draftWasOpen;
     private Control? _forceReturnFocus;
     private void ForceQuitRequested(object? sender, Avalonia.Interactivity.RoutedEventArgs e) => _forceReturnFocus = sender as Control;
     private Control? _editorReturnFocus;
@@ -98,6 +100,18 @@ public partial class MainWindow : Window
 
     private void OnViewModelChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (sender is MainViewModel draftModel &&
+            (e.PropertyName == nameof(MainViewModel.IsDraftCloseConfirmation) && _draftWasOpen != draftModel.IsDraftCloseConfirmation ||
+             e.PropertyName == nameof(MainViewModel.IsBusy) && !draftModel.IsBusy && draftModel.IsDraftCloseConfirmation))
+        {
+            _draftWasOpen = draftModel.IsDraftCloseConfirmation;
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (draftModel.IsDraftCloseConfirmation) KeepEditingButton.Focus();
+                else if (draftModel.IsEditing && draftModel.IsMainContentEnabled &&
+                    _closeReturnFocus is { IsEffectivelyVisible: true, IsEffectivelyEnabled: true } previous) previous.Focus();
+            });
+        }
         if (e.PropertyName == nameof(MainViewModel.IsForceQuitConfirmation) && sender is MainViewModel forceModel && _forceWasOpen != forceModel.IsForceQuitConfirmation)
         {
             _forceWasOpen = forceModel.IsForceQuitConfirmation;

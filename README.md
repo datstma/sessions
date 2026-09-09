@@ -98,7 +98,7 @@ Sessions remembers which processes it started for that run. An app that was alre
 
 For example, if your chat app is already running when you start a Streaming Session, ending that Session leaves chat open and stops the apps Sessions opened for it.
 
-**Current source (not yet released):** End Session requests a normal close and preserves apps that stay open, including apps waiting for you to save. Bring an app forward, finish and leave apps open, or explicitly confirm force quit for one app. You can opt an app into automatic force quit in its options; this may lose unsaved changes. Existing libraries default to normal close. Saving uses library format v3, which older releases cannot read.
+**Upcoming 0.2.2 (not yet released):** End Session requests a normal close and preserves apps that stay open, including apps waiting for you to save. Bring an app forward, finish and leave apps open, or explicitly confirm force quit for one app. You can opt an app into automatic force quit in its options; this may lose unsaved changes. Existing libraries default to normal close. Saving uses library format v3, which older releases cannot read.
 
 **The downloadable 0.2.1 preview still uses the earlier behavior:** it force quits owned apps that remain running after a normal close. Save your work before confirming End Session in that release.
 
@@ -119,6 +119,10 @@ shortcut. Installer and application binaries are unsigned.
 
 [What's new in 0.2.1](docs/release-notes/0.2.1.md): the refreshed interface,
 clearer stopping confirmation and consistent app/installer branding.
+
+[Upcoming 0.2.2](docs/release-notes/0.2.2.md) adds safer app closing, executable
+icons in the app list, and Keep editing / Discard / Save when you close with a
+changed Session draft.
 
 Close Sessions before installing, updating, or uninstalling. Updates and uninstall
 preserve your saved Sessions. To update, download and run a newer MSI; there is no

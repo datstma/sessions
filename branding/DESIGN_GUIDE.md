@@ -91,6 +91,10 @@ custom animation. Future animation must respect reduced-motion preferences.
   and Force quit… actions. The force confirmation names its app and Session, warns
   about unsaved changes and uses the same modal surfaces with Cancel as the default.
   App options expose automatic force quit as an unchecked checkbox with a save-work warning.
+- **Unsaved Session edits:** use the same modal surface with a wrapping draft name,
+  scrollable explanation/errors and visible Keep editing / Discard / Save buttons.
+  Keep editing is the initial/default action and Escape returns to editing. Discard
+  is red, Save indigo; disable choices during a save. Preserve focus on return.
 
 ## Interaction, copy and accessibility
 

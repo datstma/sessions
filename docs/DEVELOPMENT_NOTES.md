@@ -2,7 +2,52 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — safer closing and app icons checkpoint 2026-09-09
+## Resume next session — 0.2.2 version preparation 2026-09-09
+
+The user selected SESS-006 after reviewing the backlog and confirms it "works great".
+They requested a version bump, commit and push. Shared application/MSI version is
+now 0.2.2, with upcoming release notes covering SESS-006, SESS-026 and SESS-027.
+README download links continue to target published 0.2.1. Draft protection is implemented:
+window close now protects changed new/existing Session drafts with Keep editing,
+Discard and Save. Keep editing is the initial/default action; Escape restores the
+editor focus. Unchanged/reverted drafts close without a draft prompt. Raw invalid
+inputs and nested settings/order are compared against immutable initial snapshots;
+selection/expansion do not count. Save errors retain the exact draft and allow retry.
+
+Closing during an ordinary save waits for that write without issuing another save.
+Success proceeds to window close; failure cancels the close intent and leaves the
+editor available. Modal choices are disabled while saving. If a run is active,
+resolve edits first and then choose how to close the run; neither saving nor
+Discard implicitly stops apps. Tests include a main-exit request pending during
+editing, ensuring it cannot compete with the active-run close confirmation.
+Existing editor Cancel remains an explicit discard; no crash recovery/autosave,
+Core behavior change, schema change or new visual tokens were added.
+
+Validation: Release solution build passed with zero warnings/errors. All 54 Core
+and 125 App tests passed (25 unrelated opt-in native cases skipped). Fifteen new
+draft-close regressions cover dirty/reverted/invalid inputs, app order/options,
+unchanged drafts, failed-save retry, duplicate-close/save guards, keyboard/focus,
+and active-run confirmation ordering. Both themes reviewed at 1440×900 and 640×480,
+100/125/150/200% headless scaling, with long names and failed-save errors. Captures
+are under ignored artifacts/draft-close-review. Physical-monitor and Narrator
+validation remain SESS-010. Tests used isolated stores and process fakes, not the
+user's saved library or apps. PRODUCT/ARCHITECTURE and the design guide are updated.
+All 53 relative documentation links resolve, and git diff --check passes.
+
+Version-bump validation: Build-Installer.ps1 completed for 0.2.2 with clean Release
+solution/MSI builds, 54 Core and 125 App tests passing (25 opt-in native skips).
+The executable reports 0.2.2.0 / 0.2.2; local MSI and checksum are under ignored
+artifacts/releases/0.2.2. This pre-commit package carries the previous commit in
+its informational version and is a packaging check, not a published release asset.
+All 70 relative links in the changed documents resolve; git diff --check passes.
+The exact release-tag installer still needs lifecycle validation when released.
+
+The previous safer-closing/icon work was committed and pushed as e04b00c on main.
+The current request covers committing and pushing draft protection and 0.2.2
+preparation to main. Publishing/tagging 0.2.2 is a separate step; published 0.2.1
+remains unchanged. Do not automatically start SESS-011 or another backlog item.
+
+## Previous checkpoint — safer closing and app icons 2026-09-09
 
 The user reports the safer-closing change "works great" and then requests executable
 icons in the app list instead of name initials. This confirms their overall closing

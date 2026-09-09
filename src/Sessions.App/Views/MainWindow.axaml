@@ -272,6 +272,27 @@
             </Grid>
         </Border>
     </Border>
+    <Border IsVisible="{Binding IsDraftCloseConfirmation}" Background="{DynamicResource OverlayBrush}">
+        <Border Classes="surface modal" MaxWidth="{StaticResource Measure640}" MaxHeight="{StaticResource Measure520}" Margin="{StaticResource Inset32}" Padding="{StaticResource Inset28}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                KeyboardNavigation.TabNavigation="Cycle" AutomationProperties.Name="{Binding DraftCloseTitle}">
+            <Border.KeyBindings><KeyBinding Gesture="Escape" Command="{Binding KeepEditingCommand}" /></Border.KeyBindings>
+            <Grid RowDefinitions="*,Auto">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Spacing="{StaticResource Measure16}">
+                        <TextBlock Text="{Binding DraftCloseTitle}" FontSize="{StaticResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding DraftCloseMessage}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                        <TextBlock Text="Some settings need attention before you can save. Choose Keep editing to finish them, or discard this draft." IsVisible="{Binding DraftNeedsCorrection}" Classes="muted" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                    </StackPanel>
+                </ScrollViewer>
+                <WrapPanel Grid.Row="1" HorizontalAlignment="Right" Margin="{StaticResource Inset0x22x0x0}">
+                    <Button x:Name="KeepEditingButton" Content="Keep editing" Classes="quiet" IsDefault="True" Command="{Binding KeepEditingCommand}" Margin="{StaticResource Inset0x0x10x8}" />
+                    <Button x:Name="DiscardDraftButton" Content="Discard" Classes="danger" Command="{Binding DiscardDraftAndCloseCommand}" Margin="{StaticResource Inset0x0x10x8}" />
+                    <Button x:Name="SaveDraftButton" Content="Save" Classes="primary" Command="{Binding SaveDraftAndCloseCommand}" Margin="{StaticResource Inset0x0x0x8}" />
+                </WrapPanel>
+            </Grid>
+        </Border>
+    </Border>
     <Border IsVisible="{Binding IsCloseConfirmation}" Background="{DynamicResource OverlayBrush}">
         <Border Classes="surface modal" MaxWidth="{StaticResource Measure500}" MaxHeight="{StaticResource Measure520}" Margin="{StaticResource Inset32}" Padding="{StaticResource Inset28}" HorizontalAlignment="Center" VerticalAlignment="Center"
                 KeyboardNavigation.TabNavigation="Cycle" AutomationProperties.Name="Close Sessions">

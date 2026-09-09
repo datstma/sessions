@@ -40,6 +40,47 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     public bool HasStartupFocusMessage => StartupFocusMessage is not null;
     partial void OnStartupFocusMessageChanged(string? value) => OnPropertyChanged(nameof(HasStartupFocusMessage));
     [ObservableProperty] private bool _isCloseConfirmation;
+    [ObservableProperty] private bool _isDraftCloseConfirmation;
+    private bool _savingEditor;
+    private bool _closeAfterSave;
+    public string DraftCloseTitle => string.IsNullOrWhiteSpace(Editor?.Name)
+        ? "Save this Session?" : $"Save changes to “{Editor.Name.Trim()}”?";
+    public string DraftCloseMessage => IsBusy ? "Saving your changes before closing…" :
+        "You have unsaved changes. Save them before closing, or discard them.";
+    public bool DraftNeedsCorrection => Editor?.CanSave == false;
+    private bool CanResolveDraftClose() => IsDraftCloseConfirmation && Editor is not null && !IsBusy;
+    private bool CanSaveDraftAndClose() => CanResolveDraftClose() && CanPersistEditor();
+    [RelayCommand(CanExecute = nameof(CanResolveDraftClose))]
+    private void KeepEditing()
+    {
+        if (!CanResolveDraftClose()) return;
+        _closeAfterSave = false;
+        IsDraftCloseConfirmation = false;
+    }
+    [RelayCommand(CanExecute = nameof(CanResolveDraftClose))]
+    private void DiscardDraftAndClose()
+    {
+        if (!CanResolveDraftClose()) return;
+        Editor = null;
+        ErrorMessage = null;
+        ContinueWindowClose();
+    }
+    [RelayCommand(CanExecute = nameof(CanSaveDraftAndClose))]
+    private async Task SaveDraftAndCloseAsync()
+    {
+        if (!CanSaveDraftAndClose()) return;
+        _closeAfterSave = true;
+        await SaveEditorAsync();
+    }
+    private void ContinueWindowClose()
+    {
+        // Establish the active-run dialog before removing the draft modal, so an automatic End
+        // request cannot appear between resolving edits and choosing what to do with running apps.
+        if (HasActiveRun) IsCloseConfirmation = true;
+        IsDraftCloseConfirmation = false;
+        if (!HasActiveRun) CloseRequested?.Invoke(this, EventArgs.Empty);
+    }
+    partial void OnIsDraftCloseConfirmationChanged(bool value) => Refresh();
     [ObservableProperty] private Guid? _pendingEndSessionId;
     [ObservableProperty] private CleanupAppViewModel? _pendingForceQuit;
     [ObservableProperty] private string? _cleanupFocusMessage;
@@ -108,7 +149,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     public bool SelectedIsActive => HasActiveRun && SelectedSession?.Definition.Id == Runtime?.SessionId;
     public bool ShowStart => !SelectedIsActive;
     public bool ShowActiveNavigation => HasActiveRun && !SelectedIsActive;
-    public bool IsMainContentEnabled => !IsConfirmingDelete && !IsCloseConfirmation && !IsEndConfirmation && !IsForceQuitConfirmation;
+    public bool IsMainContentEnabled => !IsConfirmingDelete && !IsCloseConfirmation && !IsEndConfirmation && !IsForceQuitConfirmation && !IsDraftCloseConfirmation;
     public string RuntimeTitle => Runtime is null ? "" : $"{Runtime.Name} · {Runtime.State switch
     {
         SessionRunState.Starting => "Starting…", SessionRunState.Running => "Active",
@@ -233,14 +274,22 @@ public partial class MainViewModel : ViewModelBase, IDisposable
 
     public bool RequestWindowClose()
     {
-        if (!HasActiveRun) return true;
         if (IsEndConfirmation || IsForceQuitConfirmation) return false;
-        if (IsBusy || Editor is not null)
+        if (IsBusy)
         {
-            ErrorMessage = Editor is not null ? "Save or cancel your edits before closing Sessions." : "Wait for the current operation to finish before closing Sessions.";
+            if (_savingEditor) _closeAfterSave = true;
+            else ErrorMessage = "Wait for the current operation to finish before closing Sessions.";
             return false;
         }
+        if (IsDraftCloseConfirmation) return false;
+        if (Editor?.HasChanges == true)
+        {
+            IsDraftCloseConfirmation = true;
+            return false;
+        }
+        if (!HasActiveRun) return true;
         IsCloseConfirmation = true;
+        Editor = null; // Unchanged draft; active-run choices still require their own confirmation.
         return false;
     }
 
@@ -469,21 +518,31 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         Editor = new SessionEditorViewModel(SelectedSession!.Definition);
     }
 
-    private bool CanCancel() => IsEditing && !IsBusy;
+    private bool CanCancel() => IsEditing && !IsBusy && !IsDraftCloseConfirmation;
 
     [RelayCommand(CanExecute = nameof(CanCancel))]
     private void CancelEdit()
     {
+        if (!CanCancel()) return;
         Editor = null;
         ErrorMessage = null;
     }
 
-    private bool CanSave() => _loaded && !IsBusy && Editor?.CanSave == true;
+    private bool CanPersistEditor() => _loaded && !IsBusy && Editor?.CanSave == true;
+    private bool CanSave() => CanPersistEditor() && !IsDraftCloseConfirmation;
 
     [RelayCommand(CanExecute = nameof(CanSave))]
     private async Task SaveSessionAsync()
     {
-        if (Editor is not { } editor) return;
+        if (!CanSave()) return;
+        await SaveEditorAsync();
+    }
+
+    private async Task SaveEditorAsync()
+    {
+        if (!CanPersistEditor() || Editor is not { } editor) return;
+        var savedSuccessfully = false;
+        _savingEditor = true;
         IsBusy = true;
         ErrorMessage = null;
         try
@@ -498,17 +557,33 @@ public partial class MainViewModel : ViewModelBase, IDisposable
             if (index < 0) Sessions.Add(saved);
             else Sessions[index] = saved;
             SelectedSession = saved;
+            if (_closeAfterSave && HasActiveRun) IsCloseConfirmation = true;
             Editor = null;
+            savedSuccessfully = true;
         }
         catch (Exception exception) when (IsStorageError(exception) || exception is ArgumentException)
         {
             ErrorMessage = "Your changes could not be saved. They are still here so you can try again. " + exception.Message;
         }
-        finally { IsBusy = false; ApplyRuntime(); }
+        finally
+        {
+            _savingEditor = false;
+            IsBusy = false;
+            ApplyRuntime();
+            var close = savedSuccessfully && _closeAfterSave;
+            _closeAfterSave = false;
+            if (close) ContinueWindowClose();
+        }
     }
 
     private static bool IsStorageError(Exception exception) => exception is IOException or InvalidDataException or UnauthorizedAccessException;
-    private void EditorChanged(object? sender, PropertyChangedEventArgs e) => SaveSessionCommand.NotifyCanExecuteChanged();
+    private void EditorChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        SaveSessionCommand.NotifyCanExecuteChanged();
+        SaveDraftAndCloseCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(DraftNeedsCorrection));
+        OnPropertyChanged(nameof(DraftCloseTitle));
+    }
     partial void OnEditorChanged(SessionEditorViewModel? oldValue, SessionEditorViewModel? newValue)
     {
         ResetPresence();
@@ -549,7 +624,8 @@ public partial class MainViewModel : ViewModelBase, IDisposable
                      nameof(HasActiveRun), nameof(HasRuntime), nameof(NeedsCleanup), nameof(SelectedIsActive), nameof(ShowStart),
                      nameof(ShowActiveNavigation), nameof(RuntimeTitle), nameof(EndLabel), nameof(StartHint), nameof(AppInteractionHint), nameof(IsMainContentEnabled),
                      nameof(IsEndConfirmation), nameof(EndConfirmationTitle), nameof(AppsToStop), nameof(AppsToKeep), nameof(HasAppsToKeep), nameof(HasAppsToStop),
-                     nameof(IsForceQuitConfirmation), nameof(ForceQuitTitle), nameof(ForceQuitDescription), nameof(AutomaticForceQuitWarning), nameof(HasAutomaticForceQuit) })
+                     nameof(IsForceQuitConfirmation), nameof(ForceQuitTitle), nameof(ForceQuitDescription), nameof(AutomaticForceQuitWarning), nameof(HasAutomaticForceQuit),
+                     nameof(DraftCloseTitle), nameof(DraftCloseMessage), nameof(DraftNeedsCorrection) })
             OnPropertyChanged(property);
         StartSessionCommand.NotifyCanExecuteChanged();
         ViewActiveSessionCommand.NotifyCanExecuteChanged();
@@ -565,6 +641,9 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         EditSessionCommand.NotifyCanExecuteChanged();
         CancelEditCommand.NotifyCanExecuteChanged();
         SaveSessionCommand.NotifyCanExecuteChanged();
+        SaveDraftAndCloseCommand.NotifyCanExecuteChanged();
+        DiscardDraftAndCloseCommand.NotifyCanExecuteChanged();
+        KeepEditingCommand.NotifyCanExecuteChanged();
         LoadCommand.NotifyCanExecuteChanged();
         RequestDeleteSessionCommand.NotifyCanExecuteChanged();
         CancelDeleteSessionCommand.NotifyCanExecuteChanged();

@@ -24,9 +24,9 @@ readiness checks, and completion focus. Launch stages and configurable failure
 policies remain later ideas. The supplied branding is now implemented, validated
 and approved by the user (SESS-024), with OS-following themes and compact support retained.
 Public-facing branding polish and obsolete-asset cleanup shipped in 0.2.1 under
-SESS-025. The safer-closing change (SESS-026) is implemented and user-confirmed. Saved-app icons (SESS-027) are the current request.
-Other suggested app follow-ups remain draft-close protection (SESS-006) and
-invalid-field guidance (SESS-011). Installed-release checks and Actions maintenance
+SESS-025. The safer-closing change (SESS-026) is implemented and user-confirmed. Saved-app icons (SESS-027) are implemented and user-confirmed.
+Draft-close protection (SESS-006) is implemented locally. Invalid-field guidance
+(SESS-011) remains a suggested follow-up. Installed-release checks and Actions maintenance
 remain SESS-021/022. Broader native checks stay under SESS-001, including UAC
 cancellation and the narrower Playnite-specific confirmation in SESS-017; do not
 treat the earlier overall stopping-flow confirmation as proof of unsaved-document safety.
@@ -86,12 +86,29 @@ Headless keyboard/theme tests verify Start/End, navigation, active edit/delete g
 
 ## SESS-006 — Protect drafts when closing the window
 
-**P1 · Open · UI reliability follow-up**  
-Source: initial code inspection of MainWindow on 2026-09-08 found no draft protection. The runtime implementation now guards closing during an active run, including active-run editing; general draft protection outside a run remains missing. Loss through native close has not yet been manually reproduced.
+**P1 · Done · Implemented, validated and user-confirmed · 2026-09-09**
+Source: code inspection found window close bypassed draft/save protection without
+an active run. The user selected this backlog item on 2026-09-09 and subsequently
+reported that it "works great", requesting a version bump, commit and push.
 
-Reproduce closing the window with a new or edited unsaved Session and during a save. Choose a simple changed-draft policy: Save / Discard / Keep editing, or another documented recovery behaviour. Do not prompt for unchanged drafts or turn ordinary browsing into a confirmation flow.
+Implemented: changed new/existing drafts open Keep editing / Discard / Save before
+window exit. Initial/default focus and Escape keep editing and restore focus.
+Raw invalid values and nested app/startup options count as changes; navigation and
+restored values do not. Unchanged drafts need no prompt. Save must succeed before
+closing; failure retains the draft, shows the error and allows retry. Closing while
+an ordinary save is in flight queues one close continuation; failure cancels that
+intent. No second write or discard can interrupt the save. Active-run close choices
+follow draft resolution, without implicitly stopping apps or opening a competing
+main-exit prompt. Existing editor Cancel still explicitly discards without a prompt.
 
-Done when: actual changes survive or are knowingly discarded, a failed save keeps editing available, and in-flight saves are handled predictably. Add focused interaction tests. Coordinate active-run window-close behaviour with SESS-004.
+Evidence: clean Release build, 54 Core + 125 App tests pass (25 unrelated native
+opt-in cases skipped). Fifteen new regressions cover new/existing/invalid/unchanged
+and reverted drafts, nested settings/order, keyboard defaults/focus, successful and
+failed writes, repeated close during a save, retry and active-run/main-exit ordering.
+Both themes at 1440×900 and 640×480 rendered at 100/125/150/200%; long names and
+failed-save errors remain readable with reachable actions. Review captures live in
+ignored artifacts/draft-close-review. No real apps/library were used as fixtures;
+physical-monitor/Narrator checks remain SESS-010. No autosave/crash recovery added.
 
 ## SESS-007 — Prevent conflicting application instances
 

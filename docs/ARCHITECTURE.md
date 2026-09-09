@@ -96,6 +96,28 @@ The implemented saved model is `SessionDefinition`: identity, name, description,
 
 The editor copies a definition into a draft and replaces the saved definition only after persistence succeeds. App reordering preserves identities, so moving the main app does not change the lifetime setting. Removing the main app requires an explicit replacement or switching back to user-bound lifetime before saving. Executable and working-directory validation occurs in the Windows adapter when an app must be launched.
 
+`SessionEditorViewModel.HasChanges` compares the current raw editable values with
+immutable initial Session/app snapshots, including ordered app identities and
+nullable numeric inputs. It does not call `BuildDefinition`, which requires valid
+inputs and normalizes text. Selection, focus, expansion and computed display state
+are excluded; restoring editable values clears the comparison. The snapshot is
+presentation state and is never persisted.
+
+`MainViewModel.RequestWindowClose` checks pending edits and writes before allowing
+exit, even with no active run. A changed draft opens a modal with Keep editing as
+the safe default, Discard, and Save. Modal Save and ordinary Save share a guarded
+`SaveEditorAsync` path. Closing during a save records one continuation; only a
+successful write may proceed to closing, while errors retain the editor and clear
+the continuation. Modal failures remain visible for retry or Keep editing/Discard;
+normal-save failures return to the editor. Choices are disabled during a write.
+
+After draft resolution, an active run receives its separate close confirmation.
+This dialog is established before removing the editor/draft modal so a pending
+automatic End cannot interleave or implicitly authorize process cleanup. Views only
+route the window Closing event and manage focus: Keep editing/Escape restores the
+previous editor control, and a failed modal save restores the safe default. This
+adds no Core runtime policy, disk autosave, crash recovery or library schema change.
+
 ### App discovery
 
 `IAppSource`, `DiscoveredApp`, `WindowsRunningAppSource`, and `WindowsStartMenuAppSource` live in `Sessions.App/Services`, outside the platform-neutral Core. `MainWindow` supplies both sources to the picker and permits injection for tests. Discovery is a configuration aid, separate from the Core execution/ownership boundary.

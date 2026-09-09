@@ -92,6 +92,29 @@ When there are no Sessions, the main view offers **Create your first Session** w
 
 The current application implements this navigation, local creation/editing, executable-file selection, app removal and reordering, and both lifetime configurations. It follows the system light/dark theme. Sessions are saved on this computer and loaded at startup. Save failures retain the draft; load failures show a retry action and prevent replacing an unreadable library. Start Session opens configured apps using the saved startup mode and changes to an active run with End Session available. Sample Sessions are used only in tests, not inserted into the user's library.
 
+Closing Sessions with a changed new or existing Session draft first offers **Keep
+editing**, **Discard**, and **Save**. Keep editing receives initial focus; Enter
+on that button and Escape return to the editor without losing changes. Discard
+removes only the draft. Save persists successfully before closing; a failed save
+keeps the draft and dialog available with the error and a retry. Invalid drafts
+cannot be saved from the dialog; its explanation points back to editing. Existing
+editor Cancel remains an explicit discard action without another prompt.
+
+An untouched draft, or one whose editable values have been restored, needs no
+draft-close prompt. Selection and expanded sections alone are not edits. Changes
+include raw invalid inputs, description, app order and all app/startup options.
+If closing is requested while a save is already underway, Sessions waits for that
+save without starting another write. Failure leaves the editor open and clears
+the pending close request; a later ordinary save will not unexpectedly close it.
+The close dialog disables its choices while saving. Other in-flight library
+operations must also finish before the window can close.
+
+If a Session run is active, resolving the draft leads to the existing active-run
+close choices; saving or discarding a draft never authorizes stopping apps. An
+unchanged draft can proceed directly to those choices. Pending automatic End
+requests wait until draft/close confirmation is resolved. Forced termination or
+a crash cannot display this protection; draft recovery across crashes is not implemented.
+
 The visual treatment follows the supplied [branding guide](../branding/DESIGN_GUIDE.md):
 Manrope typography, rounded Session/app cards, indigo primary actions, green running
 states and red destructive actions. Both OS-selected themes use readable text/fill
@@ -190,7 +213,7 @@ If Windows denies access to an owned elevated app, Sessions requests Windows adm
 
 A startup failure stops further launches and cancels readiness waits/pauses. In-flight concurrent acquisitions still finish and are retained before cleanup is offered. If owned apps were opened, their cleanup waits for the same save-work confirmation; Cancel leaves those apps running with a retryable attention state. If no owned apps need cleanup, startup can fail without a prompt after in-flight acquisitions settle. Confirmed End during startup prevents further launches, waits for all acquisitions already in flight, and then cleans up owned apps in reverse configured order. Repeated Start/End/Confirm clicks cannot create overlapping runs or duplicate cleanup. An automatic prompt waits until an unrelated editor/save or another confirmation is resolved. A minimized window may retain a pending prompt until the user returns; it must not silently stop apps.
 
-Closing Sessions during an active run offers **Keep Sessions open**, **End Session and close**, or **Leave apps open and close**. This close dialog explains normal closing and names any apps with automatic force quit enabled, so End Session and close is the confirmation rather than another intervening prompt. End-and-close keeps the window open when any app remains running. A later app exit finishes the run but does not unexpectedly close Sessions after returning to recovery. Leaving apps open is disabled while starting/stopping. Save or cancel edits before closing an active run. Forced process termination cannot show a prompt or perform cleanup; independent apps remain open, and a later run treats surviving apps as pre-existing.
+Closing Sessions during an active run offers **Keep Sessions open**, **End Session and close**, or **Leave apps open and close**. This close dialog explains normal closing and names any apps with automatic force quit enabled, so End Session and close is the confirmation rather than another intervening prompt. End-and-close keeps the window open when any app remains running. A later app exit finishes the run but does not unexpectedly close Sessions after returning to recovery. Leaving apps open is disabled while starting/stopping. Resolve any changed draft before choosing how to close an active run. Forced process termination cannot show a prompt or perform cleanup; independent apps remain open, and a later run treats surviving apps as pre-existing.
 
 Only one Sessions application instance may manage a given local profile. Starting a second instance requests activation of the first and exits before loading/saving the library. This prevents competing Session runs and stale library overwrites between application instances.
 
