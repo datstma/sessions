@@ -91,6 +91,12 @@ its environment variables, rather than assuming an uninstall-registry location.
 The default Sandbox account was used; ordinary-user, real-app/UAC and native
 accessibility/display verification remain separate limitations.
 
+For 0.2.2, the maintainer explicitly requested skipping a repeated Sandbox lifecycle
+run after successful 0.2.1 installer/uninstaller use. Workflow 34407352459 passed
+clean tagged solution/MSI builds and 54 Core + 125 App tests (25 opt-in native skips).
+Downloaded checksums, source entries and MSI ProductVersion were verified. The
+0.2.2 release notes disclose that lifecycle checks were not repeated for its MSI.
+
 The 2026-09-09 offline Sandbox checks preserved the library byte-for-byte, verified
 one per-user registration after upgrading, and verified removal of a file absent
 from the newer fixture. Fresh MSI operations took approximately two minutes before
@@ -140,7 +146,7 @@ standard user. Never replace the real development library with test fixtures.
   mode) and verify it refuses without closing Sessions or its apps.
 - Uninstall and reinstall; verify program/shortcut removal and library preservation.
 - Exercise launch and confirmed cleanup in the installed build, including the
-  elevated helper path where relevant. Regular CI skips the 22 opt-in native checks;
+  elevated helper path where relevant. Regular CI skips the 25 opt-in native checks;
   a GitHub runner is not a substitute for desktop/UAC and installation testing.
 - Compare checksums, inspect packaged license notices, and review matching source
   and build instructions. `Collect-ReleaseNotices.ps1` inventories packages from the

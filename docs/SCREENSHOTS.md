@@ -1,7 +1,8 @@
 # Sessions in pictures
 
-**Sessions 0.2.1** includes the refreshed interface shown here. You can
-[download the Windows preview](https://github.com/datstma/sessions/releases/tag/v0.2.1).
+These screenshots show the **Sessions 0.2.1** interface. The current **0.2.2** preview
+adds app icons, safer closing and draft protection. You can
+[download the Windows preview](https://github.com/datstma/sessions/releases/tag/v0.2.2).
 Sessions follows your system's light or dark appearance.
 
 ## Your apps, ready together
@@ -23,7 +24,8 @@ advanced startup settings when you need more control.
 ## Know what will close
 
 Before ending, review the apps Sessions will close and those that will stay open.
-Save your work before confirming: apps that resist a normal close are force quit.
+In 0.2.2, apps that remain open after a normal close are preserved so you can handle
+save prompts. Force quit is an explicit choice unless enabled in an app's options.
 
 ![End confirmation separates Playnite, SR-ClientRadio and TobiiGameHub under Will be closed from Discord under Stays open; Cancel has focus.](images/end-dark.png)
 

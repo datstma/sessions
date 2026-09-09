@@ -35,7 +35,7 @@
 
 <p align="center"><em>Your apps, their order, and what's running—all in one place.</em></p>
 
-**Sessions 0.2.1 brings the refreshed design shown here.**
+**Sessions 0.2.2 adds safer closing, app icons and protection for Session edits.**
 [Download the Windows preview](#downloads) to try it with your own apps.
 
 | Make it yours | Start together | End with clarity |
@@ -86,11 +86,12 @@ to add apps and start.
 ### Small details that make daily use easier
 
 - **Find apps by name.** Start menu discovery keeps supported shortcuts' arguments, working folders, and administrator settings.
+- **Recognize your apps.** App cards show executable icons, with a name initial when an icon is unavailable.
 - **See what's running.** A green Running button brings an app's window forward. Outside an active Session, click Not running to open an individual app.
 - **Keep your place.** Search and switch between app sources without losing checked selections.
 - **Stay oriented.** An active Session remains visible while you browse your other saved setups.
 - **Use either theme.** The interface follows your system's light or dark appearance.
-- **Edit deliberately.** Save or cancel a draft; confirm before deleting a Session. Deleting its setup does not uninstall its apps.
+- **Keep your edits.** Closing with a changed Session draft offers Keep editing, Discard and Save. Failed saves retain your edits. Deleting a Session requires confirmation and does not uninstall its apps.
 
 ## What happens when a Session ends?
 
@@ -98,9 +99,7 @@ Sessions remembers which processes it started for that run. An app that was alre
 
 For example, if your chat app is already running when you start a Streaming Session, ending that Session leaves chat open and stops the apps Sessions opened for it.
 
-**Upcoming 0.2.2 (not yet released):** End Session requests a normal close and preserves apps that stay open, including apps waiting for you to save. Bring an app forward, finish and leave apps open, or explicitly confirm force quit for one app. You can opt an app into automatic force quit in its options; this may lose unsaved changes. Existing libraries default to normal close. Saving uses library format v3, which older releases cannot read.
-
-**The downloadable 0.2.1 preview still uses the earlier behavior:** it force quits owned apps that remain running after a normal close. Save your work before confirming End Session in that release.
+End Session requests a normal close and preserves apps that stay open, including apps waiting for you to save. Bring an app forward, finish and leave apps open, or explicitly confirm force quit for one app. You can opt an app into automatic force quit in its options; this may lose unsaved changes. Existing libraries default to normal close.
 
 ![Before ending a Session, see which apps will be closed and which will stay open.](docs/images/end-dark.png)
 
@@ -111,16 +110,13 @@ If an app cannot be stopped or safely tracked, Sessions explains the problem and
 
 ## Downloads
 
-**Sessions 0.2.1 is a development preview.** Download the
-[Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.2.1/Sessions-0.2.1-win-x64.msi)
-from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.2.1).
+**Sessions 0.2.2 is a development preview.** Download the
+[Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.2.2/Sessions-0.2.2-win-x64.msi)
+from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.2.2).
 The installer includes .NET and installs for your Windows user, with a Start menu
 shortcut. Installer and application binaries are unsigned.
 
-[What's new in 0.2.1](docs/release-notes/0.2.1.md): the refreshed interface,
-clearer stopping confirmation and consistent app/installer branding.
-
-[Upcoming 0.2.2](docs/release-notes/0.2.2.md) adds safer app closing, executable
+[What's new in 0.2.2](docs/release-notes/0.2.2.md): safer app closing, executable
 icons in the app list, and Keep editing / Discard / Save when you close with a
 changed Session draft.
 
@@ -128,9 +124,10 @@ Close Sessions before installing, updating, or uninstalling. Updates and uninsta
 preserve your saved Sessions. To update, download and run a newer MSI; there is no
 automatic updater. The release page includes checksums, source, and validation limits.
 
-**Library compatibility:** 0.2.1 keeps the same v2 format as 0.2.0. Saving a library
-from 0.1.0 upgrades it to v2, which 0.1.0 cannot open; loading alone does not rewrite
-it. Keep a copy before saving if you need to return to 0.1.0.
+**Library compatibility:** saving in 0.2.2 uses v3, which 0.2.1 and earlier cannot
+open. Loading an older library alone does not rewrite it. Keep a copy of
+`%LOCALAPPDATA%\Sessions\sessions.json` before saving if you need to return to an
+older release.
 
 See [Building and releasing Sessions](docs/RELEASING.md) for versioning and packaging.
 
@@ -142,7 +139,7 @@ See [Building and releasing Sessions](docs/RELEASING.md) for versioning and pack
 - General launcher handoffs, background services, and entire process trees are not automatically managed. Some apps may need manual handling.
 - Running apps without an accessible window can show their status but cannot be brought forward by the Running control.
 - Sessions opens apps with saved launch settings; it does not capture your current windows, documents, browser tabs, or desktop layout.
-- Save or cancel edits before closing the app. General protection for unsaved drafts outside an active run is still on the backlog.
+- Window closing protects changed drafts. Editor Cancel explicitly discards edits; crash recovery and autosave are not included.
 
 ## Build from source
 
@@ -185,7 +182,7 @@ It stores Session definitions and launch settings. Live process ownership is kep
 
 ## Project direction
 
-The immediate focus is reliable app startup and cleanup, clear feedback, and a UI that makes the next step obvious. Upcoming usability work includes draft protection, accessibility and display-scaling checks, and better guidance for invalid fields.
+The immediate focus is reliable app startup and cleanup, clear feedback, and a UI that makes the next step obvious. Upcoming usability work includes accessibility and display-scaling checks, and better guidance for invalid fields.
 
 Broader ideas—such as audio-device changes, power settings, and additional action types—are future possibilities, not features in the current app or promised release dates.
 

@@ -24,8 +24,8 @@ readiness checks, and completion focus. Launch stages and configurable failure
 policies remain later ideas. The supplied branding is now implemented, validated
 and approved by the user (SESS-024), with OS-following themes and compact support retained.
 Public-facing branding polish and obsolete-asset cleanup shipped in 0.2.1 under
-SESS-025. The safer-closing change (SESS-026) is implemented and user-confirmed. Saved-app icons (SESS-027) are implemented and user-confirmed.
-Draft-close protection (SESS-006) is implemented locally. Invalid-field guidance
+SESS-025. Safer closing (SESS-026), saved-app icons (SESS-027) and draft-close
+protection (SESS-006) are user-confirmed and published in 0.2.2 Preview. Invalid-field guidance
 (SESS-011) remains a suggested follow-up. Installed-release checks and Actions maintenance
 remain SESS-021/022. Broader native checks stay under SESS-001, including UAC
 cancellation and the narrower Playnite-specific confirmation in SESS-017; do not
@@ -109,6 +109,11 @@ Both themes at 1440×900 and 640×480 rendered at 100/125/150/200%; long names a
 failed-save errors remain readable with reachable actions. Review captures live in
 ignored artifacts/draft-close-review. No real apps/library were used as fixtures;
 physical-monitor/Narrator checks remain SESS-010. No autosave/crash recovery added.
+
+Released in 0.2.2 Preview from v0.2.2/57cfafd. Workflow 34407352459 passes clean
+solution/MSI builds, 54 Core and 125 App tests (25 opt-in skips). Downloaded asset
+checksums, all 167 source entries and MSI version verify. The user explicitly
+waived repeated Sandbox lifecycle checks; release notes disclose this limit.
 
 ## SESS-007 — Prevent conflicting application instances
 
@@ -327,6 +332,11 @@ timings and real-app/UAC checks were not specified. Those remaining checks keep
 this item open; installation/uninstall should no longer be described as tested
 only in Sandbox.
 
+For 0.2.2, the user explicitly requested skipping repeated Sandbox lifecycle checks.
+The tagged build/test/package workflow, asset checksums, source contents and MSI
+version were verified. This waiver does not establish the remaining ordinary-user
+or installed real-app/UAC outcomes and does not close this item.
+
 Done when: record ordinary-user install/update/uninstall and installed launch/end
 checks, including the elevated helper and cancellation paths where applicable.
 Keep test libraries and apps isolated. Coordinate hands-on app findings with SESS-001.
@@ -519,6 +529,8 @@ safer-closing flow. Exact app, Save/Discard/Cancel steps and UAC outcomes were n
 specified. The detailed Word/elevated-app trial matrix is not independently verified;
 retain those limits under SESS-001 rather than claiming native helper tests exercised UAC.
 
+Released in 0.2.2 Preview; shared release validation is recorded under SESS-006.
+
 ## SESS-027 — Show executable icons in saved app lists
 
 **P2 · Done · Implemented, validated and user-confirmed · 2026-09-09**
@@ -527,7 +539,7 @@ Source: after confirming the closing change, the user asks to replace app-name
 initials with the apps' icons. Code inspection found that the picker already extracts
 icons, while saved app cards only show the initial.
 
-Implemented locally: app cards load their executable artwork asynchronously through
+Implemented: app cards load their executable artwork asynchronously through
 a bounded, case-insensitive in-memory cache and retain the initial for missing,
 unreadable or malformed icons. Late results cannot overwrite rebound/detached
 controls; decoded bitmaps are released when replaced/detached. Names, Session
@@ -541,4 +553,5 @@ card, unavailable/corrupt/denied fallback, shared background reads, stale result
 and detach/reattach cleanup. All nine pass with 100/125/150/200% rendering coverage;
 both themes at 1440×900 and 640×480 reviewed. No real apps were launched. Headless
 rendering does not establish physical-monitor behavior. The user confirmed
-"works great, looks great!" and requested commit/push with SESS-026. Not yet released.
+"works great, looks great!" and requested commit/push with SESS-026. Released in
+0.2.2 Preview; shared release validation is recorded under SESS-006.

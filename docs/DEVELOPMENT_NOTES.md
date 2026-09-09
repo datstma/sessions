@@ -2,18 +2,25 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.2.2 version preparation 2026-09-09
+## Resume next session — 0.2.2 Preview published 2026-09-09
 
-Release follow-up: the user explicitly requested publishing 0.2.2 and skipping
-the repeated Sandbox installer lifecycle checks, citing successful installer use.
-Proceed with the existing tagged build/test/package workflow and asset/checksum
-verification. Do not repeat Sandbox installation. Release notes disclose this
-validation limit. Version preparation and draft protection were pushed as b09686c.
+Published [0.2.2 Preview](https://github.com/datstma/sessions/releases/tag/v0.2.2)
+from tag v0.2.2/commit 57cfafd. The user explicitly requested publication and skipping
+repeated Sandbox installer lifecycle checks, citing successful installer use.
+Workflow 34407352459 passed clean solution/MSI builds, 54 Core and 125 App tests
+(25 opt-in native skips). The release contains the MSI, Sessions/WiX source ZIPs
+and SHA256SUMS.txt. All downloaded hashes verify; all 167 Sessions source ZIP entries
+match the tag commit byte-for-byte; MSI ProductVersion is 0.2.2. ZIP container bytes
+differ from local git archive, so source comparison used entry contents. Verification
+files/log are under ignored artifacts/release-0.2.2-verification. No Sandbox install
+was run, and release notes disclose that limit. README/gallery now link to 0.2.2;
+screenshots remain accurately labelled as 0.2.1. The tag and published assets stay
+immutable; this documentation follow-up records the outcome on main.
 
 The user selected SESS-006 after reviewing the backlog and confirms it "works great".
 They requested a version bump, commit and push. Shared application/MSI version is
-now 0.2.2, with upcoming release notes covering SESS-006, SESS-026 and SESS-027.
-README download links continue to target published 0.2.1. Draft protection is implemented:
+now 0.2.2, with release notes covering SESS-006, SESS-026 and SESS-027.
+Draft protection is implemented:
 window close now protects changed new/existing Session drafts with Keep editing,
 Discard and Save. Keep editing is the initial/default action; Escape restores the
 editor focus. Unchanged/reverted drafts close without a draft prompt. Raw invalid
@@ -50,8 +57,8 @@ Exact release-tag installer lifecycle checks are omitted for 0.2.2 at the user's
 request above; the automated workflow and artifact checks still apply.
 
 The previous safer-closing/icon work was committed and pushed as e04b00c on main.
-The current request now authorizes tagging and publishing 0.2.2. Published 0.2.1
-remains unchanged. Do not automatically start SESS-011 or another backlog item.
+The requested 0.2.2 publication is complete. Published 0.2.1 remains unchanged.
+Do not automatically start SESS-011 or another backlog item.
 
 ## Previous checkpoint — safer closing and app icons 2026-09-09
 
