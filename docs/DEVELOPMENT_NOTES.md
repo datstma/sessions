@@ -2,14 +2,46 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.2.0 release preparation 2026-09-09
+## Resume next session — 0.2.0 published 2026-09-09
 
 The user requested a new release after checkpoint `851e476` was committed and pushed.
-Version 0.2.0 is the next feature preview, with notes in
-[release-notes/0.2.0.md](release-notes/0.2.0.md). Publication is authorized. Build the
-exact new tag using the existing manual workflow, verify its downloaded assets and
-installer in an isolated Sandbox, and publish with the documented preview limits.
-Keep the 0.1.0 tag/assets intact. README download links are updated after publication.
+[Sessions 0.2.0 Preview](https://github.com/datstma/sessions/releases/tag/v0.2.0) is
+public, published at 18:53 UTC on 2026-09-09. Annotated tag `v0.2.0` points to
+`23f8ec7`; neither published tag nor its assets should be replaced. README links
+now point to 0.2.0. No next feature slice is selected.
+
+Includes advanced startup, accessibility/scaling, contextual options headings, and
+the empty-Session start guard. Saving upgrades libraries to v2, which 0.1.0 cannot
+read; loading v1 does not rewrite it. See [release-notes/0.2.0.md](release-notes/0.2.0.md).
+
+[Workflow 34390315585](https://github.com/datstma/sessions/actions/runs/34390315585)
+built the exact tag: solution and MSI builds have zero build warnings/errors;
+45 Core and 90 App tests pass, with 22 opt-in native checks skipped. Prior source
+validation passed all 17 native runtime fixtures. The Actions runtime notices remain
+SESS-022; standard-user and installed real-app/UAC checks remain SESS-021, with native
+screen-reader/monitor-scaling verification under SESS-010.
+
+Downloaded MSI and both source ZIP checksums verify. All 114 Sessions source archive
+entries match the tag. The MSI contains 274 payload files and reports
+`0.2.0+23f8ec726d1a2481b45e6ea3fcf9725d79ba5d0f`; its 43 package metadata and notice
+files match the reviewed 0.1.0 package. WiX source/license checks pass. MSI size:
+59,418,429 bytes; SHA-256:
+`bd89f83540957274d72c08a2a9d497242bf162b92fba3b7987bb6c340ffa9f3b`.
+
+The exact downloaded installer passed all 26 Sandbox smoke assertions, plus the
+initial 0.1.0 baseline install: upgrade to 0.2.0, installed launch without shared
+.NET, one per-user registration, v1 load without rewriting, running-app refusal,
+downgrade rejection, uninstall/reinstall, shortcut removal, and byte-for-byte library
+preservation. Used the default Sandbox account and isolated fixtures; the host
+library and installed apps were untouched. Evidence is in ignored
+`artifacts/release-verification-0.2.0/`, including downloads, workflow log, asset
+review, scripts, and `results/result.json` with status passed. The Sandbox is stopped.
+Offline MSI operations again took about two minutes; no speed claim is made.
+
+The public release notes include final downloaded-asset and installer verification.
+Post-publication documentation records those results without changing the tagged
+source archive. Reproduce source builds with the pinned SDK commands in the prior
+checkpoint below.
 
 ## Previous checkpoint — advanced startup and UI feedback 2026-09-09
 

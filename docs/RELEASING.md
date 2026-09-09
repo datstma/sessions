@@ -75,6 +75,12 @@ have been exercised in a disposable Windows Sandbox. The upgrade used a test-onl
 real-app/UAC cleanup remain unverified for the 0.1.0 preview and are disclosed in
 its release notes. Build success alone does not establish those remaining checks.
 
+The exact downloaded 0.2.0 MSI also passed a 2026-09-09 Sandbox run using the
+published 0.1.0 MSI as its upgrade baseline: installed 0.2.0 launch, one per-user
+registration, byte-for-byte library preservation, v1 load without rewriting,
+running-app refusal, downgrade rejection, uninstall/reinstall, and shortcut removal.
+The same ordinary-user and installed real-app/UAC limits apply to 0.2.0.
+
 The 2026-09-09 offline Sandbox checks preserved the library byte-for-byte, verified
 one per-user registration after upgrading, and verified removal of a file absent
 from the newer fixture. Fresh MSI operations took approximately two minutes before

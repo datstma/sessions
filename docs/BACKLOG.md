@@ -15,7 +15,7 @@ This is a work record, not authorization to implement everything. The user expli
 
 ## Suggested sequence
 
-The 0.1.0 preview is published (SESS-020). The user selected accessibility/scaling
+The 0.2.0 preview is published (SESS-020/023). The user selected accessibility/scaling
 (SESS-010) on 2026-09-09; the implementation and automated review below are complete,
 with native screen-reader/scaling trials awaiting feedback. The user approved the
 first advanced-startup slice; SESS-023 now implements timing, concurrent launching,
@@ -280,6 +280,14 @@ Publication authorized on 2026-09-09: the user explicitly requested documentatio
 
 Published: [Sessions 0.1.0 preview](https://github.com/datstma/sessions/releases/tag/v0.1.0), from commit `4ec492f` and tag `v0.1.0`, with MSI, matching Sessions/WiX source ZIPs, checksums, setup instructions, and validation limits. All downloaded hashes verify; every Sessions source archive entry matches the tag. The exact downloaded MSI passed a fresh Sandbox install/launch, running-app refusal, upgrade/downgrade, uninstall/reinstall, and library-preservation run before publication. See the current DEVELOPMENT_NOTES handoff for its hash and evidence. Remaining installed-release validation and Actions runtime maintenance are separate SESS-021/022 items.
 
+Follow-up release: [Sessions 0.2.0 Preview](https://github.com/datstma/sessions/releases/tag/v0.2.0)
+is published from tag `v0.2.0`/commit `23f8ec7`. The exact-tag workflow passes clean
+solution/MSI builds and all 135 regular tests (22 opt-in native cases skipped).
+Downloaded hashes and all 114 source archive entries verify. The exact MSI passes
+0.1.0-to-0.2.0 Sandbox upgrade, installed launch, running-app refusal, downgrade
+rejection, uninstall/reinstall, and library preservation. README and release notes
+include the v2-library compatibility change and remaining preview limits.
+
 Done when: the chosen repository and license are in place and a tested Windows preview has accurate download/setup instructions and disclosed validation limits. Screenshots can be added from representative app states when preparing the public listing.
 
 ## SESS-021 — Extend installed-release validation
@@ -308,7 +316,7 @@ workflow without replacing the published 0.1.0 assets or moving its tag.
 
 ## SESS-023 — Advanced startup timing, readiness, and completion focus
 
-**P1 · Done · Advanced startup implemented in source; unreleased · 2026-09-09**
+**P1 · Done · Released in 0.2.0 Preview · 2026-09-09**
 
 Source: user requested timing/readiness, concurrent launching and completion focus,
 then approved the proposed first slice: “let's do it as you have proposed.”

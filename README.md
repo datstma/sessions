@@ -26,19 +26,19 @@ Give each Session its own app order and launch options. You can end it manually,
 1. **Create a Session.** Give it a name you'll recognise in the sidebar.
 2. **Add your apps.** Search or scroll through Start menu apps, choose from running apps, or browse for an executable. Select several at once.
 3. **Make it yours.** Arrange the opening order and choose when the Session ends. Arguments, working folders, and administrator launch settings are available when needed.
-4. **Start the Session.** Apps open in order. Matching apps that are already running stay open without becoming part of its cleanup.
+4. **Start the Session.** Apps open using your chosen startup mode (in order by default). Matching apps that are already running stay open without becoming part of its cleanup.
 5. **End when you're ready.** Review which apps will stop, save your work, and confirm.
 
 Selecting a Session only shows its details; starting it is a separate action. Creating or editing one never launches its apps.
 
-**Unreleased source builds** also offer Advanced startup: open apps in order or
+**Sessions 0.2.0** offers advanced startup: open apps in order or
 together, configure readiness waits and pauses, and optionally bring Sessions or a
 chosen app forward when startup finishes. Options headings follow the selected app
 and Session names; each app has its own wait/pause settings. Empty Sessions remain
-editable and show Start Session only after apps are added and saved. These builds
-also improve keyboard focus, accessibility labels, and layouts in small windows.
-Saving from this build upgrades the library to format v2, which the
-published 0.1.0 preview cannot read. Existing libraries load with their old defaults.
+editable and show Start Session only after apps are added and saved. It also
+improves keyboard focus, accessibility labels, and layouts in small windows.
+Saving in 0.2.0 upgrades the library to format v2, which the
+older 0.1.0 preview cannot read. Existing libraries load with their old defaults.
 
 ### Small details that make daily use easier
 
@@ -61,9 +61,9 @@ If an app cannot be stopped or safely tracked, Sessions explains the problem and
 
 ## Downloads
 
-**Sessions 0.1.0 is a development preview.** Download the
-[Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.1.0/Sessions-0.1.0-win-x64.msi)
-from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.1.0).
+**Sessions 0.2.0 is a development preview.** Download the
+[Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.2.0/Sessions-0.2.0-win-x64.msi)
+from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.2.0).
 The installer includes .NET and installs for your Windows user, with a Start menu
 shortcut. Installer and application binaries are unsigned.
 
