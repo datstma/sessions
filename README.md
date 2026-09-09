@@ -31,6 +31,15 @@ Give each Session its own app order and launch options. You can end it manually,
 
 Selecting a Session only shows its details; starting it is a separate action. Creating or editing one never launches its apps.
 
+**Unreleased source builds** also offer Advanced startup: open apps in order or
+together, configure readiness waits and pauses, and optionally bring Sessions or a
+chosen app forward when startup finishes. Options headings follow the selected app
+and Session names; each app has its own wait/pause settings. Empty Sessions remain
+editable and show Start Session only after apps are added and saved. These builds
+also improve keyboard focus, accessibility labels, and layouts in small windows.
+Saving from this build upgrades the library to format v2, which the
+published 0.1.0 preview cannot read. Existing libraries load with their old defaults.
+
 ### Small details that make daily use easier
 
 - **Find apps by name.** Start menu discovery keeps supported shortcuts' arguments, working folders, and administrator settings.

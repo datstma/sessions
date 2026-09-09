@@ -16,7 +16,17 @@ public sealed partial class SessionViewModel(SessionDefinition definition, IAppP
     public string Description => string.IsNullOrWhiteSpace(Definition.Description)
         ? "Your apps, ready together." : Definition.Description;
     public string AppCount => Definition.Apps.Count == 1 ? "1 app" : $"{Definition.Apps.Count} apps";
+    public string AccessibleName => $"{Name}, {AppCount}{(IsActive ? ", active" : "")}";
+    partial void OnIsActiveChanged(bool value) => OnPropertyChanged(nameof(AccessibleName));
     public bool HasApps => Definition.Apps.Count > 0;
+    public string StartupSummary => (Definition.LaunchMode == SessionLaunchMode.Together ? "Apps open together; pauses are ignored." :
+        $"Apps open in order; {Definition.PauseBetweenAppsSeconds}s between apps unless overridden.") +
+        (Definition.FocusAfterStartup switch
+        {
+            StartupFocus.Sessions => " Bring Sessions forward after startup.",
+            StartupFocus.App => $" Focus {Definition.Apps.First(app => app.Id == Definition.FocusAppId).Name} after startup.",
+            _ => ""
+        });
     public IReadOnlyList<SessionAppRow> Apps { get; } = definition.Apps
         .Select((app, index) => new SessionAppRow(index + 1, app.Name, app.ExecutablePath,
             app.Id == definition.MainAppId ? "Ends with this app" : "Open app", presenceService, appLauncher, app)).ToArray();

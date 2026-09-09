@@ -5,7 +5,7 @@ public enum SessionAppState { Waiting, Starting, AlreadyRunning, Running, Exited
 
 public sealed record SessionAppOutcome(Guid AppId, string Name, SessionAppState State, bool Owned, string Message);
 public sealed record SessionRunSnapshot(Guid SessionId, string Name, SessionRunState State,
-    IReadOnlyList<SessionAppOutcome> Apps, string Message)
+    IReadOnlyList<SessionAppOutcome> Apps, string Message, Guid RunId = default, bool StartupSucceeded = false)
 {
     public bool IsActive => State is SessionRunState.Starting or SessionRunState.Running or SessionRunState.AwaitingEndConfirmation or
         SessionRunState.Stopping or SessionRunState.NeedsAttention;
@@ -15,6 +15,7 @@ public sealed record SessionRunSnapshot(Guid SessionId, string Name, SessionRunS
 public interface ITrackedProcess : IDisposable
 {
     bool HasExited { get; }
+    bool HasWindow => false;
     string? TrackingMessage => null;
     Task<bool> RequestCloseAsync(TimeSpan timeout);
 }

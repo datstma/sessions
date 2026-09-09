@@ -10,6 +10,32 @@ public sealed class NativeSessionRuntimeTests
     public static bool RunNativeRuntime => OperatingSystem.IsWindows() &&
         Environment.GetEnvironmentVariable("SESSIONS_RUN_RUNTIME_SMOKE") == "1";
 
+    [Theory(Skip = "Opt-in readiness checks using isolated fixture windows only.", SkipUnless = nameof(RunNativeRuntime))]
+    [InlineData(SessionLaunchMode.InOrder)]
+    [InlineData(SessionLaunchMode.Together)]
+    public async Task StartupWindowReadinessWorksForOwnedAndPreExistingApps(SessionLaunchMode mode)
+    {
+        using var test = new NativeFixture();
+        var owned = test.App("ready-owned") with { Readiness = AppReadiness.WindowAppeared, ReadinessTimeoutSeconds = 10 };
+        var existing = test.App("ready-existing") with { Readiness = AppReadiness.WindowAppeared, ReadinessTimeoutSeconds = 10 };
+        await new WindowsProcessStarter().StartAsync(existing, test.Token);
+        var existingProcess = await test.RetainWindow(existing);
+        var runner = new SessionRunner(new WindowsSessionProcessHost(), TimeSpan.FromMilliseconds(500));
+        try
+        {
+            await runner.StartAsync(new(Guid.NewGuid(), "Readiness fixture", "", [owned, existing], LaunchMode: mode)).WaitAsync(test.Token);
+            Assert.True(runner.Snapshot!.StartupSucceeded);
+            Assert.Equal(SessionRunState.Running, runner.Snapshot.State);
+            Assert.True(runner.Snapshot.Apps[0].Owned);
+            Assert.False(runner.Snapshot.Apps[1].Owned);
+            var ownedProcess = await test.RetainWindow(owned);
+            await runner.EndAsync();
+            Assert.True(ownedProcess.HasExited);
+            Assert.False(existingProcess.HasExited);
+        }
+        finally { if (runner.Snapshot?.IsActive == true) runner.LeaveAppsOpen(); }
+    }
+
     [Theory(Skip = "Opt-in isolated off-screen test windows; never touches user apps.", SkipUnless = nameof(RunNativeRuntime))]
     [InlineData(false)]
     [InlineData(true)]

@@ -1,6 +1,6 @@
 namespace Sessions.Core;
 
-/// <summary>One active run, ordered startup, lifetime observation, and ownership-safe cleanup.</summary>
+/// <summary>One active run, configurable startup, lifetime observation, and ownership-safe cleanup.</summary>
 public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeout = null)
 {
     private readonly object _sync = new();
@@ -29,41 +29,23 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
     {
         try
         {
-            foreach (var entry in run.Entries)
+            if (run.Definition.LaunchMode == SessionLaunchMode.Together)
             {
-                lock (_sync)
+                // Same-executable rows cannot race the host's existing-process check.
+                // Each group keeps definition order; independent executables overlap.
+                var groups = run.Entries.GroupBy(e => StartupPathKey(e.App.ExecutablePath),
+                    StringComparer.OrdinalIgnoreCase).ToArray();
+                await Task.WhenAll(groups.Select(async group =>
                 {
-                    if (run.StopRequested) break;
-                    entry.State = SessionAppState.Starting;
-                    entry.Message = "Opening…";
-                }
-                Publish(run);
-                try
-                {
-                    var acquisition = await host.OpenAsync(entry.App, run.StartCancellation.Token).ConfigureAwait(false);
-                    lock (_sync)
+                    Entry? previous = null;
+                    foreach (var entry in group)
                     {
-                        entry.Processes = acquisition.Processes;
-                        entry.Owned = acquisition.Owned;
-                        entry.State = acquisition.Processes.Count == 0 ? SessionAppState.Untracked :
-                            acquisition.Owned ? SessionAppState.Running : SessionAppState.AlreadyRunning;
-                        entry.Message = acquisition.Message;
+                        await StartEntryAsync(run, entry, previous).ConfigureAwait(false);
+                        previous = entry;
                     }
-                }
-                catch (OperationCanceledException) when (run.StopRequested) { break; }
-                catch (Exception exception)
-                {
-                    lock (_sync)
-                    {
-                        entry.State = SessionAppState.Failed;
-                        entry.Message = exception.Message;
-                        run.Failed = true;
-                        run.Message = $"Couldn't open {entry.App.Name}. Startup stopped.";
-                    }
-                    break;
-                }
-                Publish(run);
+                })).ConfigureAwait(false);
             }
+            else foreach (var entry in run.Entries) await StartEntryAsync(run, entry).ConfigureAwait(false);
         }
         finally { run.StartFinished.TrySetResult(); }
 
@@ -80,6 +62,7 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
             else if (!end)
             {
                 run.State = SessionRunState.Running;
+                run.StartupSucceeded = true;
                 run.Message = run.Definition.MainAppId is { } main && run.Entries.First(e => e.App.Id == main).Processes.Count == 0
                     ? "The main app couldn't be tracked. Use End Session when you're finished."
                     : "Your Session is active.";
@@ -88,6 +71,107 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
         Publish(run);
         if (end) await EndRunAsync(run).ConfigureAwait(false);
         else if (!run.Failed) _ = MonitorAsync(run);
+    }
+
+    private async Task StartEntryAsync(Run run, Entry entry, Entry? previousAtSamePath = null)
+    {
+        lock (_sync)
+        {
+            if (run.StopRequested || run.Failed) return;
+            entry.State = SessionAppState.Starting;
+            entry.Message = "Opening…";
+        }
+        Publish(run);
+        string? acquiredMessage = null;
+        try
+        {
+            if (previousAtSamePath is { Processes.Count: 0 })
+                throw new InvalidOperationException("An earlier launch of this executable was untracked. Its repeated entry was not launched.");
+            var acquisition = await host.OpenAsync(entry.App, run.StartCancellation.Token).ConfigureAwait(false);
+            // Always retain a completed acquisition, even if cancellation/failure occurred while Windows was opening it.
+            lock (_sync)
+            {
+                entry.Processes = acquisition.Processes;
+                entry.Owned = acquisition.Owned;
+                acquiredMessage = acquisition.Message;
+                entry.Message = acquiredMessage;
+            }
+            run.StartCancellation.Token.ThrowIfCancellationRequested();
+            await WaitForReadinessAsync(run, entry).ConfigureAwait(false);
+            if (run.Definition.LaunchMode == SessionLaunchMode.InOrder)
+            {
+                var seconds = entry.App.PauseAfterSeconds ??
+                    (ReferenceEquals(entry, run.Entries.LastOrDefault()) ? 0 : run.Definition.PauseBetweenAppsSeconds);
+                for (var remaining = seconds; remaining > 0; remaining--)
+                {
+                    lock (_sync) entry.Message = $"Pausing after {entry.App.Name} · {remaining}s remaining";
+                    Publish(run);
+                    await Task.Delay(TimeSpan.FromSeconds(1), run.StartCancellation.Token).ConfigureAwait(false);
+                }
+            }
+            lock (_sync)
+            {
+                entry.State = entry.Processes.Count == 0 ? SessionAppState.Untracked :
+                    entry.Owned ? SessionAppState.Running : SessionAppState.AlreadyRunning;
+                entry.Message = acquiredMessage;
+            }
+        }
+        catch (OperationCanceledException) when (run.StopRequested || run.Failed)
+        {
+            lock (_sync)
+            {
+                entry.State = acquiredMessage is null ? SessionAppState.Waiting :
+                    entry.Processes.Count == 0 ? SessionAppState.Untracked :
+                    entry.Owned ? SessionAppState.Running : SessionAppState.AlreadyRunning;
+                entry.Message = acquiredMessage is null ? "Startup cancelled before opening" : acquiredMessage + " · Startup wait cancelled";
+            }
+        }
+        catch (Exception exception)
+        {
+            lock (_sync)
+            {
+                entry.State = SessionAppState.Failed;
+                entry.Message = exception.Message;
+                run.Failed = true;
+                run.Message = $"Startup stopped at {entry.App.Name}. Waiting for in-flight launches to finish.";
+            }
+            run.StartCancellation.Cancel();
+        }
+        Publish(run);
+    }
+
+    private async Task WaitForReadinessAsync(Run run, Entry entry)
+    {
+        if (entry.App.Readiness == AppReadiness.LaunchCompleted) return;
+        if (entry.Processes.Count == 0)
+            throw new InvalidOperationException("Readiness cannot be verified for this untracked launch. Use 'Launch request completed' or manage it manually.");
+        var token = run.StartCancellation.Token;
+        var timer = System.Diagnostics.Stopwatch.StartNew();
+        var timeout = TimeSpan.FromSeconds(entry.App.ReadinessTimeoutSeconds);
+        while (true)
+        {
+            token.ThrowIfCancellationRequested();
+            var ready = await Task.Run(() =>
+            {
+                var live = entry.Processes.Where(p => !p.HasExited).ToArray();
+                if (live.Length == 0) throw new InvalidOperationException("The tracked app exited before its startup condition was met.");
+                return entry.App.Readiness == AppReadiness.ProcessRunning || live.Any(p => p.HasWindow);
+            }, token).ConfigureAwait(false);
+            if (ready) return;
+            if (timer.Elapsed >= timeout)
+                throw new TimeoutException($"No window appeared for {entry.App.Name} within {entry.App.ReadinessTimeoutSeconds} seconds. Startup stopped.");
+            var remaining = (int)Math.Ceiling((timeout - timer.Elapsed).TotalSeconds);
+            lock (_sync) entry.Message = $"Waiting for {entry.App.Name}'s window · {remaining}s remaining";
+            Publish(run);
+            await Task.Delay(TimeSpan.FromMilliseconds(Math.Max(1, Math.Min(250, (timeout - timer.Elapsed).TotalMilliseconds))), token).ConfigureAwait(false);
+        }
+    }
+
+    private static string StartupPathKey(string path)
+    {
+        try { return Path.GetFullPath(path.Trim()).Replace('/', '\\'); }
+        catch (Exception exception) when (exception is ArgumentException or NotSupportedException or IOException)
+        { return path.Trim().Replace('/', '\\'); } // The host reports an invalid path as an ordinary launch failure.
     }
 
     /// <summary>Execute cleanup after the caller has obtained the user's save-work confirmation.</summary>
@@ -260,7 +344,8 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
             // A final event from an old operation must never overwrite a newer run.
             if (!ReferenceEquals(_latestRun, run)) return;
             _snapshot = new SessionRunSnapshot(run.Definition.Id, run.Definition.Name, run.State,
-                run.Entries.Select(e => new SessionAppOutcome(e.App.Id, e.App.Name, e.State, e.Owned, e.Message)).ToArray(), run.Message);
+                run.Entries.Select(e => new SessionAppOutcome(e.App.Id, e.App.Name, e.State, e.Owned, e.Message)).ToArray(), run.Message,
+                run.Id, run.StartupSucceeded);
         }
         Changed?.Invoke(this, EventArgs.Empty);
     }
@@ -268,9 +353,11 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
     private sealed class Run(SessionDefinition definition)
     {
         public SessionDefinition Definition { get; } = definition;
+        public Guid Id { get; } = Guid.NewGuid();
         public Entry[] Entries { get; } = definition.Apps.Select(app => new Entry(app)).ToArray();
         public SessionRunState State = SessionRunState.Starting;
-        public string Message = "Opening your apps in order…";
+        public string Message = definition.LaunchMode == SessionLaunchMode.Together ? "Opening your apps together…" : "Opening your apps in order…";
+        public bool StartupSucceeded;
         public bool StopRequested;
         public bool Failed;
         public bool MainEndDismissed;

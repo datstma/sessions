@@ -19,18 +19,26 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private readonly IAppPresenceService? presenceService;
     private readonly IIndividualAppLauncher? appLauncher;
     private readonly SessionRunner? runner;
+    private readonly IStartupFocusService? startupFocus;
+    private CancellationTokenSource _startupFocusCancellation = new();
+    private Guid? _focusRunId;
+    private bool _disposed;
 
     public MainViewModel(ISessionStore store, IAppPresenceService? presenceService = null,
-        IIndividualAppLauncher? appLauncher = null, SessionRunner? runner = null)
+        IIndividualAppLauncher? appLauncher = null, SessionRunner? runner = null, IStartupFocusService? startupFocus = null)
     {
         this.store = store;
         this.presenceService = presenceService;
         this.appLauncher = appLauncher;
         this.runner = runner;
+        this.startupFocus = startupFocus;
         if (runner is not null) runner.Changed += RuntimeChanged;
     }
 
     [ObservableProperty] private SessionRunSnapshot? _runtime;
+    [ObservableProperty] private string? _startupFocusMessage;
+    public bool HasStartupFocusMessage => StartupFocusMessage is not null;
+    partial void OnStartupFocusMessageChanged(string? value) => OnPropertyChanged(nameof(HasStartupFocusMessage));
     [ObservableProperty] private bool _isCloseConfirmation;
     [ObservableProperty] private Guid? _pendingEndSessionId;
     public bool IsEndConfirmation => PendingEndSessionId is not null;
@@ -61,7 +69,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         ? "Click Running to bring an app forward. Individual launches are available after the Session ends."
         : "Click Not running to open an app, or Running to bring it forward. Apps opened individually stay open independently of the Session.";
     private bool HasOpeningApps => Sessions.SelectMany(s => s.Apps).Any(app => app.IsOpening);
-    private bool CanStartSession() => runner is not null && CanBrowse && SelectedSession is not null && !HasActiveRun && !HasOpeningApps;
+    private bool CanStartSession() => runner is not null && CanBrowse && SelectedSession is { HasApps: true } && !HasActiveRun && !HasOpeningApps;
     private bool CanEndSession() => runner is not null && HasActiveRun && Runtime?.State != SessionRunState.Stopping && !IsBusy && Editor is null && !IsConfirmingDelete && !IsEndConfirmation && !IsCloseConfirmation;
     private bool CanConfirmEndSession() => runner is not null && IsEndConfirmation && Runtime is { IsActive: true } runtime && runtime.SessionId == PendingEndSessionId && runtime.State != SessionRunState.Stopping && !IsBusy && Editor is null;
     private bool CanEndAndClose() => runner is not null && IsCloseConfirmation && HasActiveRun && Runtime?.State != SessionRunState.Stopping && !IsBusy && Editor is null;
@@ -73,9 +81,51 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     {
         if (!CanStartSession()) return;
         ErrorMessage = null;
-        try { await runner!.StartAsync(SelectedSession!.Definition); }
+        StartupFocusMessage = null;
+        var definition = SelectedSession!.Definition;
+        try
+        {
+            var start = runner!.StartAsync(definition);
+            var runId = runner.Snapshot!.RunId;
+            await start;
+            ApplyRuntime();
+            await FocusAfterStartupAsync(definition, runId);
+        }
         catch (Exception exception) when (SessionAppRow.IsObservationError(exception)) { ErrorMessage = exception.Message; }
         finally { ApplyRuntime(); }
+    }
+
+    private async Task FocusAfterStartupAsync(SessionDefinition definition, Guid runId)
+    {
+        if (_disposed || definition.FocusAfterStartup == StartupFocus.Unchanged ||
+            Runtime is not { State: SessionRunState.Running, StartupSucceeded: true } runtime || runtime.RunId != runId) return;
+        if (!CanBrowse)
+        {
+            StartupFocusMessage = "Startup finished. Focus was left unchanged while editing or showing a confirmation.";
+            return;
+        }
+        _startupFocusCancellation.Cancel();
+        _startupFocusCancellation.Dispose();
+        _startupFocusCancellation = new CancellationTokenSource();
+        var token = _startupFocusCancellation.Token;
+        _focusRunId = runId;
+        try
+        {
+            var path = definition.FocusAfterStartup == StartupFocus.App
+                ? definition.Apps.First(app => app.Id == definition.FocusAppId).ExecutablePath : null;
+            var result = startupFocus is null ? AppFocusResult.Denied : await startupFocus.FocusAsync(path, token);
+            token.ThrowIfCancellationRequested();
+            StartupFocusMessage = result switch
+            {
+                AppFocusResult.NoWindow => "Startup finished, but the chosen app has no window to focus.",
+                AppFocusResult.Denied => "Startup finished, but Windows did not bring the chosen window forward. Select it from the taskbar.",
+                _ => null
+            };
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+        catch (Exception exception) when (SessionAppRow.IsObservationError(exception))
+        { if (!token.IsCancellationRequested) StartupFocusMessage = "Startup finished, but focus could not be changed. " + exception.Message; }
+        finally { if (_focusRunId == runId) _focusRunId = null; }
     }
 
     [RelayCommand(CanExecute = nameof(CanEndSession))]
@@ -204,6 +254,11 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     partial void OnPendingEndSessionIdChanged(Guid? value) => Refresh();
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
+        _focusRunId = null;
+        _startupFocusCancellation.Cancel();
+        _startupFocusCancellation.Dispose();
         if (runner is not null) runner.Changed -= RuntimeChanged;
         foreach (var row in Sessions.SelectMany(s => s.Apps)) row.PropertyChanged -= AppRowChanged;
     }
@@ -422,6 +477,8 @@ public partial class MainViewModel : ViewModelBase, IDisposable
 
     private void Refresh()
     {
+        if (_focusRunId is { } focusRun && (Runtime?.RunId != focusRun || Runtime.State != SessionRunState.Running || !CanBrowse))
+            _startupFocusCancellation.Cancel();
         if (Runtime?.State == SessionRunState.AwaitingEndConfirmation && CanBrowse)
             PendingEndSessionId = Runtime.SessionId;
         foreach (var property in new[] { nameof(HasSessions), nameof(IsEmpty), nameof(IsEditing), nameof(ShowDetails),

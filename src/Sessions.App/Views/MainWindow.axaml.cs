@@ -19,6 +19,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        SizeChanged += (_, _) => Classes.Set("compact", Bounds.Width < 900);
         _presenceTimer.Tick += async (_, _) => await RefreshPresenceAsync();
         Activated += async (_, _) => await RefreshPresenceAsync();
         MainViewModel? observedModel = null;
@@ -38,7 +39,11 @@ public partial class MainWindow : Window
         };
         Closing += (_, e) =>
         {
-            if (DataContext is MainViewModel model && !model.RequestWindowClose()) e.Cancel = true;
+            if (DataContext is MainViewModel model)
+            {
+                if (!model.IsCloseConfirmation) _closeReturnFocus = FocusManager?.GetFocusedElement() as Control;
+                if (!model.RequestWindowClose()) e.Cancel = true;
+            }
         };
         Closed += (_, _) =>
         {
@@ -54,18 +59,34 @@ public partial class MainWindow : Window
         };
         Opened += async (_, _) =>
         {
+            // Size in logical pixels: leave space for the taskbar and window decorations at high DPI.
+            if (Screens.ScreenFromWindow(this) is { } screen)
+            {
+                Width = Math.Min(Width, Math.Max(MinWidth, screen.WorkingArea.Width / screen.Scaling - 32));
+                Height = Math.Min(Height, Math.Max(MinHeight, screen.WorkingArea.Height / screen.Scaling - 64));
+            }
             if (DataContext is MainViewModel viewModel && viewModel.LoadCommand.CanExecute(null))
                 await viewModel.LoadCommand.ExecuteAsync(null);
             if (!_presenceLifetime.IsCancellationRequested)
             {
                 _presenceTimer.Start();
                 await RefreshPresenceAsync();
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (DataContext is not MainViewModel { IsMainContentEnabled: true, IsEditing: false } ready) return;
+                    if (ready.IsEmpty) CreateFirstButton.Focus();
+                    else SessionList.Focus();
+                });
             }
         };
     }
 
     private bool _deleteWasOpen;
     private bool _endWasOpen;
+    private bool _closeWasOpen;
+    private Control? _editorReturnFocus;
+    private Control? _closeReturnFocus;
+    private void EditRequested(object? sender, Avalonia.Interactivity.RoutedEventArgs e) => _editorReturnFocus = sender as Control;
     private void OnCloseRequested(object? sender, System.EventArgs e) => Close();
 
     private Task RefreshPresenceAsync() => !_presenceLifetime.IsCancellationRequested && IsVisible &&
@@ -74,6 +95,19 @@ public partial class MainWindow : Window
 
     private void OnViewModelChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(MainViewModel.Editor) && sender is MainViewModel { IsEditing: false } editorModel)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (editorModel.IsEditing || !editorModel.IsMainContentEnabled) return;
+                if (_editorReturnFocus is { IsEffectivelyVisible: true, IsEffectivelyEnabled: true } previous)
+                    previous.Focus();
+                else if (editorModel.ShowDetails && EditSessionButton.IsEffectivelyEnabled) EditSessionButton.Focus();
+                else if (editorModel.HasSessions) NewSessionButton.Focus();
+                else CreateFirstButton.Focus();
+                _editorReturnFocus = null;
+            });
+        }
         if (e.PropertyName == nameof(MainViewModel.IsEndConfirmation) && sender is MainViewModel endModel && _endWasOpen != endModel.IsEndConfirmation)
         {
             _endWasOpen = endModel.IsEndConfirmation;
@@ -83,8 +117,21 @@ public partial class MainWindow : Window
                 else if (endModel.HasActiveRun) EndSessionButton.Focus();
             });
         }
-        if (e.PropertyName == nameof(MainViewModel.IsCloseConfirmation) && sender is MainViewModel { IsCloseConfirmation: true })
-            Dispatcher.UIThread.Post(() => KeepSessionsOpenButton.Focus());
+        if (e.PropertyName == nameof(MainViewModel.IsCloseConfirmation) && sender is MainViewModel closeModel &&
+            _closeWasOpen != closeModel.IsCloseConfirmation)
+        {
+            _closeWasOpen = closeModel.IsCloseConfirmation;
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (closeModel.IsCloseConfirmation) KeepSessionsOpenButton.Focus();
+                else if (closeModel.IsMainContentEnabled)
+                {
+                    if (_closeReturnFocus is { IsEffectivelyVisible: true, IsEffectivelyEnabled: true } previous) previous.Focus();
+                    else if (closeModel.HasActiveRun) EndSessionButton.Focus();
+                    _closeReturnFocus = null;
+                }
+            });
+        }
         if (e.PropertyName == nameof(MainViewModel.ShowDetails))
             Dispatcher.UIThread.Post(async () => await RefreshPresenceAsync());
         if (e.PropertyName != nameof(MainViewModel.IsConfirmingDelete) || sender is not MainViewModel model ||

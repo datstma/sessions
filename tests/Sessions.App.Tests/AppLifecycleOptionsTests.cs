@@ -29,7 +29,7 @@ public sealed class AppLifecycleOptionsTests
         try
         {
             Dispatcher.UIThread.RunJobs();
-            view.GetVisualDescendants().OfType<Expander>().Single(e => e.Header?.ToString() == "App options").IsExpanded = true;
+            view.GetVisualDescendants().OfType<Expander>().Single(e => e.Header?.ToString() == "Game hub options").IsExpanded = true;
             Dispatcher.UIThread.RunJobs();
             var options = view.GetVisualDescendants().OfType<CheckBox>().Where(c =>
                 c.Content?.ToString() is "Run as administrator").ToArray();

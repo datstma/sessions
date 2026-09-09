@@ -24,13 +24,32 @@ public partial class SessionEditorViewModel : ViewModelBase
     [ObservableProperty] private bool _endWithApp;
     [ObservableProperty] private AppEditorViewModel? _mainApp;
     [ObservableProperty] private string? _validationMessage;
+    [ObservableProperty] private int _launchModeIndex;
+    [ObservableProperty] private decimal? _pauseBetweenAppsSeconds = 0;
+    [ObservableProperty] private int _startupFocusIndex;
+    [ObservableProperty] private AppEditorViewModel? _focusApp;
+    public string[] LaunchModes { get; } = ["In order", "All at once"];
+    public string[] StartupFocusChoices { get; } = ["Leave focus unchanged", "Bring Sessions forward", "Focus a chosen app"];
+    public bool IsOrdered => LaunchModeIndex == 0;
+    public bool NeedsFocusApp => StartupFocusIndex == 2;
+    public string OrderingHint => IsOrdered ? "They open in the order shown." : "They open together. Startup waits still apply.";
+    private bool ValidStartup => LaunchModeIndex is 0 or 1 && StartupFocusIndex is >= 0 and <= 2 &&
+        ValidSeconds(PauseBetweenAppsSeconds, 0, 300) && (!NeedsFocusApp || FocusApp is not null && Apps.Contains(FocusApp)) &&
+        Apps.All(app => app.ValidStartup);
+    internal static bool ValidSeconds(decimal? value, int minimum, int maximum) => value is { } seconds &&
+        seconds >= minimum && seconds <= maximum && decimal.Truncate(seconds) == seconds;
 
     public bool HasApps => Apps.Count > 0;
     public bool HasSelectedApp => SelectedApp is not null;
+    public string AppOptionsHeading => string.IsNullOrWhiteSpace(SelectedApp?.Name)
+        ? "App options" : $"{SelectedApp.Name.Trim()} options";
+    public string AdvancedStartupHeading => string.IsNullOrWhiteSpace(Name)
+        ? "Advanced startup options" : $"{Name.Trim()} advanced startup options";
+    public string SelectedAppSummary => SelectedApp is { } app ? $"Selected: {app.Name}, app {app.Order} of {Apps.Count}." : "";
     public bool HasValidationMessage => ValidationMessage is not null;
     public bool CanSave => !string.IsNullOrWhiteSpace(Name) &&
                            Apps.All(app => !string.IsNullOrWhiteSpace(app.Name) && !string.IsNullOrWhiteSpace(app.ExecutablePath)) &&
-                           (!EndWithApp || MainApp is not null && Apps.Contains(MainApp));
+                           (!EndWithApp || MainApp is not null && Apps.Contains(MainApp)) && ValidStartup;
 
     public SessionEditorViewModel(SessionDefinition? definition = null)
     {
@@ -38,12 +57,16 @@ public partial class SessionEditorViewModel : ViewModelBase
         _id = definition?.Id ?? Guid.NewGuid();
         Name = definition?.Name ?? "";
         Description = definition?.Description ?? "";
+        LaunchModeIndex = (int)(definition?.LaunchMode ?? SessionLaunchMode.InOrder);
+        PauseBetweenAppsSeconds = definition?.PauseBetweenAppsSeconds ?? 0;
+        StartupFocusIndex = (int)(definition?.FocusAfterStartup ?? StartupFocus.Unchanged);
         Apps.CollectionChanged += AppsChanged;
         foreach (var app in definition?.Apps ?? [])
             Apps.Add(new AppEditorViewModel(app));
         MainApp = Apps.FirstOrDefault(app => app.Id == definition?.MainAppId);
         EndWithApp = MainApp is not null;
         SelectedApp = Apps.FirstOrDefault();
+        FocusApp = Apps.FirstOrDefault(app => app.Id == definition?.FocusAppId);
     }
 
     public void AddApp(string path, string? displayName = null)
@@ -75,10 +98,11 @@ public partial class SessionEditorViewModel : ViewModelBase
 
     public SessionDefinition BuildDefinition()
     {
+        if (!CanSave) throw new ArgumentException("Complete the required Session and startup settings before saving.");
         var definition = new SessionDefinition(_id, Name.Trim(), Description.Trim(),
-            Apps.Select(app => app.BuildAction()).ToArray(), EndWithApp ? MainApp?.Id : null);
-        if (!CanSave)
-            throw new ArgumentException("Add a name and choose an app if the Session should end with it.");
+            Apps.Select(app => app.BuildAction()).ToArray(), EndWithApp ? MainApp?.Id : null,
+            (SessionLaunchMode)LaunchModeIndex, (int)PauseBetweenAppsSeconds!.Value,
+            (StartupFocus)StartupFocusIndex, FocusApp?.Id);
         definition.Validate();
         return definition;
     }
@@ -90,6 +114,7 @@ public partial class SessionEditorViewModel : ViewModelBase
         var index = Apps.IndexOf(app);
         Apps.Remove(app);
         if (ReferenceEquals(MainApp, app)) MainApp = null;
+        if (ReferenceEquals(FocusApp, app)) FocusApp = null;
         SelectedApp = Apps.Count == 0 ? null : Apps[Math.Min(index, Apps.Count - 1)];
         NotifyValidation();
     }
@@ -124,12 +149,20 @@ public partial class SessionEditorViewModel : ViewModelBase
         NotifyAppCommands();
     }
 
-    private void AppChanged(object? sender, PropertyChangedEventArgs e) => NotifyValidation();
+    private void AppChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        NotifyValidation();
+        if (ReferenceEquals(sender, SelectedApp) && e.PropertyName == nameof(AppEditorViewModel.Name))
+            OnPropertyChanged(nameof(AppOptionsHeading));
+        if (e.PropertyName is nameof(AppEditorViewModel.Name) or nameof(AppEditorViewModel.Order))
+            OnPropertyChanged(nameof(SelectedAppSummary));
+    }
     private void NotifyValidation()
     {
         OnPropertyChanged(nameof(CanSave));
-        ValidationMessage = EndWithApp && MainApp is null
-            ? "Choose which app should end this Session." : null;
+        ValidationMessage = EndWithApp && MainApp is null ? "Choose which app should end this Session." :
+            NeedsFocusApp && FocusApp is null ? "Choose an app to focus in Advanced startup." :
+            !ValidStartup ? "Check Advanced startup and app startup options: pauses must be whole seconds from 0 to 300; timeouts from 1 to 600." : null;
     }
     private void NotifyAppCommands()
     {
@@ -137,13 +170,32 @@ public partial class SessionEditorViewModel : ViewModelBase
         MoveUpCommand.NotifyCanExecuteChanged();
         MoveDownCommand.NotifyCanExecuteChanged();
     }
-    partial void OnNameChanged(string value) => NotifyValidation();
+    partial void OnNameChanged(string value)
+    {
+        OnPropertyChanged(nameof(AdvancedStartupHeading));
+        NotifyValidation();
+    }
     partial void OnEndWithAppChanged(bool value) => NotifyValidation();
     partial void OnMainAppChanged(AppEditorViewModel? value) => NotifyValidation();
+    partial void OnLaunchModeIndexChanged(int value)
+    {
+        OnPropertyChanged(nameof(IsOrdered));
+        OnPropertyChanged(nameof(OrderingHint));
+        NotifyValidation();
+    }
+    partial void OnPauseBetweenAppsSecondsChanged(decimal? value) => NotifyValidation();
+    partial void OnStartupFocusIndexChanged(int value)
+    {
+        OnPropertyChanged(nameof(NeedsFocusApp));
+        NotifyValidation();
+    }
+    partial void OnFocusAppChanged(AppEditorViewModel? value) => NotifyValidation();
     partial void OnValidationMessageChanged(string? value) => OnPropertyChanged(nameof(HasValidationMessage));
     partial void OnSelectedAppChanged(AppEditorViewModel? value)
     {
         OnPropertyChanged(nameof(HasSelectedApp));
+        OnPropertyChanged(nameof(AppOptionsHeading));
+        OnPropertyChanged(nameof(SelectedAppSummary));
         NotifyAppCommands();
     }
 }
@@ -157,6 +209,20 @@ public partial class AppEditorViewModel : ViewModelBase
     [ObservableProperty] private string _arguments;
     [ObservableProperty] private string _workingDirectory;
     [ObservableProperty] private bool _runAsAdministrator;
+    [ObservableProperty] private int _readinessIndex;
+    [ObservableProperty] private decimal? _readinessTimeoutSeconds = 30;
+    [ObservableProperty] private bool _overridePause;
+    [ObservableProperty] private decimal? _pauseAfterSeconds = 0;
+    public string[] ReadinessChoices { get; } = ["Launch request completed", "Process is running", "A window appears"];
+    public bool NeedsReadinessTimeout => ReadinessIndex != 0;
+    public bool ValidStartup => ReadinessIndex is >= 0 and <= 2 &&
+        SessionEditorViewModel.ValidSeconds(ReadinessTimeoutSeconds, 1, 600) &&
+        SessionEditorViewModel.ValidSeconds(PauseAfterSeconds, 0, 300);
+    partial void OnReadinessIndexChanged(int value) => OnPropertyChanged(nameof(NeedsReadinessTimeout));
+
+    public string AccessibleName => $"{Order}. {Name}";
+    partial void OnOrderChanged(int value) => OnPropertyChanged(nameof(AccessibleName));
+    partial void OnNameChanged(string value) => OnPropertyChanged(nameof(AccessibleName));
 
     public AppEditorViewModel(StartProcessAction app)
     {
@@ -166,7 +232,12 @@ public partial class AppEditorViewModel : ViewModelBase
         _arguments = app.Arguments;
         _workingDirectory = app.WorkingDirectory;
         _runAsAdministrator = app.RunAsAdministrator;
+        _readinessIndex = (int)app.Readiness;
+        _readinessTimeoutSeconds = app.ReadinessTimeoutSeconds;
+        _overridePause = app.PauseAfterSeconds.HasValue;
+        _pauseAfterSeconds = app.PauseAfterSeconds ?? 0;
     }
 
-    public StartProcessAction BuildAction() => new(Id, Name.Trim(), ExecutablePath.Trim(), Arguments, WorkingDirectory.Trim(), RunAsAdministrator);
+    public StartProcessAction BuildAction() => new(Id, Name.Trim(), ExecutablePath.Trim(), Arguments, WorkingDirectory.Trim(), RunAsAdministrator,
+        (AppReadiness)ReadinessIndex, (int)ReadinessTimeoutSeconds!.Value, OverridePause ? (int)PauseAfterSeconds!.Value : null);
 }

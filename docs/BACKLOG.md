@@ -15,7 +15,17 @@ This is a work record, not authorization to implement everything. The user expli
 
 ## Suggested sequence
 
-The user confirmed the default stopping flow (SESS-018) and Start menu picker (SESS-019), then requested a README as the first step toward GitHub and eventual public releases (SESS-020). No next app feature is selected. Suggested app follow-ups are draft-close protection (SESS-006), accessibility/scaling (SESS-010), and invalid-field guidance (SESS-011). Remaining native checks stay under SESS-001, including UAC cancellation and the narrower Playnite-specific confirmation in SESS-017; do not treat the overall stopping flow as still failing. SRS start/stop is confirmed under SESS-016. The first execution slice and its prerequisites are implemented under SESS-002/003/004/005/007.
+The 0.1.0 preview is published (SESS-020). The user selected accessibility/scaling
+(SESS-010) on 2026-09-09; the implementation and automated review below are complete,
+with native screen-reader/scaling trials awaiting feedback. The user approved the
+first advanced-startup slice; SESS-023 now implements timing, concurrent launching,
+readiness checks, and completion focus. Launch stages and configurable failure
+policies remain later ideas; no next implementation slice is selected.
+Suggested app follow-ups remain draft-close protection (SESS-006) and
+invalid-field guidance (SESS-011). Installed-release checks and Actions maintenance
+remain SESS-021/022. Broader native checks stay under SESS-001, including UAC
+cancellation and the narrower Playnite-specific confirmation in SESS-017; do not
+treat the overall stopping flow as still failing.
 
 ## SESS-001 — Review the first native UI with the user
 
@@ -32,6 +42,14 @@ Done when: feedback is recorded with enough context to act on; bugs/improvements
 Source: first-milestone requirements and the user's explicit request to activate Start/End Session.
 
 Implemented in Core: captured run definitions, ordered startup, one active run, user-bound/empty Sessions, tracked-main exit monitoring, End during startup, duplicate-operation guards, and abort/rollback on failure. Windows operations stay behind ISessionProcessHost/ITrackedProcess; UI only presents snapshots. Core tests exercise ordering, main/supporting exits, multiple existing main instances, empty Sessions, startup failure, and concurrent/repeated operations. Native main-exit cleanup passes. SESS-018 now gates main-exit cleanup and startup rollback on save-work confirmation.
+
+Follow-up user feedback (2026-09-09): empty Sessions must not offer Start Session.
+The App now hides the start action and startup hints for empty definitions, keeps
+editing/add-app guidance available, and guards command execution. Saving empty
+definitions and Core's direct-call empty-run behavior remain supported.
+Validated by a clean Release build, 45 Core and 90 App tests (22 opt-in native cases
+skipped), including light/dark empty-to-populated selection and command guards.
+Documentation link targets, AXAML parsing, and diff whitespace checks pass.
 
 Limits: null/unverifiable launch handoffs are explicitly untracked and require manual management, including manual End for an untracked main. No general child-process adoption or configurable action-policy subsystem is introduced.
 
@@ -104,10 +122,34 @@ Duplication remains an uncommitted optional follow-up and was not part of this r
 
 ## SESS-010 — Verify keyboard access, scaling, and longer content
 
-**P1 · Open · UI validation**  
-Source: current tests cover keyboard activation in selected flows and two rendered window sizes, not a complete accessibility/native scaling review.
+**P1 · Awaiting feedback · Accessibility fixes and automated review implemented · 2026-09-09**
+Source: user explicitly selected accessibility/scaling. Code inspection found missing
+custom-item accessibility names, incomplete focus restoration, and an 860×620
+minimum that restricted usable space at high DPI. New tests also reproduced initial
+focus timing and close-prompt return-focus failures; both now pass.
 
-Exercise the complete creator/editor using only the keyboard, including app reordering, expanded options, validation, scrolling, and focus after saving/cancelling. Review accessible names and state announcements with a screen reader. Check Windows display scaling, long names/descriptions, larger libraries, and both themes.
+Implemented: full list-item names/order/active state, main-app option names, picker
+explanations, polite error/runtime/selected-app announcements, predictable initial
+and post-editor focus, focus recovery after removal/reordering and close cancellation,
+640×480 minimum with compact sidebar/margins, working-area-aware initial sizing,
+and bounded scrolling for long runtime/error messages.
+
+Evidence: clean full build; 23 Core and 78 regular App cases pass, including 20 new
+accessibility cases; 20 opt-in native checks skipped. Keyboard tests cover creation,
+cancel/save, reordering/removal, expanded options, lifetime choice, missing-main
+validation, picker selection/scrolling, modal containment and focus restoration.
+Automation peers expose updated names and help/live metadata. Light/dark renders
+were reviewed with 50 Sessions, 30 configured apps, 80 picker entries, 120-character
+names and 500-character descriptions. Main viewports: 640×480 at 100%, 150%, 200%
+and 960×640 at 125%; picker 520×460 and long dialogs 640×480. Screenshots are under
+ignored `artifacts/accessibility-review/`.
+
+Remaining: hands-on Narrator/screen-reader announcement and focus review, native
+Windows DPI changes/moving between monitors, and OS text-size settings. Computer
+Use initialization succeeded but both native inventory calls failed with
+“Computer Use native pipe is unavailable”; no native UI or screen-reader result is
+claimed. Invalid-field guidance remains SESS-011 rather than being marked complete
+by the existing main-app validation test.
 
 Done when: primary actions remain reachable, labels/content do not obstruct controls, focus returns predictably, and state/errors are understandable without colour alone. Record tested configurations and any remaining limits; add regression tests for discovered failures.
 
@@ -263,6 +305,53 @@ upload/download, and draft creation still passed.
 
 Done when: review and update the action versions, then validate the manual release
 workflow without replacing the published 0.1.0 assets or moving its tag.
+
+## SESS-023 — Advanced startup timing, readiness, and completion focus
+
+**P1 · Done · Advanced startup implemented in source; unreleased · 2026-09-09**
+
+Source: user requested timing/readiness, concurrent launching and completion focus,
+then approved the proposed first slice: “let's do it as you have proposed.”
+
+Implemented: collapsed Advanced startup, In order/All at once, Session pauses with
+per-app overrides, launch-completed/process-running/window-appeared conditions,
+bounded readiness waits, countdown messages, and completion focus on Sessions or a
+chosen app. PRODUCT.md defines the exact timing rules and ARCHITECTURE.md the engine
+boundaries. Defaults preserve existing startup behavior; already-open apps remain
+unowned. Concurrent work retains late acquisitions, cancels waits on failure/End,
+and awaits all groups before confirmed reverse-order cleanup. Repeated executable
+paths remain serialized, with ambiguous/untracked repeats blocked.
+
+Follow-up user feedback implemented: app options uses the selected app's display
+name; advanced startup options uses the current Session name. Both follow draft
+renames and wrap long names, with generic headings when the name is blank.
+Heading follow-up validation: clean Release build, 45 Core and 90 App cases pass;
+22 opt-in native cases skipped. Documentation links and diff checks pass.
+
+Validation: Release solution build has zero warnings/errors; **45 Core + 90 regular
+App + 17 native runtime cases pass (152 total)**. New coverage includes concurrent
+late-acquisition cleanup/failure, ordered readiness/pauses, ignored concurrent pauses,
+timeout/cancellation, repeated executable paths, legacy defaults, v2 round-trip and
+invalid-setting preservation, keyboard/draft settings, captured completion focus,
+focus suppression/cancellation and denied-focus feedback. Native fixtures verify
+owned/pre-existing window readiness in both launch modes and all existing runtime
+ownership/cleanup/self-restart protections. Five unrelated native launch/discovery
+checks were not rerun. Light/dark compact layouts reviewed in
+`artifacts/startup-review/`; real user apps/library were not test fixtures.
+
+Limits: readiness observes a tracked process/window, not completed loading/sign-in;
+the timeout starts after Windows returns acquisition and cannot dismiss UAC. Native
+foreground permission/refocusing the user's real apps remains a hands-on check.
+Saved libraries now use version 2 (version 1 reads without rewriting); the public
+0.1.0 build cannot read v2, preventing silent disregard of startup settings.
+
+Candidate later additions for discussion: launch stages/dependencies, optional-app
+failure policies, progress/history and preflight checks, window placement, reversible
+audio/settings changes, local Session shortcuts, and import/export/duplication.
+These are ideas rather than authorized implementation scope.
+
+Completion criteria met by the tests and documentation above. No release or commit
+was requested for this slice.
 
 ## Completed baseline
 

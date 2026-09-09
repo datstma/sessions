@@ -34,7 +34,7 @@ public sealed class JsonSessionStoreTests : IDisposable
     [Theory]
     [InlineData("not json")]
     [InlineData("null")]
-    [InlineData("{\"version\":2,\"sessions\":[]}")]
+    [InlineData("{\"version\":99,\"sessions\":[]}")]
     [InlineData("{\"version\":1,\"sessions\":[null]}")]
     public async Task InvalidLibraryIsReportedWithoutChangingTheFile(string contents)
     {
@@ -53,9 +53,59 @@ public sealed class JsonSessionStoreTests : IDisposable
               {"id":"{{Guid.NewGuid()}}","name":"App","executablePath":"C:\\App.exe","arguments":"","workingDirectory":""}]}]}
             """;
         await File.WriteAllTextAsync(FilePath, content);
-        var app = Assert.Single(Assert.Single(await Store.LoadAsync()).Apps);
+        var session = Assert.Single(await Store.LoadAsync());
+        var app = Assert.Single(session.Apps);
         Assert.False(app.RunAsAdministrator);
+        Assert.Equal(SessionLaunchMode.InOrder, session.LaunchMode);
+        Assert.Equal(0, session.PauseBetweenAppsSeconds);
+        Assert.Equal(StartupFocus.Unchanged, session.FocusAfterStartup);
+        Assert.Equal(AppReadiness.LaunchCompleted, app.Readiness);
+        Assert.Equal(30, app.ReadinessTimeoutSeconds);
+        Assert.Null(app.PauseAfterSeconds);
         Assert.Equal(content, await File.ReadAllTextAsync(FilePath));
+    }
+
+    [Fact]
+    public async Task AdvancedStartupRoundTripsInVersionTwoWithReadableEnums()
+    {
+        var app = new StartProcessAction(Guid.NewGuid(), "Editor", @"C:\Editor.exe", Readiness: AppReadiness.WindowAppeared,
+            ReadinessTimeoutSeconds: 90, PauseAfterSeconds: 0);
+        var definition = new SessionDefinition(Guid.NewGuid(), "Work", "", [app], LaunchMode: SessionLaunchMode.Together,
+            PauseBetweenAppsSeconds: 3, FocusAfterStartup: StartupFocus.App, FocusAppId: app.Id);
+        await Store.SaveAsync([definition]);
+        var loaded = Assert.Single(await Store.LoadAsync());
+        Assert.Equal(definition with { Apps = loaded.Apps }, loaded);
+        Assert.Equal(app, Assert.Single(loaded.Apps));
+        var contents = await File.ReadAllTextAsync(FilePath);
+        Assert.Contains("\"version\": 2", contents);
+        Assert.Contains("\"launchMode\": \"Together\"", contents);
+        Assert.Contains("\"readiness\": \"WindowAppeared\"", contents);
+    }
+
+    [Theory]
+    [InlineData("mode")]
+    [InlineData("pause")]
+    [InlineData("condition")]
+    [InlineData("timeout")]
+    [InlineData("override")]
+    [InlineData("focus")]
+    public async Task InvalidStartupSettingsCannotReplaceTheLibrary(string setting)
+    {
+        var app = new StartProcessAction(Guid.NewGuid(), "Editor", @"C:\Editor.exe");
+        var original = new SessionDefinition(Guid.NewGuid(), "Work", "", [app]);
+        await Store.SaveAsync([original]);
+        var contents = await File.ReadAllTextAsync(FilePath);
+        var invalid = setting switch
+        {
+            "mode" => original with { LaunchMode = (SessionLaunchMode)99 },
+            "pause" => original with { PauseBetweenAppsSeconds = -1 },
+            "condition" => original with { Apps = [app with { Readiness = (AppReadiness)99 }] },
+            "timeout" => original with { Apps = [app with { ReadinessTimeoutSeconds = 0 }] },
+            "override" => original with { Apps = [app with { PauseAfterSeconds = 301 }] },
+            _ => original with { FocusAfterStartup = StartupFocus.App, FocusAppId = Guid.NewGuid() }
+        };
+        await Assert.ThrowsAsync<ArgumentException>(() => Store.SaveAsync([invalid]));
+        Assert.Equal(contents, await File.ReadAllTextAsync(FilePath));
     }
 
     [Theory]

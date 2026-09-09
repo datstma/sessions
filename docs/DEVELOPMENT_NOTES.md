@@ -2,7 +2,140 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.1.0 published 2026-09-09
+## Resume next session — advanced startup and UI feedback checkpoint 2026-09-09
+
+The user requested “update documentation and commit/push”. This source checkpoint
+includes accessibility/scaling, advanced startup, contextual options headings, and
+the empty-Session start guard. The README, product and architecture documents, and
+backlog reflect these changes. The features are unreleased; the published 0.1.0
+tag and installer remain the previous release. No next feature slice is selected.
+
+Latest feedback: a Session with no apps should have no start option. Implemented:
+empty Session details hide Start Session and startup hints, retain Edit Session and
+the add-app guidance, and the start command refuses execution. Empty definitions
+can still be saved. This supersedes the earlier product decision allowing users to
+start empty Sessions; Core's direct-call empty-run behavior remains unchanged.
+The existing light/dark runtime interaction checks now cover empty/populated
+selection and blocked direct command execution. Accessibility runtime fixtures use
+a simulated app acquisition, without launching real processes.
+Validation: Release solution build has zero warnings/errors; 45 Core and 90 App
+tests pass, with 22 opt-in native cases skipped. Documentation link targets,
+main-window AXAML parsing, and diff whitespace checks pass.
+
+Follow-up user feedback: name the editor sections after the selected app and current
+Session. Implemented live draft headings: “[App name] options” and “[Session name]
+advanced startup options”, including rename/selection updates, blank-name fallbacks,
+and wrapping for long names. Existing keyboard checks now locate the contextual
+headings. PRODUCT.md records the behavior.
+Validation for this heading follow-up: Release solution build has zero warnings/errors;
+45 Core and 90 App cases pass (22 opt-in native cases skipped). Local documentation
+link targets, editor AXAML parsing, and diff whitespace checks pass.
+
+The user approved the proposed first advanced-startup slice: “let's do it as you
+have proposed.” SESS-023 is implemented in this source checkpoint together with
+the accessibility changes. Launch stages, optional-app/retry policies and other
+manager ideas remain proposals.
+
+Implemented: In order/All at once; Session pauses (0–300 whole seconds, default 0)
+and nullable per-app overrides; Launch request completed/Process is running/A window
+appears; readiness timeout (1–600 seconds, default 30); countdown feedback; optional
+one-time focus on Sessions or a selected app after successful startup. See PRODUCT.md
+and ARCHITECTURE.md for exact behavior. Ordered mode applies waits and pauses;
+Together overlaps independent paths, ignores pauses, and still awaits readiness.
+Already-running apps remain unowned. Failed/untracked readiness cannot claim success.
+All in-flight acquisitions are retained before failure cleanup or End; existing
+confirmation and reverse-definition-order cleanup remain in force. Focus uses the
+captured definition and RunId; cancellation/failure/end/editing/modals suppress or
+cancel it. Windows focus failure is feedback, not Session failure.
+
+Persistence: reads v1/v2, writes **v2** with readable startup enum names. Missing v1
+settings preserve the previous defaults and loading does not rewrite files. The
+published 0.1.0 app cannot open v2 libraries; this prevents it silently ignoring the
+new execution settings. No real user library was changed during implementation/tests.
+
+Validation: full Release solution build has zero warnings/errors; **45 Core + 90
+regular App tests pass**. A separate enabled run passes **all 17 native runtime
+fixtures**, including owned/pre-existing window readiness in both launch modes and
+existing cleanup/self-restart protections: **152 passing tests/checks total**.
+All 64 local documentation links/anchors, AXAML parsing, and diff whitespace checks pass.
+The five unrelated native discovery/manual-launch checks were not rerun. Light/dark
+640×480 startup settings were rendered and reviewed in ignored
+`artifacts/startup-review/`; the full App suite also retains the prior accessibility
+scaling coverage. These tests use isolated stores/processes. Native real-app/UAC
+readiness and Windows foreground permission still need a hands-on trial; headless
+tests verify restoring Sessions and focus request/cancellation behavior.
+
+Use the isolated pinned SDK setup below. The user's Debug app was running at the
+previous checkpoint; validation uses `-c Release` without stopping it. Commands:
+
+```powershell
+$env:PATH = "$PWD/artifacts/dotnet;$env:PATH"
+$env:DOTNET_ROOT = "$PWD/artifacts/dotnet"
+dotnet build Sessions.slnx -c Release
+dotnet test tests/Sessions.Core.Tests/Sessions.Core.Tests.csproj -c Release
+dotnet test tests/Sessions.App.Tests/Sessions.App.Tests.csproj -c Release
+$env:SESSIONS_RUN_RUNTIME_SMOKE = '1'
+dotnet test tests/Sessions.App.Tests/Sessions.App.Tests.csproj -c Release --no-build --filter FullyQualifiedName~NativeSessionRuntimeTests
+Remove-Item Env:SESSIONS_RUN_RUNTIME_SMOKE
+```
+
+## Previous checkpoint — accessibility/scaling follow-up 2026-09-09
+
+Latest user direction: explore advanced Session settings—wait for the previous app
+to finish launching, pauses between apps, concurrent launching, and optionally
+refocus Sessions after startup. They also requested ideas for the broader manager.
+Recorded as proposed SESS-023; no execution/settings code changed for this discussion.
+The proposed first slice is Advanced startup with explicit timing/readiness and
+completion focus. Actual readiness conditions, parallel-mode interactions and
+timeouts still need a settled design. Current sequential acquisition/500 ms handle
+settling is not an application-ready check. Additional manager ideas remain proposals.
+Documentation-only follow-up validation: 64 local links/anchors and diff whitespace
+checks pass. Debug build was blocked by the user's running Sessions.App locking
+its output DLL; the separate Release solution build passed with zero warnings/errors,
+and all 23 Core tests passed. The running app was not closed or modified.
+
+The user selected SESS-010: “Let's deal with the Accessibility and scaling.”
+Implemented locally, not committed or released: meaningful custom-list accessibility
+names, picker explanations, polite changed-status/error announcements, editor and
+close-dialog focus restoration, app removal/reordering focus recovery, a compact
+640×480 main window, working-area-aware initial sizing for main/picker, and bounded
+scrolling for lengthy runtime/errors. PRODUCT.md and ARCHITECTURE.md describe the
+implemented behavior. SESS-010 awaits native feedback rather than being marked Done.
+
+Validation: full solution builds with zero warnings/errors; **23 Core + 78 regular
+App cases pass**, including 20 new accessibility cases; 20 opt-in native cases skipped.
+Rendered review covers both themes, 640×480 at 100%/150%/200% and 960×640 at 125%,
+50 Sessions, 30 configured apps, 80 picker entries, long descriptions/names and
+confirmation/error states. All 64 local documentation links/anchors resolve and
+AXAML files parse. Tests use injected stores/sources and an empty runtime
+fixture; no real apps are launched/stopped or user library changed. Screenshots:
+ignored `artifacts/accessibility-review/`. Initial-focus and close-cancel restoration
+regressions failed during development and passed after the fixes.
+
+The computer-use skill loaded, but `sky.list_apps()` and `sky.list_windows()` both
+failed: “Computer Use native pipe is unavailable ... (os error 2).” Native Narrator
+delivery, actual Windows DPI/monitor transitions, and OS text-size preferences are
+unverified. Headless render scaling and automation-peer metadata do not replace them.
+Next review should exercise those native paths; SESS-006/011 remain separate work.
+
+Environment: the system SDK is now 10.0.401 while global.json pins 10.0.400 with
+roll-forward disabled. Installed the exact SDK locally under ignored `artifacts/dotnet/`
+using Microsoft's dotnet-install script; the repository pin and system SDKs are
+unchanged. To reproduce from the repository root in PowerShell:
+
+```powershell
+$env:PATH = "$PWD/artifacts/dotnet;$env:PATH"
+$env:DOTNET_ROOT = "$PWD/artifacts/dotnet"
+dotnet build Sessions.slnx
+dotnet test tests/Sessions.Core.Tests/Sessions.Core.Tests.csproj
+dotnet test tests/Sessions.App.Tests/Sessions.App.Tests.csproj
+```
+
+NuGet restore and Avalonia build-service log access required execution outside the
+restricted sandbox. Native checks were not enabled. The published v0.1.0 assets/tag
+remain unchanged; release evidence follows.
+
+## Previous checkpoint — 0.1.0 published 2026-09-09
 
 The user explicitly requested **“update the documentation, commit and publish the
 release please.”** Completed: packaging and release documentation were committed

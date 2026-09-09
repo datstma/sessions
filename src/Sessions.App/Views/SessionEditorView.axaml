@@ -17,7 +17,7 @@
             <Grid ColumnDefinitions="*,Auto">
                 <StackPanel Spacing="5">
                     <TextBlock Text="Apps to open" Classes="section" />
-                    <TextBlock Text="They open in the order shown." Classes="muted" FontSize="12" />
+                    <TextBlock Text="{Binding OrderingHint}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
                 </StackPanel>
                 <Button x:Name="AddAppsButton" Grid.Column="1" Content="+  Add app" Classes="quiet" Click="AddAppClicked" />
             </Grid>
@@ -27,8 +27,15 @@
                     <TextBlock Text="Find apps in your Start menu, choose running apps, or browse for a file. You can add more later." Classes="muted" FontSize="12" TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
-            <ListBox ItemsSource="{Binding Apps}" SelectedItem="{Binding SelectedApp}" IsVisible="{Binding HasApps}" MaxHeight="190"
+            <ListBox x:Name="AppOrderList" ItemsSource="{Binding Apps}" SelectedItem="{Binding SelectedApp}" IsVisible="{Binding HasApps}" MaxHeight="190"
                      Classes="sessions" AutomationProperties.Name="Apps in opening order">
+                <ListBox.Styles>
+                    <Style Selector="ListBoxItem" x:DataType="vm:AppEditorViewModel">
+                        <Setter Property="AutomationProperties.Name" Value="{Binding AccessibleName}" />
+                        <Setter Property="AutomationProperties.HelpText" Value="{Binding ExecutablePath}" />
+                        <Setter Property="ToolTip.Tip" Value="{Binding ExecutablePath}" />
+                    </Style>
+                </ListBox.Styles>
                 <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="vm:AppEditorViewModel">
                         <Grid ColumnDefinitions="32,*">
@@ -42,11 +49,16 @@
                 </ListBox.ItemTemplate>
             </ListBox>
             <WrapPanel IsVisible="{Binding HasApps}">
-                <Button Content="Move up" Classes="quiet" Command="{Binding MoveUpCommand}" Margin="0,0,8,6" />
-                <Button Content="Move down" Classes="quiet" Command="{Binding MoveDownCommand}" Margin="0,0,8,6" />
-                <Button Content="Remove" Classes="quiet" Command="{Binding RemoveAppCommand}" Margin="0,0,0,6" />
+                <Button Content="Move up" Classes="quiet" Command="{Binding MoveUpCommand}" Click="AppListActionClicked" Margin="0,0,8,6" />
+                <Button Content="Move down" Classes="quiet" Command="{Binding MoveDownCommand}" Click="AppListActionClicked" Margin="0,0,8,6" />
+                <Button Content="Remove" Classes="quiet" Command="{Binding RemoveAppCommand}" Click="AppListActionClicked" Margin="0,0,0,6" />
             </WrapPanel>
-            <Expander Header="App options" IsVisible="{Binding HasSelectedApp}" HorizontalAlignment="Stretch">
+            <TextBlock Text="{Binding SelectedAppSummary}" IsVisible="{Binding HasSelectedApp}" Classes="muted" FontSize="12"
+                       TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+            <Expander Header="{Binding AppOptionsHeading}" IsVisible="{Binding HasSelectedApp}" HorizontalAlignment="Stretch">
+                <Expander.HeaderTemplate>
+                    <DataTemplate x:DataType="x:String"><TextBlock Text="{Binding .}" TextWrapping="Wrap" /></DataTemplate>
+                </Expander.HeaderTemplate>
                 <StackPanel DataContext="{Binding SelectedApp}" x:DataType="vm:AppEditorViewModel" Spacing="12">
                     <StackPanel Spacing="6"><TextBlock Text="Display name" /><TextBox Text="{Binding Name}" MaxLength="120" AutomationProperties.Name="App display name" /></StackPanel>
                     <StackPanel Spacing="6"><TextBlock Text="Executable" /><TextBox Text="{Binding ExecutablePath}" AutomationProperties.Name="App executable path" /></StackPanel>
@@ -56,18 +68,73 @@
                         <CheckBox Content="Run as administrator" IsChecked="{Binding RunAsAdministrator}" />
                         <TextBlock Text="Windows asks for approval when opening this app. Useful for apps that otherwise restart to elevate." Classes="muted" FontSize="12" TextWrapping="Wrap" />
                     </StackPanel>
+                    <TextBlock Text="Startup condition" FontWeight="Medium" />
+                    <ComboBox ItemsSource="{Binding ReadinessChoices}" SelectedIndex="{Binding ReadinessIndex}" HorizontalAlignment="Stretch"
+                              AutomationProperties.Name="App startup condition" />
+                    <TextBlock Text="A process or window is an observable condition, not proof that loading or sign-in is complete. Untracked launches cannot satisfy these checks."
+                               Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                    <StackPanel Spacing="6" IsVisible="{Binding NeedsReadinessTimeout}">
+                        <TextBlock Text="Maximum readiness wait (seconds)" TextWrapping="Wrap" />
+                        <NumericUpDown Value="{Binding ReadinessTimeoutSeconds}" Minimum="1" Maximum="600" Increment="1" FormatString="0"
+                                       AutomationProperties.Name="Maximum readiness wait in seconds" />
+                        <TextBlock Text="Starts after Windows returns the launch request. A timeout stops startup and asks before cleaning up opened apps."
+                                   Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <CheckBox Content="Override the pause after this app" IsChecked="{Binding OverridePause}" />
+                    <NumericUpDown Value="{Binding PauseAfterSeconds}" IsVisible="{Binding OverridePause}" Minimum="0" Maximum="300" Increment="1" FormatString="0"
+                                   AutomationProperties.Name="Pause after this app in seconds" />
+                    <TextBlock Text="Used only with In order. An override also pauses after the last app; otherwise the Session pause applies only between apps."
+                               Classes="muted" FontSize="12" TextWrapping="Wrap" />
                 </StackPanel>
             </Expander>
         </StackPanel>
+        <Expander Header="{Binding AdvancedStartupHeading}" HorizontalAlignment="Stretch">
+            <Expander.HeaderTemplate>
+                <DataTemplate x:DataType="x:String"><TextBlock Text="{Binding .}" TextWrapping="Wrap" /></DataTemplate>
+            </Expander.HeaderTemplate>
+            <StackPanel Spacing="12">
+                <TextBlock Text="Launch mode" FontWeight="Medium" />
+                <ComboBox ItemsSource="{Binding LaunchModes}" SelectedIndex="{Binding LaunchModeIndex}" HorizontalAlignment="Stretch"
+                          AutomationProperties.Name="Session launch mode" />
+                <TextBlock Text="All at once overlaps independent apps, waits for their startup conditions, and ignores pauses. Repeated entries for the same executable remain ordered."
+                           IsVisible="{Binding !IsOrdered}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                <StackPanel Spacing="6" IsVisible="{Binding IsOrdered}">
+                    <TextBlock Text="Pause between apps (seconds)" />
+                    <NumericUpDown Value="{Binding PauseBetweenAppsSeconds}" Minimum="0" Maximum="300" Increment="1" FormatString="0"
+                                   AutomationProperties.Name="Pause between apps in seconds" />
+                    <TextBlock Text="After each app's startup condition, before opening the next. Select an app to customize its waits and pauses."
+                               Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                </StackPanel>
+                <TextBlock Text="When startup finishes" FontWeight="Medium" />
+                <ComboBox ItemsSource="{Binding StartupFocusChoices}" SelectedIndex="{Binding StartupFocusIndex}" HorizontalAlignment="Stretch"
+                          AutomationProperties.Name="Focus after startup" />
+                <ComboBox ItemsSource="{Binding Apps}" SelectedItem="{Binding FocusApp}" IsVisible="{Binding NeedsFocusApp}" HorizontalAlignment="Stretch"
+                          PlaceholderText="Choose an app" AutomationProperties.Name="App to focus after startup">
+                    <ComboBox.Styles>
+                        <Style Selector="ComboBoxItem" x:DataType="vm:AppEditorViewModel">
+                            <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                        </Style>
+                    </ComboBox.Styles>
+                    <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:AppEditorViewModel"><TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" /></DataTemplate></ComboBox.ItemTemplate>
+                </ComboBox>
+                <TextBlock Text="Requests focus once after successful startup. Windows may decline. Focus stays unchanged if you are editing or a confirmation is open."
+                           Classes="muted" FontSize="12" TextWrapping="Wrap" />
+            </StackPanel>
+        </Expander>
         <StackPanel Spacing="10">
             <TextBlock Text="When does it end?" Classes="section" />
             <TextBlock Text="By default, your Session stays active until you press End Session." Classes="muted" TextWrapping="Wrap" />
             <CheckBox Content="Ask to end when an app closes" IsChecked="{Binding EndWithApp}" />
             <ComboBox ItemsSource="{Binding Apps}" SelectedItem="{Binding MainApp}" IsVisible="{Binding EndWithApp}"
                       PlaceholderText="Choose an app" HorizontalAlignment="Stretch" AutomationProperties.Name="App that ends the Session">
+                <ComboBox.Styles>
+                    <Style Selector="ComboBoxItem" x:DataType="vm:AppEditorViewModel">
+                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                    </Style>
+                </ComboBox.Styles>
                 <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:AppEditorViewModel"><TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" /></DataTemplate></ComboBox.ItemTemplate>
             </ComboBox>
-            <TextBlock Text="{Binding ValidationMessage}" IsVisible="{Binding HasValidationMessage}" Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding ValidationMessage}" IsVisible="{Binding HasValidationMessage}" AutomationProperties.LiveSetting="Polite" Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" />
         </StackPanel>
         <Border BorderBrush="{DynamicResource SessionBorder}" BorderThickness="0,1,0,0" Padding="0,18,0,0">
             <TextBlock Text="Ending asks you to save your work, then stops apps opened by this Session. Apps already open stay open." Classes="muted" FontSize="12" TextWrapping="Wrap" />

@@ -20,6 +20,26 @@ public partial class SessionEditorView : UserControl
         };
     }
 
+    private void AppListActionClicked(object? sender, RoutedEventArgs e)
+    {
+        var hadKeyboardFocus = sender is Button { IsFocused: true };
+        // Commands can hide Remove or disable a move button at the end of the list.
+        // Wait for the command/bindings, then keep keyboard focus on a usable control.
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            if (!hadKeyboardFocus || sender is not Button button ||
+                button.IsEffectivelyVisible && button.IsEffectivelyEnabled) return;
+            if (DataContext is SessionEditorViewModel { SelectedApp: { } selected })
+            {
+                AppOrderList.ScrollIntoView(selected);
+                AppOrderList.UpdateLayout();
+                if (AppOrderList.ContainerFromItem(selected) is Control item) item.Focus();
+                else AppOrderList.Focus();
+            }
+            else AddAppsButton.Focus();
+        });
+    }
+
     // File dialogs are a presentation/platform concern. Definitions and ordering remain in the ViewModel/Core.
     private async void AddAppClicked(object? sender, RoutedEventArgs e)
     {

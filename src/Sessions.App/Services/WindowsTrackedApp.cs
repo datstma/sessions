@@ -15,6 +15,15 @@ internal sealed class WindowsTrackedApp(WindowsProcessIdentity initial, bool own
     private readonly List<WindowsProcessIdentity> _lineage = [initial];
     private WindowsProcessIdentity Current => _lineage[^1];
     private bool _exitConfirmed;
+    public bool HasWindow
+    {
+        get
+        {
+            if (HasExited) return false;
+            var identity = Current;
+            return WindowsAppWindows.Enumerate().Any(window => window.ProcessId == identity.Id) && !identity.HasExited;
+        }
+    }
     public string? TrackingMessage => _lineage.Count > 1
         ? "Tracking restarted app · stops when you confirm End Session"
         : null;

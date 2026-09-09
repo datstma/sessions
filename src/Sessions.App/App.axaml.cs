@@ -25,18 +25,18 @@ public partial class App : Application
         {
             var presence = new WindowsAppPresenceService();
             var launcher = new IndividualAppLauncher(presence, new WindowsProcessStarter());
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = new MainViewModel(new JsonSessionStore(Path.Combine(
+            var window = new MainWindow();
+            window.DataContext = new MainViewModel(new JsonSessionStore(Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "Sessions", "sessions.json")), presence, launcher, new SessionRunner(new WindowsSessionProcessHost())),
-            };
+                    "Sessions", "sessions.json")), presence, launcher, new SessionRunner(new WindowsSessionProcessHost()),
+                    new WindowStartupFocusService(window, presence));
+            desktop.MainWindow = window;
             Program.Instance?.Listen(() => Dispatcher.UIThread.Post(() =>
             {
-                if (desktop.MainWindow is not { } window) return;
-                if (window.WindowState == WindowState.Minimized) window.WindowState = WindowState.Normal;
-                window.Show();
-                window.Activate();
+                if (desktop.MainWindow is not { } mainWindow) return;
+                if (mainWindow.WindowState == WindowState.Minimized) mainWindow.WindowState = WindowState.Normal;
+                mainWindow.Show();
+                mainWindow.Activate();
             }));
         }
 

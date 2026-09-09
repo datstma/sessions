@@ -23,7 +23,7 @@
                         <DataTemplate x:DataType="vm:AppChoiceViewModel">
                             <CheckBox IsChecked="{Binding IsSelected}" IsEnabled="{Binding CanSelect}"
                                       HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="10,12"
-                                      AutomationProperties.Name="{Binding App.Name}" ToolTip.Tip="{Binding App.ExecutablePath}">
+                                      AutomationProperties.Name="{Binding App.Name}" AutomationProperties.HelpText="{Binding Status}" ToolTip.Tip="{Binding App.ExecutablePath}">
                                 <Grid ColumnDefinitions="40,*" Margin="4,0,0,0">
                                     <Grid Width="30" Height="30" VerticalAlignment="Center">
                                         <Border Background="{DynamicResource SessionSelection}" CornerRadius="6" IsVisible="{Binding !HasIcon}">
@@ -48,7 +48,7 @@
             <TextBlock IsVisible="{Binding IsEmpty}" Text="{Binding EmptyMessage}" TextWrapping="Wrap" Classes="muted" Margin="12,28" VerticalAlignment="Center" />
         </Grid>
         <StackPanel Grid.Row="3" Margin="28,14,28,18" Spacing="10">
-            <TextBlock Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" AutomationProperties.LiveSetting="Polite" Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" />
             <TextBlock Text="{Binding SourceDescription}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
         </StackPanel>
         <Border Grid.Row="4" BorderBrush="{DynamicResource SessionBorder}" BorderThickness="0,1,0,0" Padding="28,18">

@@ -1,11 +1,16 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Sessions.Core;
 
 /// <summary>Readable local storage; a failed load is never treated as an empty library.</summary>
 public sealed class JsonSessionStore(string filePath) : ISessionStore
 {
-    private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web) { WriteIndented = true };
+    private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
+    {
+        WriteIndented = true,
+        Converters = { new JsonStringEnumConverter() }
+    };
     private readonly string _filePath = Path.GetFullPath(filePath);
 
     public async Task<IReadOnlyList<SessionDefinition>> LoadAsync(CancellationToken cancellationToken = default)
@@ -15,7 +20,7 @@ public sealed class JsonSessionStore(string filePath) : ISessionStore
             await using var stream = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read,
                 4096, FileOptions.Asynchronous);
             var library = await JsonSerializer.DeserializeAsync<Library>(stream, Options, cancellationToken);
-            if (library is null || library.Version != 1 || library.Sessions is null)
+            if (library is null || library.Version is not (1 or 2) || library.Sessions is null)
                 throw new InvalidDataException("This Session library has an unsupported format.");
             Validate(library.Sessions);
             return library.Sessions;
@@ -43,7 +48,8 @@ public sealed class JsonSessionStore(string filePath) : ISessionStore
             await using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write,
                              FileShare.None, 4096, FileOptions.Asynchronous))
             {
-                await JsonSerializer.SerializeAsync(stream, new Library(1, sessions), Options, cancellationToken);
+                // Older builds must reject startup policies they cannot honor instead of silently ignoring them.
+                await JsonSerializer.SerializeAsync(stream, new Library(2, sessions), Options, cancellationToken);
                 await stream.FlushAsync(cancellationToken);
             }
             cancellationToken.ThrowIfCancellationRequested();

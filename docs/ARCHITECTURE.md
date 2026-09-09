@@ -128,13 +128,34 @@ Each focus request resolves a fresh matching window and rechecks its process ide
 
 Manual launches create no Session run or ownership records. Apps opened this way remain independent when editing/deleting a definition or closing Sessions. A later Session run regards them as pre-existing. Individual launch controls are disabled throughout the library while any Session is active/starting/stopping or awaiting cleanup; focus remains available. Starting a Session waits for an in-flight individual app launch to settle. No cleanup or lifetime semantics may be inferred from this manual launcher. The opt-in native launch test runs Windows Script Host in background mode with a temporary receipt script, verifies arguments/working directory, and lets it exit naturally; ordinary tests use injected starters. `tests/Sessions.LaunchProbe` compiles the production launch adapter into a windowless helper without Avalonia. Two additional native tests launch it with IDE-like output pipes, close or terminate only that parent, then verify the child has no inherited output/error pipes and can continue working. The original adapter failed both tests with error 232; shell activation passes. This does not promise survival when an external tool explicitly terminates the entire process tree or a containing job.
 
+### Accessibility and available space
+
+Accessibility metadata belongs to the presentation layer: item-container styles bind
+Session names/counts/active state, editor app names/order, and main-app choice names.
+Picker choices expose their unavailable/source explanation through HelpText. Text
+errors, runtime updates, and the selected-app summary use Avalonia's
+[polite live regions](https://docs.avaloniaui.net/api/avalonia/automation/automationproperties).
+Periodic presence labels are not live regions, avoiding repeated announcements for
+background scans. Native screen-reader delivery is not established by peer tests.
+
+Views manage keyboard focus after presentation transitions. They defer focus until
+bindings/layout settle, capture the close-prompt return target before disabling the
+background, and ignore duplicate close-state notifications. App-list actions restore
+focus if a command hides/disables the focused button. No execution logic moves to Views.
+MainWindow switches a compact style below 900 logical pixels and allows 640×480;
+both windows bound their initial size using the screen working area and scaling.
+The main runtime/error region has a shared 200-pixel scroll limit so it cannot consume
+the editor's whole viewport. Headless tests exercise keyboard navigation, automation
+peers, large lists/long text, and render scaling; they do not simulate Windows UIA
+clients, OS text-size preferences, or physical monitor transitions.
+
 ### Session deletion
 
 Deletion is a presentation workflow in `MainViewModel`: capture the confirmed Session identity, save the remaining ordered definitions through `ISessionStore`, then remove the item from the observable library and select its neighbour. The confirmation uses the captured identity rather than looking up a potentially different selection when saving completes. Requests are guarded during editing and in-flight deletion; errors leave both the displayed library and pending confirmation available for retry/cancel. `MainWindow` handles focus, keyboard containment and restoration. No process APIs or executable-file deletion are involved, and the JSON schema is unchanged. Editing/deleting the active definition is blocked, including while starting, stopping, or awaiting cleanup. Other definitions can still be browsed and edited; persistence remains independent of the captured run definition.
 
 ### Action model and ordering
 
-A Session consists of ordered Actions. Core is responsible for executing them in the configured order.
+A Session consists of an ordered list of Actions. Core applies the configured startup mode; cleanup always uses reverse definition order, independent of concurrent completion order.
 
 Start Process is the action required by the first milestone. The action system should be extensible without requiring the entire application to know every concrete action type. This does not require a complex plugin architecture or speculative action implementations.
 
@@ -142,9 +163,39 @@ Start Process is the action required by the first milestone. The action system s
 
 `SessionRunner` owns one run at a time. Its explicit states are Starting, Running, AwaitingEndConfirmation, Stopping, NeedsAttention, Completed, and Failed; no current snapshot corresponds to idle. It publishes immutable snapshots and per-app outcomes through a Changed event. `MainViewModel` marshals notifications to the Avalonia UI thread; Views never execute or own processes.
 
-Start captures a copy of the saved definition, opens apps sequentially in configured order, and blocks overlapping runs. A user-bound Session remains active until End even with no configured apps. A one-second Core monitor checks retained process lifetimes independently of selected Session, editing, or window minimization. For a tracked main app, exit of all its captured processes transitions to AwaitingEndConfirmation without closing any supporting apps. DismissEndRequest returns to Running and suppresses repeat main-exit prompts for that run; explicit End remains available. Supporting-app exits only update that app's outcome. An untracked main launch clearly requires manual End instead of guessing a new identity.
+Start captures a copy of the saved definition and app list, applies ordered or concurrent startup, and blocks overlapping runs. Each run has a fresh RunId and a StartupSucceeded flag separate from its Session definition identity. The App start command requires at least one configured app, and the detail view hides the start action for empty Sessions while keeping editing available. Empty definitions remain valid for saving; Core retains its empty-run semantics for direct callers. A user-bound run remains active until End. A one-second Core monitor checks retained process lifetimes independently of selected Session, editing, or window minimization. For a tracked main app, exit of all its captured processes transitions to AwaitingEndConfirmation without closing any supporting apps. DismissEndRequest returns to Running and suppresses repeat main-exit prompts for that run; explicit End remains available. Supporting-app exits only update that app's outcome. An untracked main launch clearly requires manual End instead of guessing a new identity.
 
-Confirmed End during Starting requests cancellation before further launches, waits for the current acquisition to finish, then cleans up any process actually returned as owned. The Windows adapter checks cancellation before launching; after Windows creates a process it returns an owned/untracked result even if End was pressed, avoiding a cancellation leak. Concurrent/repeated End shares the in-flight cleanup task. New Start is blocked until cleanup completes or the user explicitly relinquishes remaining apps.
+SessionDefinition adds LaunchMode (InOrder/Together), PauseBetweenAppsSeconds,
+FocusAfterStartup (Unchanged/Sessions/App), and FocusAppId. StartProcessAction adds
+Readiness (LaunchCompleted/ProcessRunning/WindowAppeared), ReadinessTimeoutSeconds,
+and nullable PauseAfterSeconds (null inherits the Session pause; zero explicitly
+disables it). Core validates enum values, integer ranges, and focus-target references.
+PRODUCT.md defines timing semantics and defaults. ViewModels retain hidden timing
+values when modes change and validate numeric input before constructing definitions.
+
+Together groups entries by normalized full executable path with case-insensitive
+comparison. Entries within one group remain sequential; independent groups use
+Task.WhenAll. An untracked preceding launch blocks a repeat at that path. Any failure
+cancels pending launch work/readiness/delays, but successful acquisitions are stored
+before inspecting cancellation. StartFinished is signalled only after every group
+settles; confirmed End drains this barrier before reverse-definition-order cleanup.
+Readiness never broadens process ownership: ITrackedProcess.HasWindow checks only a
+retained live identity (including verified self-restarts). WindowsTrackedApp uses
+eligible-window enumeration without reading window titles. Core polls on a worker
+thread at up to four checks per second, with a monotonic timeout and cancellation.
+ProcessRunning needs any retained live process; WindowAppeared also needs one such
+process to expose an eligible window. No untracked-process adoption or input-idle
+heuristic is used. The readiness timeout begins after acquisition, not around a
+shell launch/UAC operation whose late result still needs ownership capture.
+
+MainViewModel performs completion focus once from the captured definition after
+StartAsync returns successfully for the same RunId. Editing/modals suppress it, and
+run transitions/editing/modals cancel pending focus. IStartupFocusService is the
+presentation/platform boundary: WindowStartupFocusService restores/activates Sessions
+on the UI thread or delegates chosen-app focus to IAppPresenceService. Failed focus
+only changes presentation feedback; it cannot affect execution or ownership.
+
+Confirmed End during Starting cancels waits/pauses and pending launches, waits for every current acquisition to finish, then cleans up any process actually returned as owned. The Windows adapter checks cancellation before launching; after Windows creates a process it returns an owned/untracked result even if End was pressed, avoiding a cancellation leak. Concurrent/repeated End shares the in-flight cleanup task. New Start is blocked until cleanup completes or the user explicitly relinquishes remaining apps.
 
 MainViewModel's End command only captures the active Session ID and opens a save-work confirmation. ConfirmEndSession checks that the same run is still active before calling SessionRunner.EndAsync; the latter is the platform-neutral execution entry point for an already-confirmed operation. Cancel performs no process operation. Automatic main-exit and startup-failure requests are represented in Core state, then shown by the UI when editing/saving/other modals permit. End-and-close requires the close dialog to be open and uses its explicit save-work warning as approval. No automatic runner path invokes destructive cleanup without a request already confirmed by the caller. Default Cancel focus, Escape, modal keyboard containment and named active-run selection are covered by headless interaction tests.
 
@@ -168,13 +219,13 @@ Normal window close during an active run offers Keep Sessions open, End Session 
 
 Core is responsible for error-handling policies and runtime results that let the UI report success, failure, running processes, ownership, and expected cleanup.
 
-The policy aborts remaining startup on the first acquisition error. If any acquisition was owned, it transitions to AwaitingEndConfirmation; rollback does not run until approval. Cancelling leaves NeedsAttention with retained ownership for later cleanup. Failure with no owned acquisitions can finish immediately. Confirmed rollback closes only owned apps already opened, in reverse order. Cleanup continues after individual close errors. Failed is terminal only once cleanup has completed; remaining owned apps keep NeedsAttention until retry or explicit leave-open. Untracked handoffs are an explained manual-management outcome, not inferred ownership. Full stopping after confirmation is the standard policy; a general configurable policy subsystem is not implemented.
+The policy aborts remaining startup on acquisition/readiness failure and cancels other readiness waits/pauses. It drains in-flight acquisitions before deciding whether cleanup is needed. If any acquisition was owned, it transitions to AwaitingEndConfirmation; rollback does not run until approval. Cancelling leaves NeedsAttention with retained ownership for later cleanup. Failure with no owned acquisitions can finish once all in-flight work settles. Confirmed rollback closes only owned apps already opened, in reverse definition order. Cleanup continues after individual close errors. Failed is terminal only once cleanup has completed; remaining owned apps keep NeedsAttention until retry or explicit leave-open. Untracked handoffs are an explained manual-management outcome, not inferred ownership. Full stopping after confirmation is the standard policy; configurable retry/skip/optional-app policies remain future work.
 
 ### Persistence
 
 Use simple local JSON persistence initially. Prefer readable, portable configuration that supports the [future product uses](PRODUCT.md#local-first-and-open-source-philosophy) of export, import, sharing, and source control.
 
-Do not introduce a database until there is a demonstrated need. The implemented JSON envelope has a `version` (currently 1) and an ordered `sessions` array. Only configuration is persisted; runtime state is excluded. Saves validate first, write a uniquely named temporary file beside the destination, then replace the destination after the complete write. Missing files start an empty library; malformed, invalid, or unsupported files produce errors and remain untouched. The UI blocks library writes after a failed initial load until a retry succeeds. The store has one application writer: `Program.Main` acquires `SingleInstanceGuard` before Avalonia composition/library access. A Global named mutex, keyed by a hash of the local app-data profile path, prevents competing instances (including the same profile in another Windows login session). A second launch signals a named event and exits without reading/writing the library; the owner requests restoration/activation of its window. The mutex is released on normal exit and recovered if abandoned after a crash. This guards application instances, not arbitrary external editors of the JSON file.
+Do not introduce a database until there is a demonstrated need. The JSON envelope has a `version` and an ordered `sessions` array. The reader accepts versions 1 and 2; the writer uses version 2 and readable string enums for startup settings. Missing settings in version-1 definitions retain ordered launching, zero pause, launch-completed readiness, a 30-second readiness timeout, no per-app override, and unchanged focus. Loading never rewrites the file. Version 2 prevents older builds from silently ignoring execution settings. Only configuration is persisted; runtime state and RunId are excluded. Saves validate first, write a uniquely named temporary file beside the destination, then replace the destination after the complete write. Missing files start an empty library; malformed, invalid, or unsupported files produce errors and remain untouched. The UI blocks library writes after a failed initial load until a retry succeeds. The store has one application writer: `Program.Main` acquires `SingleInstanceGuard` before Avalonia composition/library access. A Global named mutex, keyed by a hash of the local app-data profile path, prevents competing instances (including the same profile in another Windows login session). A second launch signals a named event and exits without reading/writing the library; the owner requests restoration/activation of its window. The mutex is released on normal exit and recovered if abandoned after a crash. This guards application instances, not arbitrary external editors of the JSON file.
 
 The App test project uses Avalonia's headless platform with Skia for rendering and xUnit v3, as required by Avalonia 12's headless runner. Core tests retain xUnit v2. Run `dotnet test tests/Sessions.App.Tests/Sessions.App.Tests.csproj` in addition to Core tests when changing UI behaviour. Setting `SESSIONS_SCREENSHOT_DIR` to an output directory saves review PNGs from the headless tests; they do not open desktop windows or use the real Session library.
 
@@ -210,8 +261,8 @@ Actions should eventually support configuration such as:
 - Start only if not already running.
 - Remember whether the Session started the process.
 - Stop when the Session ends.
-- Wait until the process has successfully started.
-- Timeout.
+- Wait until a tracked process is running or a window appears (implemented in SESS-023).
+- Readiness timeout (implemented in SESS-023; launch/UAC timeouts remain unsupported).
 - Continue the Session on failure.
 - Abort the Session on failure.
 - Optional administrator elevation (implemented per app).

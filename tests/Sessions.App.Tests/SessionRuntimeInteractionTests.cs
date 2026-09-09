@@ -30,6 +30,17 @@ public sealed class SessionRuntimeInteractionTests
         {
             Dispatcher.UIThread.RunJobs();
             var start = window.GetVisualDescendants().OfType<Button>().Single(b => ReferenceEquals(b.Command, model.StartSessionCommand));
+            model.SelectedSession = model.Sessions[2];
+            Dispatcher.UIThread.RunJobs();
+            Assert.False(start.IsVisible);
+            Assert.False(model.StartSessionCommand.CanExecute(null));
+            Assert.True(window.FindControl<Button>("EditSessionButton")!.IsEffectivelyVisible);
+            Assert.True(model.EditSessionCommand.CanExecute(null));
+            await model.StartSessionCommand.ExecuteAsync(null);
+            Assert.Null(runner.Snapshot);
+            model.SelectedSession = model.Sessions[0];
+            Dispatcher.UIThread.RunJobs();
+            Assert.True(start.IsVisible);
             Assert.True(start.IsEnabled);
             Press(window, start);
             if (model.StartSessionCommand.ExecutionTask is { } task) await task;
@@ -235,7 +246,8 @@ public sealed class SessionRuntimeInteractionTests
         public Task<IReadOnlyList<SessionDefinition>> LoadAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<SessionDefinition>>([
                 new(Guid.NewGuid(), "Work", "Everything ready together.", [new(Guid.NewGuid(), "Notes", @"C:\Apps\Notes.exe")]),
-                new(Guid.NewGuid(), "Development", "", [new(Guid.NewGuid(), "Editor", @"C:\Apps\Editor.exe")])]);
+                new(Guid.NewGuid(), "Development", "", [new(Guid.NewGuid(), "Editor", @"C:\Apps\Editor.exe")]),
+                new(Guid.NewGuid(), "Empty", "", [])]);
         public Task SaveAsync(IReadOnlyList<SessionDefinition> sessions, CancellationToken cancellationToken = default) =>
             throw new InvalidOperationException("Runtime actions must not save configuration.");
     }

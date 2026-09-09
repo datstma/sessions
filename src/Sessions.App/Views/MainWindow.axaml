@@ -3,7 +3,7 @@
         xmlns:vm="using:Sessions.App.ViewModels"
         xmlns:views="using:Sessions.App.Views"
         x:Class="Sessions.App.Views.MainWindow" x:DataType="vm:MainViewModel" x:CompileBindings="True"
-        Width="1120" Height="800" MinWidth="860" MinHeight="620"
+        Width="1120" Height="800" MinWidth="640" MinHeight="480"
         WindowStartupLocation="CenterScreen" Title="Sessions">
     <Grid>
     <Grid RowDefinitions="72,*,Auto" IsEnabled="{Binding IsMainContentEnabled}">
@@ -20,17 +20,23 @@
             </Grid>
         </Border>
         <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
-            <Border Width="236" IsVisible="{Binding HasSessions}" Background="{DynamicResource SessionSidebar}"
+            <Border Classes="sidebar" IsVisible="{Binding HasSessions}" Background="{DynamicResource SessionSidebar}"
                     BorderBrush="{DynamicResource SessionBorder}" BorderThickness="0,0,1,0">
                 <Grid RowDefinitions="Auto,*,Auto" Margin="16,28,16,20">
                     <StackPanel Spacing="16" Margin="4,0,4,20">
                         <TextBlock Text="YOUR SESSIONS" Classes="eyebrow" />
-                        <Button Content="+  New Session" Classes="quiet" HorizontalAlignment="Stretch"
+                        <Button x:Name="NewSessionButton" Content="+  New Session" Classes="quiet" HorizontalAlignment="Stretch" Click="EditRequested"
                                 HorizontalContentAlignment="Left" Command="{Binding NewSessionCommand}" />
                     </StackPanel>
                     <ListBox Grid.Row="1" x:Name="SessionList" Classes="sessions" ItemsSource="{Binding Sessions}"
                              SelectedItem="{Binding SelectedSession}" IsEnabled="{Binding CanBrowse}"
                              AutomationProperties.Name="Your Sessions">
+                        <ListBox.Styles>
+                            <Style Selector="ListBoxItem" x:DataType="vm:SessionViewModel">
+                                <Setter Property="AutomationProperties.Name" Value="{Binding AccessibleName}" />
+                                <Setter Property="ToolTip.Tip" Value="{Binding Name}" />
+                            </Style>
+                        </ListBox.Styles>
                         <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="vm:SessionViewModel">
                                 <Grid ColumnDefinitions="36,*">
@@ -49,17 +55,21 @@
                     <TextBlock Grid.Row="2" Text="{Binding LibraryCount}" Classes="muted" FontSize="12" Margin="12,20,0,0" />
                 </Grid>
             </Border>
-            <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*">
+            <Grid Grid.Column="1" RowDefinitions="Auto,*">
+                <ScrollViewer MaxHeight="200" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel>
                 <Border IsVisible="{Binding HasError}" Margin="28,20,28,0" Classes="surface" Padding="16">
                     <StackPanel Spacing="10">
-                        <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding ErrorMessage}" AutomationProperties.LiveSetting="Polite" Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" />
                         <Button Content="Try loading again" Command="{Binding LoadCommand}" IsVisible="{Binding CanRetryLoad}" />
                     </StackPanel>
                 </Border>
-                <Border Grid.Row="1" IsVisible="{Binding HasRuntime}" Margin="28,16,28,0" Classes="surface" Padding="16">
+                <Border IsVisible="{Binding HasRuntime}" Margin="28,16,28,0" Classes="surface" Padding="16">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="{Binding RuntimeTitle}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                        <TextBlock Text="{Binding Runtime.Message}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding RuntimeTitle}" AutomationProperties.LiveSetting="Polite" FontWeight="SemiBold" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding Runtime.Message}" AutomationProperties.LiveSetting="Polite" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding StartupFocusMessage}" IsVisible="{Binding HasStartupFocusMessage}" AutomationProperties.LiveSetting="Polite"
+                                   Classes="muted" FontSize="12" TextWrapping="Wrap" />
                         <WrapPanel Orientation="Horizontal">
                             <Button x:Name="EndSessionButton" Content="{Binding EndLabel}" Command="{Binding EndSessionCommand}" IsVisible="{Binding HasActiveRun}" Classes="quiet" Margin="0,0,8,6" />
                             <Button Content="View active Session" Command="{Binding ViewActiveSessionCommand}" IsVisible="{Binding ShowActiveNavigation}" Classes="quiet" Margin="0,0,8,6" />
@@ -67,7 +77,9 @@
                         </WrapPanel>
                     </StackPanel>
                 </Border>
-                <Grid Grid.Row="2">
+                </StackPanel>
+                </ScrollViewer>
+                <Grid Grid.Row="1">
                     <StackPanel IsVisible="{Binding ShowLoading}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
                         <ProgressBar IsIndeterminate="True" Width="180" />
                         <TextBlock Text="Loading your Sessions…" Classes="muted" />
@@ -83,7 +95,7 @@
                                 <TextBlock Text="Work, gaming, or a little time to create. Bring the apps you need together in a Session, ready when you are."
                                            Classes="muted" FontSize="16" TextWrapping="Wrap" LineHeight="26" />
                             </StackPanel>
-                            <Button x:Name="CreateFirstButton" Content="+  Create your first Session" Classes="primary" Command="{Binding NewSessionCommand}" />
+                            <Button x:Name="CreateFirstButton" Content="+  Create your first Session" Classes="primary" Click="EditRequested" Command="{Binding NewSessionCommand}" />
                             <Border Height="1" Background="{DynamicResource SessionBorder}" Margin="0,16,0,0" />
                             <Grid ColumnDefinitions="*,*,*" Margin="0,4,0,0">
                                 <StackPanel Spacing="7" Margin="0,0,16,0"><TextBlock Text="01  Make it yours" FontWeight="Medium" /><TextBlock Text="Name your context." Classes="muted" FontSize="12" TextWrapping="Wrap" /></StackPanel>
@@ -95,7 +107,7 @@
                     <Grid IsVisible="{Binding ShowDetails}">
                         <ScrollViewer HorizontalScrollBarVisibility="Disabled">
                             <StackPanel DataContext="{Binding SelectedSession}" x:DataType="vm:SessionViewModel"
-                                        Spacing="30" Margin="44,38,44,36" MaxWidth="800">
+                                        Classes="detailContent" Spacing="30" MaxWidth="800">
                                 <StackPanel Spacing="12">
                                     <TextBlock Text="YOUR SESSION" Classes="eyebrow" />
                                     <TextBlock Text="{Binding Name}" FontSize="34" FontWeight="SemiBold" TextWrapping="Wrap" />
@@ -104,12 +116,13 @@
                                 <StackPanel Spacing="12" IsVisible="{Binding $parent[Window].((vm:MainViewModel)DataContext).ShowStart}">
                                     <StackPanel Orientation="Horizontal" Spacing="12">
                                         <Button Content="Start Session" Classes="primary"
-                                                IsVisible="{Binding $parent[Window].((vm:MainViewModel)DataContext).ShowStart}"
+                                                IsVisible="{Binding HasApps}"
                                                 Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).StartSessionCommand}" />
-                                        <Button Content="Edit Session" Classes="quiet"
+                                        <Button x:Name="EditSessionButton" Content="Edit Session" Classes="quiet" Click="EditRequested"
                                                 Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).EditSessionCommand}" />
                                     </StackPanel>
-                                    <TextBlock Text="{Binding $parent[Window].((vm:MainViewModel)DataContext).StartHint}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding $parent[Window].((vm:MainViewModel)DataContext).StartHint}" IsVisible="{Binding HasApps}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding StartupSummary}" IsVisible="{Binding HasApps}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
                                 </StackPanel>
                                 <StackPanel Spacing="16">
                                     <Grid ColumnDefinitions="*,Auto">
@@ -152,7 +165,7 @@
                                                                 <TextBlock Text="{Binding StatusLabel}" Classes="muted" FontSize="12" VerticalAlignment="Center" />
                                                             </StackPanel>
                                                         </Border>
-                                                        <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding FocusMessage}"
+                                                        <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding FocusMessage}" AutomationProperties.LiveSetting="Polite"
                                                                    IsVisible="{Binding HasFocusMessage}" Foreground="{DynamicResource SessionError}"
                                                                    TextWrapping="Wrap" FontSize="12" Margin="0,8,0,0" />
                                                     </Grid>
@@ -180,9 +193,9 @@
                     </Grid>
                     <Grid IsVisible="{Binding IsEditing}" RowDefinitions="*,Auto">
                         <ScrollViewer HorizontalScrollBarVisibility="Disabled" IsEnabled="{Binding !IsBusy}">
-                            <views:SessionEditorView DataContext="{Binding Editor}" Margin="40,30,40,24" MaxWidth="800" />
+                            <views:SessionEditorView DataContext="{Binding Editor}" Classes="editorContent" MaxWidth="800" />
                         </ScrollViewer>
-                        <Border Grid.Row="1" BorderBrush="{DynamicResource SessionBorder}" BorderThickness="0,1,0,0" Padding="40,18">
+                        <Border Grid.Row="1" Classes="editorFooter" BorderBrush="{DynamicResource SessionBorder}" BorderThickness="0,1,0,0">
                             <Grid ColumnDefinitions="*,Auto,Auto">
                                 <TextBlock Text="Nothing opens until you start." Classes="muted" FontSize="12" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,16,0" />
                                 <Button Grid.Column="1" Content="Cancel" Command="{Binding CancelEditCommand}" Classes="quiet" Margin="0,0,12,0" />
@@ -248,7 +261,7 @@
                 <TextBlock Text="{Binding DeleteTitle}" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" />
                 <TextBlock Text="This removes the saved Session and its app settings. This can't be undone." TextWrapping="Wrap" />
                 <TextBlock Text="Your installed apps, files, and running apps will stay as they are." Classes="muted" TextWrapping="Wrap" />
-                <TextBlock Text="{Binding DeleteErrorMessage}" IsVisible="{Binding HasDeleteError}"
+                <TextBlock Text="{Binding DeleteErrorMessage}" IsVisible="{Binding HasDeleteError}" AutomationProperties.LiveSetting="Polite"
                            Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" />
             </StackPanel>
             </ScrollViewer>

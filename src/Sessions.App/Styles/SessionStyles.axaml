@@ -1,4 +1,4 @@
-<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:views="using:Sessions.App.Views">
     <Styles.Resources>
         <ResourceDictionary>
             <ResourceDictionary.ThemeDictionaries>
@@ -74,4 +74,12 @@
         <Setter Property="Background" Value="{DynamicResource SessionSurface}" /><Setter Property="BorderBrush" Value="{DynamicResource SessionBorder}" />
         <Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="10" />
     </Style>
+    <Style Selector="Border.sidebar"><Setter Property="Width" Value="236" /></Style>
+    <Style Selector="StackPanel.detailContent"><Setter Property="Margin" Value="44,38,44,36" /></Style>
+    <Style Selector="views|SessionEditorView.editorContent"><Setter Property="Margin" Value="40,30,40,24" /></Style>
+    <Style Selector="Border.editorFooter"><Setter Property="Padding" Value="40,18" /></Style>
+    <Style Selector="Window.compact Border.sidebar"><Setter Property="Width" Value="184" /></Style>
+    <Style Selector="Window.compact StackPanel.detailContent"><Setter Property="Margin" Value="20,24" /></Style>
+    <Style Selector="Window.compact views|SessionEditorView.editorContent"><Setter Property="Margin" Value="20,24" /></Style>
+    <Style Selector="Window.compact Border.editorFooter"><Setter Property="Padding" Value="20,12" /></Style>
 </Styles>

@@ -14,6 +14,11 @@ public partial class AppPickerWindow : Window
         InitializeComponent();
         Opened += async (_, _) =>
         {
+            if (Screens.ScreenFromWindow(this) is { } screen)
+            {
+                Width = Math.Min(Width, Math.Max(MinWidth, screen.WorkingArea.Width / screen.Scaling - 32));
+                Height = Math.Min(Height, Math.Max(MinHeight, screen.WorkingArea.Height / screen.Scaling - 64));
+            }
             AppSearch.Focus();
             if (DataContext is AppPickerViewModel model) await model.RefreshCommand.ExecuteAsync(null);
         };
