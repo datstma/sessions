@@ -1,0 +1,7 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Sessions.App.Views.AppIcon" Focusable="False" IsHitTestVisible="False">
+    <Grid>
+        <TextBlock x:Name="Fallback" Foreground="{DynamicResource BrandForegroundBrush}" FontWeight="{StaticResource WeightStrong}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <Image x:Name="IconImage" Width="{StaticResource Measure30}" Height="{StaticResource Measure30}" Stretch="Uniform" IsVisible="False" HorizontalAlignment="Center" VerticalAlignment="Center" />
+    </Grid>
+</UserControl>

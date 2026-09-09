@@ -66,6 +66,8 @@
                     <StackPanel Spacing="{StaticResource Measure6}"><TextBlock Text="Working directory (optional)" /><TextBox Text="{Binding WorkingDirectory}" AutomationProperties.Name="App working directory" /></StackPanel>
                     <StackPanel Spacing="{StaticResource Measure4}">
                         <CheckBox Content="Run as administrator" IsChecked="{Binding RunAsAdministrator}" />
+                        <TextBlock Text="Off by default. Enable only if this app can safely stop without saving. After a normal close request, Sessions may force quit it and lose unsaved changes." Classes="muted" TextWrapping="Wrap" />
+                        <CheckBox IsChecked="{Binding AllowForceQuit}" AutomationProperties.Name="Force quit if this app stays open"><TextBlock Text="Force quit if this app stays open" TextWrapping="Wrap" /></CheckBox>
                         <TextBlock Text="Windows asks for approval when opening this app. Useful for apps that otherwise restart to elevate." Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
                     </StackPanel>
                     <TextBlock Text="Startup condition" FontWeight="{StaticResource WeightBody}" />

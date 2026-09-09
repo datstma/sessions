@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
@@ -103,6 +104,136 @@ public sealed class SessionRuntimeInteractionTests
         Assert.False(host.Process.Closed);
         Assert.True(model.StartSessionCommand.CanExecute(null));
         model.Dispose();
+    }
+
+    [AvaloniaTheory]
+    [InlineData(false, 640, 480)]
+    [InlineData(true, 640, 480)]
+    [InlineData(false, 1440, 900)]
+    [InlineData(true, 1440, 900)]
+    public async Task WaitingAppCanBeFocusedOrExplicitlyForcedWithSafeKeyboardDefaults(bool dark, int width, int height)
+    {
+        var host = new Host { RefuseClose = true };
+        var runner = new SessionRunner(host);
+        var presence = new CleanupPresence();
+        var model = new MainViewModel(new Store(), presenceService: presence, runner: runner);
+        var window = new MainWindow { DataContext = model, Width = width, Height = height,
+            RequestedThemeVariant = dark ? ThemeVariant.Dark : ThemeVariant.Light };
+        window.Show();
+        try
+        {
+            await model.StartSessionCommand.ExecuteAsync(null);
+            await model.EndSessionCommand.ExecuteAsync(null);
+            await model.ConfirmEndSessionCommand.ExecuteAsync(null);
+            model.SelectedSession = model.Sessions[1];
+            var app = Assert.Single(model.CleanupApps);
+            Assert.Equal("Notes", app.Name);
+            await runner.RefreshAsync();
+            Assert.Same(app, Assert.Single(model.CleanupApps));
+            await model.FocusCleanupAppCommand.ExecuteAsync(app);
+            Assert.Equal(@"C:\Apps\Notes.exe", presence.FocusedPath);
+            Capture(window, $"waiting-app-{width}-{(dark ? "dark" : "light")}");
+            var force = window.GetVisualDescendants().OfType<Button>().Single(b => ReferenceEquals(b.Command, model.RequestForceQuitCommand));
+            force.BringIntoView();
+            Press(window, force);
+            Assert.True(model.IsForceQuitConfirmation);
+            Assert.Contains("Notes", model.ForceQuitTitle);
+            Assert.Contains("Work", model.ForceQuitDescription);
+            Assert.False(model.IsMainContentEnabled);
+            Assert.False(model.RequestWindowClose());
+            Assert.False(model.IsCloseConfirmation);
+            Assert.True(window.FindControl<Button>("CancelForceQuitButton")!.IsFocused);
+            window.KeyPress(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, "\r");
+            window.KeyRelease(Key.Enter, RawInputModifiers.None, PhysicalKey.Enter, "\r");
+            Dispatcher.UIThread.RunJobs();
+            Assert.False(model.IsForceQuitConfirmation);
+            Assert.False(host.Process.Closed);
+            Assert.True(force.IsFocused);
+            Press(window, force);
+            window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, "");
+            window.KeyRelease(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, "");
+            Assert.False(model.IsForceQuitConfirmation);
+            Press(window, force);
+            Capture(window, $"force-quit-{width}-{(dark ? "dark" : "light")}");
+            var confirm = window.FindControl<Button>("ConfirmForceQuitButton")!;
+            Assert.True(confirm.IsEffectivelyVisible);
+            Assert.True(confirm.TranslatePoint(default, window)!.Value.Y + confirm.Bounds.Height <= height);
+            Press(window, confirm);
+            if (model.ConfirmForceQuitCommand.ExecutionTask is { } task) await task;
+            Assert.True(host.Process.Closed);
+            Assert.False(model.HasActiveRun);
+            Assert.Empty(model.CleanupApps);
+        }
+        finally { if (runner.Snapshot?.IsActive == true) runner.LeaveAppsOpen(); window.Close(); }
+    }
+
+    [AvaloniaFact]
+    public async Task SavingAndClosingDismissesStaleForceConfirmationAndFinishesRun()
+    {
+        var host = new Host { RefuseClose = true };
+        var runner = new SessionRunner(host);
+        using var model = new MainViewModel(new Store(), runner: runner);
+        await model.LoadCommand.ExecuteAsync(null);
+        await model.StartSessionCommand.ExecuteAsync(null);
+        await model.EndSessionCommand.ExecuteAsync(null);
+        await model.ConfirmEndSessionCommand.ExecuteAsync(null);
+        model.RequestForceQuitCommand.Execute(Assert.Single(model.CleanupApps));
+        host.Process.Exit();
+        await runner.RefreshAsync();
+        Assert.False(model.IsForceQuitConfirmation);
+        Assert.False(model.HasActiveRun);
+        Assert.False(model.ConfirmForceQuitCommand.CanExecute(null));
+    }
+
+    [AvaloniaTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task EndAndCloseNamesAutomaticForceAppsAndKeepsRecoveryWhenDefaultAppStaysOpen(bool dark)
+    {
+        var normal = new StartProcessAction(Guid.NewGuid(), "Notes", @"C:\Notes.exe");
+        var forced = new StartProcessAction(Guid.NewGuid(), string.Join(" ", Enumerable.Repeat("A long utility name", 12)), @"C:\Utility.exe", AllowForceQuit: true);
+        var host = new AutomaticHost(false);
+        host.Support.Refuse = true;
+        var runner = new SessionRunner(host);
+        var model = new MainViewModel(new DefinitionStore(new(Guid.NewGuid(), "Work", "", [normal, forced])), runner: runner);
+        var window = new MainWindow { DataContext = model, Width = 640, Height = 480,
+            RequestedThemeVariant = dark ? ThemeVariant.Dark : ThemeVariant.Light };
+        window.Show();
+        try
+        {
+            await model.StartSessionCommand.ExecuteAsync(null);
+            await model.EndSessionCommand.ExecuteAsync(null);
+            Assert.True(model.HasAutomaticForceQuit);
+            Assert.Contains(forced.Name, model.AutomaticForceQuitWarning);
+            Assert.DoesNotContain(normal.Name, model.AutomaticForceQuitWarning);
+            model.CancelEndSessionCommand.Execute(null);
+            window.Close();
+            Capture(window, $"close-force-warning-compact-{(dark ? "dark" : "light")}");
+            var buttons = window.GetVisualDescendants().OfType<Button>().Where(b => b.IsEffectivelyVisible &&
+                (ReferenceEquals(b.Command, model.CancelCloseCommand) || ReferenceEquals(b.Command, model.EndAndCloseCommand) ||
+                 ReferenceEquals(b.Command, model.LeaveAppsAndCloseCommand))).ToArray();
+            Assert.Equal(3, buttons.Length);
+            Assert.All(buttons, b => Assert.InRange(b.TranslatePoint(default, window)!.Value.Y + b.Bounds.Height, 0, 480));
+            await model.EndAndCloseCommand.ExecuteAsync(null);
+            Assert.True(window.IsVisible);
+            Assert.True(model.NeedsCleanup);
+            Assert.False(host.Support.Closed);
+            Assert.True(host.Main.Closed);
+            host.Support.Exit();
+            await runner.RefreshAsync();
+            Assert.False(model.HasActiveRun);
+            Assert.True(window.IsVisible);
+        }
+        finally { if (runner.Snapshot?.IsActive == true) runner.LeaveAppsOpen(); window.Close(); }
+    }
+
+    private sealed class CleanupPresence : IAppPresenceService
+    {
+        public string? FocusedPath { get; private set; }
+        public Task<IReadOnlyDictionary<string, AppPresence>> GetPresenceAsync(IReadOnlyList<string> paths, CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyDictionary<string, AppPresence>>(paths.ToDictionary(p => p, _ => AppPresence.Window));
+        public Task<AppFocusResult> FocusAsync(string path, CancellationToken cancellationToken = default)
+        { FocusedPath = path; return Task.FromResult(AppFocusResult.Focused); }
     }
 
     [AvaloniaFact]
@@ -268,10 +399,10 @@ public sealed class SessionRuntimeInteractionTests
         public TaskCompletionSource? CloseGate { get; set; }
         public bool HasExited => Closed;
         public void Exit() => Closed = true;
-        public async Task<bool> RequestCloseAsync(TimeSpan timeout)
+        public async Task<bool> RequestCloseAsync(TimeSpan timeout, bool allowForceQuit = false)
         {
             if (CloseGate is not null) await CloseGate.Task;
-            Closed = !Refuse;
+            Closed = !Refuse || allowForceQuit;
             return Closed;
         }
         public void Dispose() { }

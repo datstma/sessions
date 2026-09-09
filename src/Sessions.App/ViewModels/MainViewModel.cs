@@ -41,6 +41,57 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     partial void OnStartupFocusMessageChanged(string? value) => OnPropertyChanged(nameof(HasStartupFocusMessage));
     [ObservableProperty] private bool _isCloseConfirmation;
     [ObservableProperty] private Guid? _pendingEndSessionId;
+    [ObservableProperty] private CleanupAppViewModel? _pendingForceQuit;
+    [ObservableProperty] private string? _cleanupFocusMessage;
+    public ObservableCollection<CleanupAppViewModel> CleanupApps { get; } = [];
+    public bool IsForceQuitConfirmation => PendingForceQuit is not null;
+    public string ForceQuitTitle => $"Force quit “{PendingForceQuit?.Name}”?";
+    public string ForceQuitDescription => $"This force quits {PendingForceQuit?.Name} in “{Runtime?.Name}”. Unsaved changes may be lost.";
+    public string AutomaticForceQuitWarning => "Automatic force quit is enabled for: " + string.Join(", ", Runtime?.Apps
+        .Where(a => a.AllowForceQuit && (a.Owned || a.State is SessionAppState.Waiting or SessionAppState.Starting))
+        .Select(a => a.Name) ?? []) + ". Unsaved changes in these apps may be lost.";
+    public bool HasAutomaticForceQuit => Runtime?.Apps.Any(a => a.AllowForceQuit &&
+        (a.Owned || a.State is SessionAppState.Waiting or SessionAppState.Starting)) == true;
+    private bool IsCurrentCleanupApp(CleanupAppViewModel? app) => app is not null && Runtime is { State: SessionRunState.NeedsAttention } run &&
+        run.RunId == app.RunId && run.Apps.Any(a => a.AppId == app.AppId && a.Owned && a.State == SessionAppState.LeftOpen);
+    private bool CanActOnCleanupApp(CleanupAppViewModel? app) => CanBrowse && IsCurrentCleanupApp(app);
+    private bool CanFocusCleanupApp(CleanupAppViewModel? app) => presenceService is not null && CanActOnCleanupApp(app);
+    [RelayCommand(CanExecute = nameof(CanActOnCleanupApp))]
+    private void RequestForceQuit(CleanupAppViewModel? app)
+    {
+        if (CanActOnCleanupApp(app)) PendingForceQuit = app;
+    }
+    private bool CanConfirmForceQuit() => IsForceQuitConfirmation && IsCurrentCleanupApp(PendingForceQuit);
+    [RelayCommand(CanExecute = nameof(CanConfirmForceQuit))]
+    private async Task ConfirmForceQuitAsync()
+    {
+        if (!CanConfirmForceQuit()) return;
+        var app = PendingForceQuit!;
+        var stopping = runner!.ForceQuitAppAsync(app.RunId, app.AppId);
+        PendingForceQuit = null;
+        await stopping;
+        ApplyRuntime();
+    }
+    [RelayCommand]
+    private void CancelForceQuit() => PendingForceQuit = null;
+    [RelayCommand(CanExecute = nameof(CanFocusCleanupApp))]
+    private async Task FocusCleanupAppAsync(CleanupAppViewModel? app)
+    {
+        if (!CanFocusCleanupApp(app)) return;
+        try
+        {
+            var result = await presenceService!.FocusAsync(app!.ExecutablePath);
+            if (IsCurrentCleanupApp(app)) CleanupFocusMessage = result switch
+            {
+                AppFocusResult.NoWindow => $"{app.Name} has no window to bring forward. Check the taskbar or notification area.",
+                AppFocusResult.Denied => $"Windows couldn't bring {app.Name} forward. Select it from the taskbar.",
+                _ => null
+            };
+        }
+        catch (Exception exception) when (SessionAppRow.IsObservationError(exception))
+        { if (IsCurrentCleanupApp(app)) CleanupFocusMessage = "Couldn't bring the app forward. " + exception.Message; }
+    }
+    partial void OnPendingForceQuitChanged(CleanupAppViewModel? value) => Refresh();
     public bool IsEndConfirmation => PendingEndSessionId is not null;
     public string EndConfirmationTitle => $"End “{Runtime?.Name}”?";
     public string[] AppsToStop => Runtime?.Apps.Where(app => app.Owned && app.State is not (SessionAppState.Closed or SessionAppState.Exited))
@@ -57,7 +108,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     public bool SelectedIsActive => HasActiveRun && SelectedSession?.Definition.Id == Runtime?.SessionId;
     public bool ShowStart => !SelectedIsActive;
     public bool ShowActiveNavigation => HasActiveRun && !SelectedIsActive;
-    public bool IsMainContentEnabled => !IsConfirmingDelete && !IsCloseConfirmation && !IsEndConfirmation;
+    public bool IsMainContentEnabled => !IsConfirmingDelete && !IsCloseConfirmation && !IsEndConfirmation && !IsForceQuitConfirmation;
     public string RuntimeTitle => Runtime is null ? "" : $"{Runtime.Name} · {Runtime.State switch
     {
         SessionRunState.Starting => "Starting…", SessionRunState.Running => "Active",
@@ -74,7 +125,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         : "Click Not running to open an app, or Running to bring it forward. Apps opened individually stay open independently of the Session.";
     private bool HasOpeningApps => Sessions.SelectMany(s => s.Apps).Any(app => app.IsOpening);
     private bool CanStartSession() => runner is not null && CanBrowse && SelectedSession is { HasApps: true } && !HasActiveRun && !HasOpeningApps;
-    private bool CanEndSession() => runner is not null && HasActiveRun && Runtime?.State != SessionRunState.Stopping && !IsBusy && Editor is null && !IsConfirmingDelete && !IsEndConfirmation && !IsCloseConfirmation;
+    private bool CanEndSession() => runner is not null && HasActiveRun && Runtime?.State != SessionRunState.Stopping && CanBrowse;
     private bool CanConfirmEndSession() => runner is not null && IsEndConfirmation && Runtime is { IsActive: true } runtime && runtime.SessionId == PendingEndSessionId && runtime.State != SessionRunState.Stopping && !IsBusy && Editor is null;
     private bool CanEndAndClose() => runner is not null && IsCloseConfirmation && HasActiveRun && Runtime?.State != SessionRunState.Stopping && !IsBusy && Editor is null;
     private bool CanLeaveApps() => runner is not null && Runtime?.State is SessionRunState.Running or SessionRunState.NeedsAttention or SessionRunState.AwaitingEndConfirmation;
@@ -183,7 +234,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     public bool RequestWindowClose()
     {
         if (!HasActiveRun) return true;
-        if (IsEndConfirmation) return false;
+        if (IsEndConfirmation || IsForceQuitConfirmation) return false;
         if (IsBusy || Editor is not null)
         {
             ErrorMessage = Editor is not null ? "Save or cancel your edits before closing Sessions." : "Wait for the current operation to finish before closing Sessions.";
@@ -229,6 +280,13 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private void ApplyRuntime()
     {
         Runtime = runner?.Snapshot;
+        if (PendingForceQuit is { } pending && !IsCurrentCleanupApp(pending)) PendingForceQuit = null;
+        var remaining = Runtime?.Apps.Where(a => a.Owned && a.State == SessionAppState.LeftOpen && NeedsCleanup).ToArray() ?? [];
+        for (var i = CleanupApps.Count - 1; i >= 0; i--)
+            if (CleanupApps[i].RunId != Runtime?.RunId || !remaining.Any(a => a.AppId == CleanupApps[i].AppId)) CleanupApps.RemoveAt(i);
+        foreach (var app in remaining)
+            if (!CleanupApps.Any(a => a.AppId == app.AppId)) CleanupApps.Add(new(Runtime!.RunId, app.AppId, app.Name, app.ExecutablePath));
+        if (!NeedsCleanup) CleanupFocusMessage = null;
         if (IsEndConfirmation && (!HasActiveRun || Runtime?.SessionId != PendingEndSessionId)) PendingEndSessionId = null;
         foreach (var session in Sessions)
         {
@@ -320,7 +378,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     public bool IsEditing => Editor is not null;
     public bool ShowLoading => IsBusy && !IsEditing && !IsConfirmingDelete;
     public bool ShowDetails => SelectedSession is not null && Editor is null;
-    public bool CanBrowse => _loaded && !IsBusy && Editor is null && !IsConfirmingDelete && !IsCloseConfirmation && !IsEndConfirmation;
+    public bool CanBrowse => _loaded && !IsBusy && Editor is null && IsMainContentEnabled;
     public bool CanRetryLoad => !_loaded && !IsBusy;
     public bool HasError => ErrorMessage is not null;
     public string LibraryCount => Sessions.Count == 1 ? "1 Session" : $"{Sessions.Count} Sessions";
@@ -490,12 +548,16 @@ public partial class MainViewModel : ViewModelBase, IDisposable
                      nameof(IsConfirmingDelete), nameof(DeleteTitle), nameof(DeleteButtonLabel),
                      nameof(HasActiveRun), nameof(HasRuntime), nameof(NeedsCleanup), nameof(SelectedIsActive), nameof(ShowStart),
                      nameof(ShowActiveNavigation), nameof(RuntimeTitle), nameof(EndLabel), nameof(StartHint), nameof(AppInteractionHint), nameof(IsMainContentEnabled),
-                     nameof(IsEndConfirmation), nameof(EndConfirmationTitle), nameof(AppsToStop), nameof(AppsToKeep), nameof(HasAppsToKeep), nameof(HasAppsToStop) })
+                     nameof(IsEndConfirmation), nameof(EndConfirmationTitle), nameof(AppsToStop), nameof(AppsToKeep), nameof(HasAppsToKeep), nameof(HasAppsToStop),
+                     nameof(IsForceQuitConfirmation), nameof(ForceQuitTitle), nameof(ForceQuitDescription), nameof(AutomaticForceQuitWarning), nameof(HasAutomaticForceQuit) })
             OnPropertyChanged(property);
         StartSessionCommand.NotifyCanExecuteChanged();
         ViewActiveSessionCommand.NotifyCanExecuteChanged();
         EndSessionCommand.NotifyCanExecuteChanged();
         ConfirmEndSessionCommand.NotifyCanExecuteChanged();
+        RequestForceQuitCommand.NotifyCanExecuteChanged();
+        ConfirmForceQuitCommand.NotifyCanExecuteChanged();
+        FocusCleanupAppCommand.NotifyCanExecuteChanged();
         FinishSessionCommand.NotifyCanExecuteChanged();
         EndAndCloseCommand.NotifyCanExecuteChanged();
         LeaveAppsAndCloseCommand.NotifyCanExecuteChanged();
@@ -509,3 +571,5 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         ConfirmDeleteSessionCommand.NotifyCanExecuteChanged();
     }
 }
+
+public sealed record CleanupAppViewModel(Guid RunId, Guid AppId, string Name, string ExecutablePath);

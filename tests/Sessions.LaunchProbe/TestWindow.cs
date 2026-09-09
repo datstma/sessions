@@ -8,15 +8,18 @@ internal static class TestWindow
     private static bool _guarded;
     private static bool _linger;
     private static bool _damaged;
+    private static bool _savePrompt;
+    private static IntPtr _prompt;
     private static string _directory = "";
     private static IntPtr _main;
     private static IntPtr _auxiliary;
     private static readonly WindowProc Procedure = HandleMessage;
-    public static int Run(string directory, bool refuse, bool guarded = false, bool linger = false, bool hidden = false)
+    public static int Run(string directory, bool refuse, bool guarded = false, bool linger = false, bool hidden = false, bool savePrompt = false)
     {
         _refuse = refuse;
         _guarded = guarded;
         _linger = linger;
+        _savePrompt = savePrompt;
         _directory = directory;
         var windowClass = new WindowClass { Procedure = Procedure, ClassName = "SessionsRuntimeProbe" };
         if (RegisterClass(ref windowClass) == 0) throw new Win32Exception(Marshal.GetLastWin32Error());
@@ -29,7 +32,8 @@ internal static class TestWindow
         if (guarded)
             _auxiliary = CreateWindowEx(0, windowClass.ClassName, "Internal helper (not an app window)", 0,
                 0, 0, 0, 0, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
-        SetTimer(window, 1, 15000, IntPtr.Zero); // Bounded lifetime even if a test fails.
+        SetTimer(window, 1, savePrompt ? 30000u : 15000u, IntPtr.Zero); // Bounded lifetime even if a test fails.
+        if (savePrompt) SetTimer(window, 3, 50, IntPtr.Zero);
         File.WriteAllText(Path.Combine(directory, "window-ready.tmp"), Environment.ProcessId.ToString());
         File.Move(Path.Combine(directory, "window-ready.tmp"), Path.Combine(directory, "window-ready"));
         while (GetMessage(out var message, IntPtr.Zero, 0, 0) > 0)
@@ -44,6 +48,18 @@ internal static class TestWindow
     {
         if (message == 0x0010)
         {
+            if (_savePrompt && window == _main)
+            {
+                if (_prompt == IntPtr.Zero)
+                {
+                    // An owned dialog keeps the app alive while the user decides what to do.
+                    _prompt = CreateWindowEx(0x08000000, "SessionsRuntimeProbe", "Save changes?", 0x10C80000,
+                        -20000, -20000, 200, 100, _main, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+                    EnableWindow(_main, false);
+                    File.WriteAllText(Path.Combine(_directory, "save-prompt-open"), "Unsaved fixture text");
+                }
+                return IntPtr.Zero;
+            }
             if (_guarded && window == _auxiliary)
             {
                 _damaged = true;
@@ -61,6 +77,22 @@ internal static class TestWindow
         }
         if (message == 0x0113)
         {
+            if (wParam == (IntPtr)3)
+            {
+                var commandPath = Path.Combine(_directory, "save-choice");
+                if (_prompt == IntPtr.Zero || !File.Exists(commandPath)) return IntPtr.Zero;
+                var choice = File.ReadAllText(commandPath);
+                if (choice is not ("save" or "discard" or "cancel")) return IntPtr.Zero;
+                File.Delete(commandPath);
+                DestroyWindow(_prompt);
+                _prompt = IntPtr.Zero;
+                EnableWindow(_main, true);
+                File.Delete(Path.Combine(_directory, "save-prompt-open"));
+                if (choice == "save") File.WriteAllText(Path.Combine(_directory, "saved-document"), "Unsaved fixture text");
+                File.WriteAllText(Path.Combine(_directory, "choice-" + choice), "Handled");
+                if (choice != "cancel") DestroyWindow(_main);
+                return IntPtr.Zero;
+            }
             if (wParam == (IntPtr)2 && _damaged) ShowWindow(_main, 0);
             else DestroyWindow(window);
             return IntPtr.Zero;
@@ -104,6 +136,8 @@ internal static class TestWindow
     private static extern IntPtr DefWindowProc(IntPtr window, uint message, IntPtr wParam, IntPtr lParam);
     [DllImport("user32.dll")]
     private static extern bool DestroyWindow(IntPtr window);
+    [DllImport("user32.dll")]
+    private static extern bool EnableWindow(IntPtr window, bool enable);
     [DllImport("user32.dll")]
     private static extern bool ShowWindow(IntPtr window, int command);
     [DllImport("user32.dll")]

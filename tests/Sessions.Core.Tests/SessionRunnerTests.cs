@@ -190,6 +190,104 @@ public sealed class SessionRunnerTests
         Assert.Equal(SessionRunState.Failed, runner.Snapshot.State);
     }
 
+    [Fact]
+    public async Task DefaultClosePreservesUnsavedAppsAndOnlyExplicitTargetCanBeForced()
+    {
+        var one = new FakeProcess("one", []) { AcceptClose = false };
+        var two = new FakeProcess("two", []) { AcceptClose = false };
+        var existing = new FakeProcess("existing", []) { AcceptClose = false };
+        var definition = Definition("one", "two", "existing");
+        var runner = new SessionRunner(new FakeHost([], new([one], true, "owned"), new([two], true, "owned"), new([existing], false, "existing")));
+        await runner.StartAsync(definition);
+        var runId = runner.Snapshot!.RunId;
+        await runner.ForceQuitAppAsync(runId, definition.Apps[0].Id); // No pending cleanup.
+        Assert.Empty(one.ForceRequests);
+        await runner.EndAsync();
+        Assert.Equal(SessionRunState.NeedsAttention, runner.Snapshot.State);
+        Assert.Equal(new[] { false }, one.ForceRequests);
+        Assert.Equal(new[] { false }, two.ForceRequests);
+        await runner.ForceQuitAppAsync(Guid.NewGuid(), definition.Apps[0].Id);
+        await runner.ForceQuitAppAsync(runId, definition.Apps[2].Id);
+        await runner.ForceQuitAppAsync(runId, Guid.NewGuid());
+        Assert.Single(one.ForceRequests);
+        Assert.Empty(existing.ForceRequests);
+        await runner.ForceQuitAppAsync(runId, definition.Apps[0].Id);
+        Assert.True(one.Exited);
+        Assert.False(two.Exited);
+        Assert.Equal(new[] { false, true }, one.ForceRequests);
+        Assert.Single(two.ForceRequests);
+        Assert.Equal(SessionRunState.NeedsAttention, runner.Snapshot.State);
+        two.Exited = true; // User saves or discards and closes the other app.
+        await runner.RefreshAsync();
+        Assert.Equal(SessionRunState.Completed, runner.Snapshot.State);
+        Assert.False(existing.Exited);
+        Assert.True(two.Disposed);
+        await runner.StartAsync(Definition());
+        await runner.ForceQuitAppAsync(runId, definition.Apps[0].Id);
+        Assert.Equal(SessionRunState.Running, runner.Snapshot.State);
+        await runner.EndAsync();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ConfirmedFailureCleanupUsesEachAppsForcePermission(bool force)
+    {
+        var process = new FakeProcess("A", []) { AcceptClose = false };
+        var definition = Definition("A", "B");
+        definition = definition with { Apps = [definition.Apps[0] with { AllowForceQuit = force }, definition.Apps[1]] };
+        var runner = new SessionRunner(new FakeHost([], new ProcessAcquisition([process], true, "owned")) { FailAt = 2 });
+        await runner.StartAsync(definition);
+        Assert.Empty(process.ForceRequests);
+        await runner.EndAsync();
+        Assert.Equal(new[] { force }, process.ForceRequests);
+        Assert.Equal(force, process.Exited);
+        if (!force)
+        {
+            Assert.Equal(SessionRunState.NeedsAttention, runner.Snapshot!.State);
+            await runner.RefreshAsync(); // A cancelled save prompt must not be retried automatically.
+            Assert.Single(process.ForceRequests);
+            process.Exited = true;
+            await runner.RefreshAsync();
+        }
+        Assert.Equal(SessionRunState.Failed, runner.Snapshot!.State);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task MainExitAndLateStartupAcquisitionPreserveTheSameForcePolicy(bool lateStartup, bool force)
+    {
+        var support = new FakeProcess("Support", []) { AcceptClose = false };
+        var main = new FakeProcess("Main", []);
+        var definition = Definition("Support", "Main");
+        definition = definition with { MainAppId = definition.Apps[1].Id,
+            Apps = [definition.Apps[0] with { AllowForceQuit = force }, definition.Apps[1]] };
+        var host = new FakeHost([], new([support], true, "owned"), new([main], true, "owned"))
+            { Gate = lateStartup ? new() : null };
+        var runner = new SessionRunner(host);
+        var start = runner.StartAsync(definition);
+        if (lateStartup)
+        {
+            var end = runner.EndAsync();
+            host.Gate!.SetResult();
+            await Task.WhenAll(start, end).WaitAsync(TimeSpan.FromSeconds(3));
+        }
+        else
+        {
+            await start;
+            main.Exited = true;
+            await runner.RefreshAsync();
+            Assert.Empty(support.ForceRequests);
+            await runner.EndAsync();
+        }
+        Assert.Equal(new[] { force }, support.ForceRequests);
+        Assert.Equal(force, support.Exited);
+        if (!force) runner.LeaveAppsOpen();
+    }
+
     private static SessionDefinition Definition(params string[] names) => new(Guid.NewGuid(), "Test", "",
         names.Select(name => new StartProcessAction(Guid.NewGuid(), name, name + ".exe")).ToArray());
 
@@ -215,11 +313,13 @@ public sealed class SessionRunnerTests
         public bool AcceptClose { get; set; } = true;
         public Exception? CloseError { get; init; }
         public bool HasExited => Exited;
-        public Task<bool> RequestCloseAsync(TimeSpan timeout)
+        public List<bool> ForceRequests { get; } = [];
+        public Task<bool> RequestCloseAsync(TimeSpan timeout, bool allowForceQuit = false)
         {
             log.Add("close " + name);
+            ForceRequests.Add(allowForceQuit);
             if (CloseError is not null) throw CloseError;
-            if (AcceptClose) Exited = true;
+            if (AcceptClose || allowForceQuit) Exited = true;
             return Task.FromResult(Exited);
         }
         public void Dispose() => Disposed = true;

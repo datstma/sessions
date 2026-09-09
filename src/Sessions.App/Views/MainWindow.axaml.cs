@@ -84,6 +84,9 @@ public partial class MainWindow : Window
     private bool _deleteWasOpen;
     private bool _endWasOpen;
     private bool _closeWasOpen;
+    private bool _forceWasOpen;
+    private Control? _forceReturnFocus;
+    private void ForceQuitRequested(object? sender, Avalonia.Interactivity.RoutedEventArgs e) => _forceReturnFocus = sender as Control;
     private Control? _editorReturnFocus;
     private Control? _closeReturnFocus;
     private void EditRequested(object? sender, Avalonia.Interactivity.RoutedEventArgs e) => _editorReturnFocus = sender as Control;
@@ -95,6 +98,21 @@ public partial class MainWindow : Window
 
     private void OnViewModelChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(MainViewModel.IsForceQuitConfirmation) && sender is MainViewModel forceModel && _forceWasOpen != forceModel.IsForceQuitConfirmation)
+        {
+            _forceWasOpen = forceModel.IsForceQuitConfirmation;
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (forceModel.IsForceQuitConfirmation) CancelForceQuitButton.Focus();
+                else if (forceModel.IsMainContentEnabled)
+                {
+                    if (_forceReturnFocus is { IsEffectivelyVisible: true, IsEffectivelyEnabled: true } previous) previous.Focus();
+                    else if (forceModel.HasActiveRun) EndSessionButton.Focus();
+                    else NewSessionButton.Focus();
+                    _forceReturnFocus = null;
+                }
+            });
+        }
         if (e.PropertyName == nameof(MainViewModel.Editor) && sender is MainViewModel { IsEditing: false } editorModel)
         {
             Dispatcher.UIThread.Post(() =>

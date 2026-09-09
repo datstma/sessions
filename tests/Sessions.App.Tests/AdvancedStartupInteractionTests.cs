@@ -262,7 +262,7 @@ public sealed class AdvancedStartupInteractionTests
     {
         public bool HasExited { get; private set; }
         public bool HasWindow { get; set; } = true;
-        public Task<bool> RequestCloseAsync(TimeSpan timeout) { HasExited = true; return Task.FromResult(true); }
+        public Task<bool> RequestCloseAsync(TimeSpan timeout, bool allowForceQuit = false) { HasExited = true; return Task.FromResult(true); }
         public void Dispose() { }
     }
     private sealed class Host(Func<StartProcessAction, CancellationToken, Task<ProcessAcquisition>> open) : ISessionProcessHost

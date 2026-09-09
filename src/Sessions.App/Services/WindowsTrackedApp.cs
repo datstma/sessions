@@ -25,7 +25,7 @@ internal sealed class WindowsTrackedApp(WindowsProcessIdentity initial, bool own
         }
     }
     public string? TrackingMessage => _lineage.Count > 1
-        ? "Tracking restarted app · stops when you confirm End Session"
+        ? "Tracking restarted app · asked to close when you end this Session"
         : null;
 
     public bool HasExited
@@ -64,13 +64,13 @@ internal sealed class WindowsTrackedApp(WindowsProcessIdentity initial, bool own
         }
     }
 
-    public async Task<bool> RequestCloseAsync(TimeSpan timeout)
+    public async Task<bool> RequestCloseAsync(TimeSpan timeout, bool allowForceQuit = false)
     {
         // A restart may complete while a close is in flight. Resolve it before declaring success.
         for (var attempt = 0; attempt < 3; attempt++)
         {
             if (HasExited) return true;
-            if (!await WindowsProcessCleanup.CloseAsync(Current, timeout, force: true).ConfigureAwait(false)) return false;
+            if (!await WindowsProcessCleanup.CloseAsync(Current, timeout, force: allowForceQuit).ConfigureAwait(false)) return false;
         }
         return HasExited;
     }

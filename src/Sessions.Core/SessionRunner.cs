@@ -22,6 +22,7 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
             _latestRun = run;
         }
         Publish(run);
+        _ = MonitorAsync(run);
         return StartCoreAsync(run);
     }
 
@@ -70,7 +71,6 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
         }
         Publish(run);
         if (end) await EndRunAsync(run).ConfigureAwait(false);
-        else if (!run.Failed) _ = MonitorAsync(run);
     }
 
     private async Task StartEntryAsync(Run run, Entry entry, Entry? previousAtSamePath = null)
@@ -177,6 +177,9 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
     /// <summary>Execute cleanup after the caller has obtained the user's save-work confirmation.</summary>
     public Task EndAsync() => EndRunAsync(null);
 
+    /// <summary>Force quit one still-owned app after explicit confirmation for this run and app.</summary>
+    public Task ForceQuitAppAsync(Guid runId, Guid appId) => EndRunAsync(null, appId, runId);
+
     public void DismissEndRequest()
     {
         Run? run;
@@ -198,7 +201,7 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
         run.Message = message;
     }
 
-    private Task EndRunAsync(Run? expected)
+    private Task EndRunAsync(Run? expected, Guid? forceAppId = null, Guid? expectedRunId = null)
     {
         Run? run;
         Task task;
@@ -207,23 +210,25 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
             run = _run;
             if (run is null) return Task.CompletedTask;
             if (expected is not null && !ReferenceEquals(run, expected)) return Task.CompletedTask;
+            if (forceAppId is { } id && (run.Id != expectedRunId || run.State != SessionRunState.NeedsAttention ||
+                !run.Entries.Any(e => e.App.Id == id && e.Owned && e.State == SessionAppState.LeftOpen)))
+                return Task.CompletedTask;
             if (run.EndTask is { IsCompleted: false }) return run.EndTask;
             run.StopRequested = true;
             run.StartCancellation.Cancel();
             run.State = SessionRunState.Stopping;
-            run.MonitorCancellation.Cancel();
-            task = run.EndTask = Task.Run(() => EndCoreAsync(run));
+            task = run.EndTask = Task.Run(() => EndCoreAsync(run, forceAppId));
         }
         Publish(run);
         return task;
     }
 
-    private async Task EndCoreAsync(Run run)
+    private async Task EndCoreAsync(Run run, Guid? forceAppId)
     {
         await run.StartFinished.Task.ConfigureAwait(false);
         foreach (var entry in run.Entries.Reverse())
         {
-            if (!entry.Owned) continue;
+            if (!entry.Owned || (forceAppId is { } id && entry.App.Id != id)) continue;
             lock (_sync) { entry.State = SessionAppState.Closing; entry.Message = "Asking the app to close…"; }
             Publish(run);
             var closed = true;
@@ -236,7 +241,8 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
                     if (!process.HasExited)
                     {
                         requestedClose = true;
-                        if (!await process.RequestCloseAsync(closeTimeout ?? TimeSpan.FromSeconds(3)).ConfigureAwait(false)) closed = false;
+                        if (!await process.RequestCloseAsync(closeTimeout ?? TimeSpan.FromSeconds(3),
+                            entry.App.AllowForceQuit || forceAppId == entry.App.Id).ConfigureAwait(false)) closed = false;
                     }
                 }
                 catch (Exception exception) { closed = false; error = exception.Message; }
@@ -245,7 +251,7 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
             {
                 entry.State = closed ? SessionAppState.Closed : SessionAppState.LeftOpen;
                 entry.Message = closed ? (requestedClose ? "Closed by this Session" : "Already closed") :
-                    "Still open. Save your work and close the app, then retry End." + (error is null ? "" : " " + error);
+                    "Still open. Check the app for a save prompt, or close it when you're ready." + (error is null ? "" : " " + error);
             }
             Publish(run);
         }
@@ -254,7 +260,7 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
             if (run.Entries.Any(e => e.Owned && e.State == SessionAppState.LeftOpen))
             {
                 run.State = SessionRunState.NeedsAttention;
-                run.Message = "Some apps stayed open. Close them and retry, or finish the Session and leave them open.";
+                run.Message = "Some apps stayed open. Check them for unsaved work. Sessions will finish when they close, or you can leave them open.";
             }
             else Finish(run, run.Failed ? SessionRunState.Failed : SessionRunState.Completed,
                 run.Failed ? "Session couldn't start. Cleanup is complete; already-open and untracked apps were left alone." :
@@ -292,24 +298,52 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
         lock (_sync)
         {
             run = _run;
-            if (run is null || run.State != SessionRunState.Running) return Task.CompletedTask;
-            foreach (var entry in run.Entries.Where(e => e.Processes.Count > 0))
+            if (run is null) return Task.CompletedTask;
+            if (run.State == SessionRunState.NeedsAttention && run.StopRequested)
             {
-                try
+                var changed = false;
+                foreach (var entry in run.Entries.Where(e => e.Owned && e.State == SessionAppState.LeftOpen))
                 {
-                    if (!entry.Processes.All(p => p.HasExited))
+                    try
                     {
-                        var message = entry.Processes.Select(p => p.TrackingMessage).FirstOrDefault(m => m is not null);
-                        if (message is not null) entry.Message = message;
-                        continue;
+                        if (!entry.Processes.All(p => p.HasExited)) continue;
+                        entry.State = SessionAppState.Closed;
+                        entry.Message = "Closed after waiting for you";
+                        changed = true;
                     }
-                    entry.State = SessionAppState.Exited;
-                    entry.Message = "Tracked app exited · any separately opened copy stays independent";
-                    if (entry.App.Id == run.Definition.MainAppId && !run.MainEndDismissed) end = true;
+                    catch (Exception exception)
+                    {
+                        var message = "Couldn't check this app. It was left open. " + exception.Message;
+                        changed |= entry.Message != message;
+                        entry.Message = message;
+                    }
                 }
-                catch (Exception exception) { entry.Message = "Couldn't check this app: " + exception.Message; }
+                if (!changed) return Task.CompletedTask;
+                if (!run.Entries.Any(e => e.Owned && e.State == SessionAppState.LeftOpen))
+                    Finish(run, run.Failed ? SessionRunState.Failed : SessionRunState.Completed,
+                        "Session ended. The remaining apps closed; already-open and untracked apps were left alone.");
             }
-            if (end) RequestEndConfirmation(run, "The main app exited. Save your work before confirming that the other apps can stop.");
+            else if (run.State != SessionRunState.Running) return Task.CompletedTask;
+            else
+            {
+                foreach (var entry in run.Entries.Where(e => e.Processes.Count > 0))
+                {
+                    try
+                    {
+                        if (!entry.Processes.All(p => p.HasExited))
+                        {
+                            var message = entry.Processes.Select(p => p.TrackingMessage).FirstOrDefault(m => m is not null);
+                            if (message is not null) entry.Message = message;
+                            continue;
+                        }
+                        entry.State = SessionAppState.Exited;
+                        entry.Message = "Tracked app exited · any separately opened copy stays independent";
+                        if (entry.App.Id == run.Definition.MainAppId && !run.MainEndDismissed) end = true;
+                    }
+                    catch (Exception exception) { entry.Message = "Couldn't check this app: " + exception.Message; }
+                }
+                if (end) RequestEndConfirmation(run, "The main app exited. Save your work before confirming that the other apps can stop.");
+            }
         }
         Publish(run);
         return Task.CompletedTask;
@@ -344,7 +378,8 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
             // A final event from an old operation must never overwrite a newer run.
             if (!ReferenceEquals(_latestRun, run)) return;
             _snapshot = new SessionRunSnapshot(run.Definition.Id, run.Definition.Name, run.State,
-                run.Entries.Select(e => new SessionAppOutcome(e.App.Id, e.App.Name, e.State, e.Owned, e.Message)).ToArray(), run.Message,
+                run.Entries.Select(e => new SessionAppOutcome(e.App.Id, e.App.Name, e.State, e.Owned, e.Message,
+                    e.App.ExecutablePath, e.App.AllowForceQuit)).ToArray(), run.Message,
                 run.Id, run.StartupSucceeded);
         }
         Changed?.Invoke(this, EventArgs.Empty);

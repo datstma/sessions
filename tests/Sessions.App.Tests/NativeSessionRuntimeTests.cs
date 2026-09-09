@@ -42,7 +42,7 @@ public sealed class NativeSessionRuntimeTests
     public async Task EndClosesOwnedWindowButPreservesPreExistingApp(bool refuse)
     {
         using var test = new NativeFixture();
-        var owned = test.App("owned", refuse);
+        var owned = test.App("owned", refuse) with { AllowForceQuit = refuse };
         var existing = test.App("existing");
         await new WindowsProcessStarter().StartAsync(existing, test.Token);
         var existingProcess = await test.RetainWindow(existing);
@@ -110,7 +110,7 @@ public sealed class NativeSessionRuntimeTests
     }
 
     [Fact(Skip = "Opt-in isolated force-quit test; never closes user apps.", SkipUnless = nameof(RunNativeRuntime))]
-    public async Task DefaultStopClosesRefusingOwnedAppButPreservesExistingRefusingApp()
+    public async Task DefaultStopPreservesRefusingAppUntilTargetedForceQuit()
     {
         using var test = new NativeFixture();
         var owned = test.App("force-owned", refuse: true);
@@ -123,6 +123,12 @@ public sealed class NativeSessionRuntimeTests
             await runner.StartAsync(new(Guid.NewGuid(), "Force quit", "", [owned, existing]));
             var ownedProcess = await test.RetainWindow(owned);
             await runner.EndAsync();
+            Assert.False(ownedProcess.HasExited);
+            Assert.False(existingProcess.HasExited);
+            Assert.Equal(SessionRunState.NeedsAttention, runner.Snapshot!.State);
+            await runner.ForceQuitAppAsync(runner.Snapshot.RunId, existing.Id);
+            Assert.False(existingProcess.HasExited);
+            await runner.ForceQuitAppAsync(runner.Snapshot.RunId, owned.Id);
             Assert.True(ownedProcess.HasExited);
             Assert.False(existingProcess.HasExited);
             Assert.Equal(SessionRunState.Completed, runner.Snapshot!.State);
@@ -177,6 +183,7 @@ public sealed class NativeSessionRuntimeTests
     [InlineData("wrong-time")]
     [InlineData("wrong-path")]
     [InlineData("wrong-session")]
+    [InlineData("normal")]
     public async Task CleanupHelperRequiresExactIdentity(string identityCase)
     {
         using var test = new NativeFixture();
@@ -187,10 +194,10 @@ public sealed class NativeSessionRuntimeTests
         var info = WindowsProcessCleanup.CreateHelperStartInfo(Path.Combine(AppContext.BaseDirectory, "Sessions.App.exe"),
             identity.Id, identity.Created + (identityCase == "wrong-time" ? 1 : 0),
             identityCase == "wrong-path" ? app.ExecutablePath + ".different" : identity.Path,
-            identityCase == "wrong-session" ? identity.SessionId + 1 : identity.SessionId, true, TimeSpan.FromMilliseconds(100));
+            identityCase == "wrong-session" ? identity.SessionId + 1 : identity.SessionId, identityCase != "normal", TimeSpan.FromMilliseconds(100));
         using var helper = Process.Start(info)!;
         await helper.WaitForExitAsync(test.Token);
-        Assert.Equal(identityCase == "correct" ? 0 : 3, helper.ExitCode);
+        Assert.Equal(identityCase == "correct" ? 0 : identityCase == "normal" ? 2 : 3, helper.ExitCode);
         Assert.Equal(identityCase == "correct", process.HasExited);
     }
 
@@ -231,6 +238,41 @@ public sealed class NativeSessionRuntimeTests
         Assert.True(File.Exists(Path.Combine(app.WorkingDirectory, "main-close-requested")));
         Assert.Equal(force, process.HasExited);
         Assert.Equal(force, closed);
+    }
+
+    [Theory(Skip = "Opt-in isolated unsaved-document dialog; never opens Word or user documents.", SkipUnless = nameof(RunNativeRuntime))]
+    [InlineData("save")]
+    [InlineData("discard")]
+    public async Task SavePromptSurvivesDefaultTimeoutAndCancelUntilUserCloses(string choice)
+    {
+        using var test = new NativeFixture();
+        var app = test.App("document");
+        app = app with { Arguments = $"window \"{app.WorkingDirectory}\" save-prompt" };
+        var runner = new SessionRunner(new WindowsSessionProcessHost()); // Real default three-second timeout.
+        try
+        {
+            await runner.StartAsync(new(Guid.NewGuid(), "Unsaved work", "", [app]));
+            var process = await test.RetainWindow(app);
+            await runner.EndAsync();
+            Assert.True(File.Exists(Path.Combine(app.WorkingDirectory, "save-prompt-open")));
+            await Task.Delay(500, test.Token); // Still alive beyond the complete grace period.
+            Assert.False(process.HasExited);
+            Assert.Equal(SessionRunState.NeedsAttention, runner.Snapshot!.State);
+            File.WriteAllText(Path.Combine(app.WorkingDirectory, "save-choice"), "cancel");
+            while (!File.Exists(Path.Combine(app.WorkingDirectory, "choice-cancel"))) await Task.Delay(25, test.Token);
+            await Task.Delay(1100, test.Token); // Background observation must not reissue close.
+            Assert.False(process.HasExited);
+            Assert.False(File.Exists(Path.Combine(app.WorkingDirectory, "save-prompt-open")));
+            Assert.Equal(SessionRunState.NeedsAttention, runner.Snapshot.State);
+            await runner.EndAsync(); // User explicitly retries End and the app asks again.
+            Assert.True(File.Exists(Path.Combine(app.WorkingDirectory, "save-prompt-open")));
+            File.WriteAllText(Path.Combine(app.WorkingDirectory, "save-choice"), choice);
+            await process.WaitForExitAsync(test.Token);
+            while (runner.Snapshot.IsActive) await Task.Delay(25, test.Token); // Auto-finish, without another End.
+            Assert.Equal(SessionRunState.Completed, runner.Snapshot.State);
+            Assert.Equal(choice == "save", File.Exists(Path.Combine(app.WorkingDirectory, "saved-document")));
+        }
+        finally { if (runner.Snapshot?.IsActive == true) runner.LeaveAppsOpen(); }
     }
 
     private sealed class NativeFixture : IDisposable

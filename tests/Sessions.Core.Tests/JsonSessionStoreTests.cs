@@ -66,10 +66,10 @@ public sealed class JsonSessionStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task AdvancedStartupRoundTripsInVersionTwoWithReadableEnums()
+    public async Task AdvancedStartupAndForcePermissionRoundTripInVersionThreeWithReadableEnums()
     {
         var app = new StartProcessAction(Guid.NewGuid(), "Editor", @"C:\Editor.exe", Readiness: AppReadiness.WindowAppeared,
-            ReadinessTimeoutSeconds: 90, PauseAfterSeconds: 0);
+            ReadinessTimeoutSeconds: 90, PauseAfterSeconds: 0, AllowForceQuit: true);
         var definition = new SessionDefinition(Guid.NewGuid(), "Work", "", [app], LaunchMode: SessionLaunchMode.Together,
             PauseBetweenAppsSeconds: 3, FocusAfterStartup: StartupFocus.App, FocusAppId: app.Id);
         await Store.SaveAsync([definition]);
@@ -77,9 +77,25 @@ public sealed class JsonSessionStoreTests : IDisposable
         Assert.Equal(definition with { Apps = loaded.Apps }, loaded);
         Assert.Equal(app, Assert.Single(loaded.Apps));
         var contents = await File.ReadAllTextAsync(FilePath);
-        Assert.Contains("\"version\": 2", contents);
+        Assert.Contains("\"version\": 3", contents);
         Assert.Contains("\"launchMode\": \"Together\"", contents);
         Assert.Contains("\"readiness\": \"WindowAppeared\"", contents);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public async Task OlderFormatsCannotOptIntoForceQuitAndLoadDoesNotRewrite(int version)
+    {
+        var app = new StartProcessAction(Guid.NewGuid(), "Editor", @"C:\Editor.exe", AllowForceQuit: true);
+        await Store.SaveAsync([new(Guid.NewGuid(), "Work", "", [app])]);
+        var contents = (await File.ReadAllTextAsync(FilePath)).Replace("\"version\": 3", $"\"version\": {version}");
+        await File.WriteAllTextAsync(FilePath, contents);
+        var loaded = await Store.LoadAsync();
+        Assert.False(Assert.Single(Assert.Single(loaded).Apps).AllowForceQuit);
+        Assert.Equal(contents, await File.ReadAllTextAsync(FilePath));
+        await Store.SaveAsync(loaded);
+        Assert.Contains("\"version\": 3", await File.ReadAllTextAsync(FilePath));
     }
 
     [Theory]

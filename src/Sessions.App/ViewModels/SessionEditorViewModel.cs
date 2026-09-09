@@ -209,6 +209,7 @@ public partial class AppEditorViewModel : ViewModelBase
     [ObservableProperty] private string _arguments;
     [ObservableProperty] private string _workingDirectory;
     [ObservableProperty] private bool _runAsAdministrator;
+    [ObservableProperty] private bool _allowForceQuit;
     [ObservableProperty] private int _readinessIndex;
     [ObservableProperty] private decimal? _readinessTimeoutSeconds = 30;
     [ObservableProperty] private bool _overridePause;
@@ -232,6 +233,7 @@ public partial class AppEditorViewModel : ViewModelBase
         _arguments = app.Arguments;
         _workingDirectory = app.WorkingDirectory;
         _runAsAdministrator = app.RunAsAdministrator;
+        _allowForceQuit = app.AllowForceQuit;
         _readinessIndex = (int)app.Readiness;
         _readinessTimeoutSeconds = app.ReadinessTimeoutSeconds;
         _overridePause = app.PauseAfterSeconds.HasValue;
@@ -239,5 +241,5 @@ public partial class AppEditorViewModel : ViewModelBase
     }
 
     public StartProcessAction BuildAction() => new(Id, Name.Trim(), ExecutablePath.Trim(), Arguments, WorkingDirectory.Trim(), RunAsAdministrator,
-        (AppReadiness)ReadinessIndex, (int)ReadinessTimeoutSeconds!.Value, OverridePause ? (int)PauseAfterSeconds!.Value : null);
+        (AppReadiness)ReadinessIndex, (int)ReadinessTimeoutSeconds!.Value, OverridePause ? (int)PauseAfterSeconds!.Value : null, AllowForceQuit);
 }

@@ -32,11 +32,11 @@ public sealed class AppLifecycleOptionsTests
             view.GetVisualDescendants().OfType<Expander>().Single(e => e.Header?.ToString() == "Game hub options").IsExpanded = true;
             Dispatcher.UIThread.RunJobs();
             var options = view.GetVisualDescendants().OfType<CheckBox>().Where(c =>
-                c.Content?.ToString() is "Run as administrator").ToArray();
-            Assert.Single(options);
-            Assert.DoesNotContain(view.GetVisualDescendants().OfType<CheckBox>(), c => c.Content?.ToString()?.StartsWith("Force quit") == true);
+                c.Content?.ToString() is "Run as administrator" || c.Content is TextBlock { Text: "Force quit if this app stays open" }).ToArray();
+            Assert.Equal(2, options.Length);
             foreach (var option in options)
             {
+                Assert.False(option.IsChecked);
                 option.BringIntoView();
                 option.Focus();
                 window.KeyPress(Key.Space, RawInputModifiers.None, PhysicalKey.Space, " ");
@@ -45,8 +45,10 @@ public sealed class AppLifecycleOptionsTests
             }
             var saved = editor.BuildDefinition();
             Assert.False(original.Apps[0].RunAsAdministrator);
+            Assert.False(original.Apps[0].AllowForceQuit);
             var reopened = new SessionEditorViewModel(saved).BuildDefinition().Apps[0];
             Assert.True(reopened.RunAsAdministrator);
+            Assert.True(reopened.AllowForceQuit);
             var output = Environment.GetEnvironmentVariable("SESSIONS_SCREENSHOT_DIR");
             if (!string.IsNullOrWhiteSpace(output))
             {

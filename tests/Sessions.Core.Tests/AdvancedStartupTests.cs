@@ -258,7 +258,7 @@ public sealed class AdvancedStartupTests
         public bool Closed { get; private set; }
         public bool Disposed { get; private set; }
         public Action? Closing { get; init; }
-        public Task<bool> RequestCloseAsync(TimeSpan timeout) { Closing?.Invoke(); Closed = true; HasExited = true; return Task.FromResult(true); }
+        public Task<bool> RequestCloseAsync(TimeSpan timeout, bool allowForceQuit = false) { Closing?.Invoke(); Closed = true; HasExited = true; return Task.FromResult(true); }
         public void Dispose() => Disposed = true;
     }
 }

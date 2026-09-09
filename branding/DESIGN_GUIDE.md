@@ -68,7 +68,7 @@ custom animation. Future animation must respect reduced-motion preferences.
   your first Session, and three step cards. This is a real empty library, without a
   running banner or saved Sessions. Cards stack in compact mode.
 - **Detail:** hero card with 56px initial, name, app count, description and Start/Edit
-  actions. One card per app: 44px initial tile, name, role, order/path and status.
+  actions. One card per app: 44px tile with a 30px executable icon (initial fallback), name, role, order/path and status.
   Full-width layouts place actions/status to the right; compact layouts move them
   below. Preserve status click behaviour and the distinction between already-open
   and Session-owned apps. End-condition and ownership explainer cards sit below.
@@ -83,10 +83,14 @@ custom animation. Future animation must respect reduced-motion preferences.
   scrollable checkbox choices with icons/initials, selected-row tint and explicit Add.
   Preserve selections across filtering/source switches, browse, source errors and
   unavailable-entry explanations. Keep the existing 520×460 minimum.
-- **End confirmation:** 640px dialog within the available window, clear save-work and
-  forced-stop warning, and two inset lists: Will be closed (owned apps) / Stays open
+- **End confirmation:** 640px dialog within the available window, clear save-work copy
+  and a conditional warning naming apps opted into automatic force quit. Two inset lists: Asked to close (owned apps) / Stays open
   (already-running apps). Cancel retains initial focus and Escape behaviour. Red
   confirm is never the default keypress. Other confirmations use the same surfaces.
+- **Apps still open:** named recovery rows in the active-run panel, with Bring forward
+  and Force quit… actions. The force confirmation names its app and Session, warns
+  about unsaved changes and uses the same modal surfaces with Cancel as the default.
+  App options expose automatic force quit as an unchecked checkbox with a save-work warning.
 
 ## Interaction, copy and accessibility
 

@@ -2,7 +2,94 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.2.1 published 2026-09-09
+## Resume next session — safer closing and app icons checkpoint 2026-09-09
+
+The user reports the safer-closing change "works great" and then requests executable
+icons in the app list instead of name initials. This confirms their overall closing
+flow; they did not specify the app/save/cancel/UAC matrix, so do not invent those
+narrower results. SESS-026 is recorded as implemented and user-confirmed.
+
+SESS-027 adds icons to saved Session app cards by reusing existing Windows picker
+extraction. The picker already had icons; Session/sidebar initials stay meaningful
+Session identifiers. Extraction runs in a worker task behind IAppIconSource with a
+bounded in-memory path cache. AppIcon rejects late results after path changes or
+visual detachment and disposes each decoded bitmap. Missing/unreadable files and
+invalid artwork keep the name initial. No configuration/schema or execution changes.
+Existing 44px tiles and the 30px token are reused; no new branding tokens were needed.
+
+Validation: Release solution build passed with zero warnings/errors; 54 Core and
+110 App tests passed, with 25 unrelated native opt-in cases skipped. Nine icon tests
+cover cache sharing/background extraction, missing/corrupt/denied artwork, rebinding,
+detachment and an actual executable icon in saved app cards. After adding scaling
+coverage, all nine passed again at 100%, 125%, 150% and 200% in both themes and
+1440×900/640×480 logical sizes. Pixel-rounding tolerance is one physical pixel.
+Captures were reviewed under artifacts/app-icon-review (ignored). This is headless
+rendering, not a physical-monitor trial. All 53 relative links in changed docs resolve;
+git diff --check passed.
+The user also confirmed the icons: "works great, looks great!" and requested commit
+and push. This checkpoint includes both safer closing (SESS-026) and app icons
+(SESS-027) on main. No version bump or release was requested; the downloadable and
+installed 0.2.1 remain unchanged. Do not start another backlog item automatically.
+
+## Previous checkpoint — safer app closing implemented 2026-09-09
+
+The user approved the general behavior change after reporting that End Session in
+0.2.1 killed Word with modified text open. SESS-026 was implemented locally;
+the user subsequently confirmed the overall flow works (see the current handoff). No user app or document was opened, edited or closed in testing.
+
+Normal close now preserves apps still running after the three-second grace period.
+Sessions keeps ownership and watches for exit; Save/Discard and closing an app can
+finish the run automatically. Cancelling its save prompt does not reissue close.
+The active-run panel offers named Bring forward and Force quit… controls regardless
+of sidebar selection, plus Retry End and Finish and leave apps open. Force quit
+requires its own app/run-bound confirmation with Cancel as the keyboard default.
+Only that app is forced. Pre-existing/untracked apps remain untouched.
+
+Per-app AllowForceQuit is off by default, including every v1/v2 library entry;
+legacy forceClose flags cannot opt an app in. The editor exposes an explicit option
+and warning. Saving writes format v3 so published 0.2.1 and earlier reject the
+library rather than silently applying the old force-all policy. Loading does not
+rewrite a library. End, main exit, startup rollback, late acquisitions and closing
+Sessions share the captured policy, including the exact-process cleanup helper.
+No Word-specific automation, temp-file heuristic or app-name allowlist was added.
+
+PRODUCT, ARCHITECTURE, the branding guide and README describe the new behavior.
+README clearly separates unreleased source from the downloadable 0.2.1 preview;
+that release and its installer still have the earlier closing policy. No version
+bump, commit, push or release was requested for this change. Historical SESS-018
+trials remain evidence for the older policy, now superseded by SESS-026.
+
+Validation: full Release solution build with restore passed with no warnings.
+Core tests: 54 passed. Final app run with SESSIONS_RUN_RUNTIME_SMOKE=1: 121 passed
+(101 headless + 20 isolated native runtime cases); 5 unrelated opt-in launch/discovery
+checks skipped. Both normal and force helper modes and identity rejection passed.
+git diff --check passed; all 68 relative links in changed documents resolve. The isolated native
+save-dialog fixture survived the real default timeout, Cancel preserved the app,
+and Save/Discard led to automatic run completion. This is fixture evidence, not
+a claim that Word or real UAC consent was tested. Review captures are under
+artifacts/safer-close-review (ignored): recovery and force confirmation at 1440×900
+and 640×480 in both themes, editor option and long-warning close dialog. Recovery
+actions were moved into the named-app area after visual review caught clipping.
+All new styling reuses existing tokens; no token additions were required.
+
+Reproduce validation from the repo root using the pinned SDK in artifacts/dotnet:
+
+```powershell
+$env:PATH = "$PWD/artifacts/dotnet;$env:PATH"
+$env:DOTNET_ROOT = "$PWD/artifacts/dotnet"
+dotnet build Sessions.slnx -c Release
+dotnet test tests/Sessions.Core.Tests/Sessions.Core.Tests.csproj -c Release --no-build
+$env:SESSIONS_RUN_RUNTIME_SMOKE = "1"
+$env:SESSIONS_SCREENSHOT_DIR = "$PWD/artifacts/safer-close-review"
+dotnet test tests/Sessions.App.Tests/Sessions.App.Tests.csproj -c Release --no-build
+```
+
+Remaining feedback: try the updated build with a disposable unsaved Word document
+(default close, Cancel, Save/Discard, and an explicitly confirmed force quit only
+when appropriate). A real elevated-app consent trial remains separate from helper
+protocol tests. Do not treat the installed 0.2.1 executable as containing this fix.
+
+## Previous checkpoint — 0.2.1 published 2026-09-09
 
 The user requested "do a release" after checkpoint `239a28e` was committed and
 pushed. [Sessions 0.2.1 Preview](https://github.com/datstma/sessions/releases/tag/v0.2.1)
@@ -10,6 +97,12 @@ is public, published at 20:14:59 UTC on 2026-09-09. Annotated tag `v0.2.1` point
 to `863f75d`; do not move it or replace its assets. README download links and
 screenshot wording now match the published branding refresh. No next feature
 slice is selected and no saved-schema or runtime behavior changed.
+
+User confirmation after publication (2026-09-09): "i've used the 0.2.1 installer,
+works like a charm, as well as the uninstall." Installation and uninstall of the
+published 0.2.1 are confirmed in the user's normal environment. Account privilege,
+fresh install versus upgrade, elapsed time and installed real-app/UAC paths were
+not specified; retain those narrower verification limits under SESS-021.
 
 [Workflow 34398030125](https://github.com/datstma/sessions/actions/runs/34398030125)
 built the exact tag: clean solution/MSI builds, 45 Core and 94 App tests passing,

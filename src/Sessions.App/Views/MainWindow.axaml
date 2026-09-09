@@ -57,7 +57,7 @@
                 </Grid>
             </Border>
             <Grid Grid.Column="1" RowDefinitions="Auto,*">
-                <ScrollViewer MaxHeight="{StaticResource Measure200}" HorizontalScrollBarVisibility="Disabled">
+                <ScrollViewer Classes="runtimeStatus" Classes.cleanup="{Binding NeedsCleanup}" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel>
                 <Border IsVisible="{Binding HasError}" Margin="{StaticResource Inset28x20x28x0}" Classes="surface" Padding="{StaticResource Inset16}">
                     <StackPanel Spacing="{StaticResource Measure10}">
@@ -76,7 +76,19 @@
                             <TextBlock Text="{Binding RuntimeTitle}" AutomationProperties.LiveSetting="Polite" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
                             <TextBlock Text="{Binding Runtime.Message}" AutomationProperties.LiveSetting="Polite" Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
                             <TextBlock Text="{Binding StartupFocusMessage}" IsVisible="{Binding HasStartupFocusMessage}" AutomationProperties.LiveSetting="Polite" Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
-                        </StackPanel>
+                            <ItemsControl ItemsSource="{Binding CleanupApps}" IsVisible="{Binding NeedsCleanup}">
+                                <ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:CleanupAppViewModel">
+                                    <StackPanel Spacing="{StaticResource Measure8}" Margin="{StaticResource Inset0x3}">
+                                        <TextBlock Text="{Binding Name}" FontWeight="{StaticResource WeightStrong}" TextWrapping="Wrap" />
+                                        <WrapPanel>
+                                            <Button Content="Bring forward" Classes="quiet" Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).FocusCleanupAppCommand}" CommandParameter="{Binding}" Margin="{StaticResource Inset0x0x10x8}" />
+                                            <Button Content="Force quit…" Classes="danger" Click="ForceQuitRequested" Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).RequestForceQuitCommand}" CommandParameter="{Binding}" Margin="{StaticResource Inset0x0x0x8}" />
+                                        </WrapPanel>
+                                    </StackPanel>
+                                </DataTemplate></ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Text="{Binding CleanupFocusMessage}" IsVisible="{Binding NeedsCleanup}" Classes="muted" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                            </StackPanel>
                     </DockPanel>
                 </Border>
                 </StackPanel>
@@ -148,7 +160,7 @@
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate x:DataType="vm:SessionAppRow">
                                                     <Border Classes="surface appCard" Padding="{StaticResource Inset14x12}" Margin="{StaticResource Inset0x0x0x8}"><Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
-                                                        <Border Classes="appTile" Width="{StaticResource Measure44}" Height="{StaticResource Measure44}" Margin="{StaticResource Inset0x0x14x0}" VerticalAlignment="Top"><TextBlock Text="{Binding Initial}" Foreground="{DynamicResource BrandForegroundBrush}" FontWeight="{StaticResource WeightStrong}" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                                                        <Border Classes="appTile" Width="{StaticResource Measure44}" Height="{StaticResource Measure44}" Margin="{StaticResource Inset0x0x14x0}" VerticalAlignment="Top"><views:AppIcon AppName="{Binding Name}" ExecutablePath="{Binding ExecutablePath}" /></Border>
                                                         <StackPanel Grid.Column="1" Spacing="{StaticResource Measure4}" VerticalAlignment="Center" Margin="{StaticResource Inset0x0x12x0}">
                                                             <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" FontWeight="{StaticResource WeightStrong}" ToolTip.Tip="{Binding ExecutablePath}" />
                                                             <TextBlock Text="{Binding Role}" Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" /><TextBlock Text="{Binding PathSummary}" Classes="muted" FontSize="{StaticResource FontMicroSize}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ExecutablePath}" />
@@ -197,7 +209,7 @@
                                     <Border Classes="surface" Padding="{StaticResource Inset20}" Margin="{StaticResource Inset0x0x8x8}"><StackPanel Spacing="{StaticResource Measure8}">
                                         <TextBlock Text="When you're finished" FontWeight="{StaticResource WeightStrong}" />
                                         <TextBlock Text="{Binding EndSummary}" TextWrapping="Wrap" />
-                                        <TextBlock Text="Save your work before confirming End Session. Apps opened by this Session will close, then force quit if needed." Classes="muted" TextWrapping="Wrap" />
+                                        <TextBlock Text="End Session asks its apps to close. Apps waiting for you stay open. Automatic force quit is available per app in its options." Classes="muted" TextWrapping="Wrap" />
                                     </StackPanel></Border>
                                     <Border Classes="surface" Padding="{StaticResource Inset20}" Margin="{StaticResource Inset0x0x0x8}"><StackPanel Spacing="{StaticResource Measure8}">
                                         <TextBlock Text="Already open stays open" FontWeight="{StaticResource WeightStrong}" />
@@ -236,10 +248,11 @@
                     <StackPanel Spacing="{StaticResource Measure14}">
                         <TextBlock Text="{Binding EndConfirmationTitle}" FontSize="{StaticResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
                         <TextBlock Text="Save your work before continuing." FontWeight="{StaticResource WeightStrong}" TextWrapping="Wrap" />
-                        <TextBlock Text="Sessions will ask its apps to close, then force quit any that stay running. Unsaved changes may be lost." TextWrapping="Wrap" />
+                        <TextBlock Text="Sessions will ask its apps to close. Apps that stay running will wait for you to save your work or decide what to do." TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding AutomaticForceQuitWarning}" IsVisible="{Binding HasAutomaticForceQuit}" Foreground="{DynamicResource DangerBrush}" TextWrapping="Wrap" />
                         <UniformGrid Columns="2">
                             <Border Background="{DynamicResource PanelAltBrush}" CornerRadius="{StaticResource Round12}" Padding="{StaticResource Inset16}" Margin="{StaticResource Inset0x0x8x8}"><StackPanel Spacing="{StaticResource Measure8}">
-                                <TextBlock Text="Will be closed" Foreground="{DynamicResource DangerBrush}" FontWeight="{StaticResource WeightStrong}" />
+                                <TextBlock Text="Asked to close" Foreground="{DynamicResource DangerBrush}" FontWeight="{StaticResource WeightStrong}" />
                                 <ItemsControl ItemsSource="{Binding AppsToStop}"><ItemsControl.ItemTemplate><DataTemplate x:DataType="x:String"><TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="{StaticResource Inset0x3}" /></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
                                 <TextBlock Text="No apps to close." IsVisible="{Binding !HasAppsToStop}" Classes="muted" TextWrapping="Wrap" />
                             </StackPanel></Border>
@@ -249,7 +262,7 @@
                                 <TextBlock Text="No already-open apps in this run." IsVisible="{Binding !HasAppsToKeep}" Classes="muted" TextWrapping="Wrap" />
                             </StackPanel></Border>
                         </UniformGrid>
-                        <TextBlock Text="Apps still opening for this Session will also stop. Apps that were already open stay open." Classes="muted" TextWrapping="Wrap" />
+                        <TextBlock Text="Apps still opening for this Session will also be asked to close. Apps that were already open stay open." Classes="muted" TextWrapping="Wrap" />
                     </StackPanel>
                 </ScrollViewer>
                 <WrapPanel Grid.Row="1" HorizontalAlignment="Right" Margin="{StaticResource Inset0x22x0x0}">
@@ -260,16 +273,42 @@
         </Border>
     </Border>
     <Border IsVisible="{Binding IsCloseConfirmation}" Background="{DynamicResource OverlayBrush}">
-        <Border Classes="surface modal" MaxWidth="{StaticResource Measure500}" Margin="{StaticResource Inset32}" Padding="{StaticResource Inset28}" HorizontalAlignment="Center" VerticalAlignment="Center"
+        <Border Classes="surface modal" MaxWidth="{StaticResource Measure500}" MaxHeight="{StaticResource Measure520}" Margin="{StaticResource Inset32}" Padding="{StaticResource Inset28}" HorizontalAlignment="Center" VerticalAlignment="Center"
                 KeyboardNavigation.TabNavigation="Cycle" AutomationProperties.Name="Close Sessions">
             <Border.KeyBindings><KeyBinding Gesture="Escape" Command="{Binding CancelCloseCommand}" /></Border.KeyBindings>
+            <Grid RowDefinitions="*,Auto">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled">
             <StackPanel Spacing="{StaticResource Measure16}">
                 <TextBlock Text="A Session is still active" FontSize="{StaticResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
-                <TextBlock Text="Save your work before ending. Apps opened by this Session will close, then force quit if needed. Unsaved changes may be lost. Apps already open stay open." TextWrapping="Wrap" />
+                <TextBlock Text="End Session asks its apps to close. Sessions stays open if any apps need your attention. Apps already open stay open." TextWrapping="Wrap" />
+                <TextBlock Text="{Binding AutomaticForceQuitWarning}" IsVisible="{Binding HasAutomaticForceQuit}" Foreground="{DynamicResource DangerBrush}" TextWrapping="Wrap" />
+            </StackPanel>
+            </ScrollViewer>
+            <StackPanel Grid.Row="1" Spacing="{StaticResource Measure16}" Margin="{StaticResource Inset0x22x0x0}">
                 <Button x:Name="KeepSessionsOpenButton" Content="Keep Sessions open" Command="{Binding CancelCloseCommand}" IsDefault="True" Classes="quiet" />
                 <Button Content="End Session and close" Command="{Binding EndAndCloseCommand}" Classes="danger" />
                 <Button Content="Leave apps open and close" Command="{Binding LeaveAppsAndCloseCommand}" Classes="quiet" />
             </StackPanel>
+            </Grid>
+        </Border>
+    </Border>
+    <Border IsVisible="{Binding IsForceQuitConfirmation}" Background="{DynamicResource OverlayBrush}">
+        <Border Classes="surface modal" MaxWidth="{StaticResource Measure500}" MaxHeight="{StaticResource Measure520}" Margin="{StaticResource Inset32}" Padding="{StaticResource Inset28}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                KeyboardNavigation.TabNavigation="Cycle" AutomationProperties.Name="{Binding ForceQuitTitle}">
+            <Border.KeyBindings><KeyBinding Gesture="Escape" Command="{Binding CancelForceQuitCommand}" /></Border.KeyBindings>
+            <Grid RowDefinitions="*,Auto">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Spacing="{StaticResource Measure16}">
+                        <TextBlock Text="{Binding ForceQuitTitle}" FontSize="{StaticResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding ForceQuitDescription}" TextWrapping="Wrap" />
+                        <TextBlock Text="Cancel to return to the app and save your work first." Classes="muted" TextWrapping="Wrap" />
+                    </StackPanel>
+                </ScrollViewer>
+                <WrapPanel Grid.Row="1" HorizontalAlignment="Right" Margin="{StaticResource Inset0x22x0x0}">
+                    <Button x:Name="CancelForceQuitButton" Content="Cancel" Classes="quiet" IsDefault="True" Command="{Binding CancelForceQuitCommand}" Margin="{StaticResource Inset0x0x10x8}" />
+                    <Button x:Name="ConfirmForceQuitButton" Content="Force quit" Classes="danger" Command="{Binding ConfirmForceQuitCommand}" Margin="{StaticResource Inset0x0x0x8}" />
+                </WrapPanel>
+            </Grid>
         </Border>
     </Border>
     <Border IsVisible="{Binding IsConfirmingDelete}" Background="{DynamicResource OverlayBrush}">

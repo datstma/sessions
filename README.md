@@ -98,7 +98,9 @@ Sessions remembers which processes it started for that run. An app that was alre
 
 For example, if your chat app is already running when you start a Streaming Session, ending that Session leaves chat open and stops the apps Sessions opened for it.
 
-**Save your work before confirming End Session.** After confirmation, Sessions requests a normal close, then force quits an owned app if it remains running. This also handles apps that normally minimise to the tray when closed; unsaved changes can be lost.
+**Current source (not yet released):** End Session requests a normal close and preserves apps that stay open, including apps waiting for you to save. Bring an app forward, finish and leave apps open, or explicitly confirm force quit for one app. You can opt an app into automatic force quit in its options; this may lose unsaved changes. Existing libraries default to normal close. Saving uses library format v3, which older releases cannot read.
+
+**The downloadable 0.2.1 preview still uses the earlier behavior:** it force quits owned apps that remain running after a normal close. Save your work before confirming End Session in that release.
 
 ![Before ending a Session, see which apps will be closed and which will stay open.](docs/images/end-dark.png)
 

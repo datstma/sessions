@@ -3,7 +3,8 @@ namespace Sessions.Core;
 public enum SessionRunState { Starting, Running, AwaitingEndConfirmation, Stopping, NeedsAttention, Completed, Failed }
 public enum SessionAppState { Waiting, Starting, AlreadyRunning, Running, Exited, Untracked, Failed, Closing, Closed, LeftOpen }
 
-public sealed record SessionAppOutcome(Guid AppId, string Name, SessionAppState State, bool Owned, string Message);
+public sealed record SessionAppOutcome(Guid AppId, string Name, SessionAppState State, bool Owned, string Message,
+    string ExecutablePath = "", bool AllowForceQuit = false);
 public sealed record SessionRunSnapshot(Guid SessionId, string Name, SessionRunState State,
     IReadOnlyList<SessionAppOutcome> Apps, string Message, Guid RunId = default, bool StartupSucceeded = false)
 {
@@ -17,7 +18,7 @@ public interface ITrackedProcess : IDisposable
     bool HasExited { get; }
     bool HasWindow => false;
     string? TrackingMessage => null;
-    Task<bool> RequestCloseAsync(TimeSpan timeout);
+    Task<bool> RequestCloseAsync(TimeSpan timeout, bool allowForceQuit = false);
 }
 
 public sealed record ProcessAcquisition(IReadOnlyList<ITrackedProcess> Processes, bool Owned, string Message);

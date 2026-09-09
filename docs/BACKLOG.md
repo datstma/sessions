@@ -24,11 +24,12 @@ readiness checks, and completion focus. Launch stages and configurable failure
 policies remain later ideas. The supplied branding is now implemented, validated
 and approved by the user (SESS-024), with OS-following themes and compact support retained.
 Public-facing branding polish and obsolete-asset cleanup shipped in 0.2.1 under
-SESS-025. Suggested app follow-ups remain draft-close protection (SESS-006) and
+SESS-025. The safer-closing change (SESS-026) is implemented and user-confirmed. Saved-app icons (SESS-027) are the current request.
+Other suggested app follow-ups remain draft-close protection (SESS-006) and
 invalid-field guidance (SESS-011). Installed-release checks and Actions maintenance
 remain SESS-021/022. Broader native checks stay under SESS-001, including UAC
 cancellation and the narrower Playnite-specific confirmation in SESS-017; do not
-treat the overall stopping flow as still failing.
+treat the earlier overall stopping-flow confirmation as proof of unsaved-document safety.
 
 ## SESS-001 — Review the first native UI with the user
 
@@ -232,6 +233,8 @@ Validation: zero build warnings/errors and 89 checks pass (19 Core, 51 regular A
 
 ## SESS-018 — Make full stopping the default with save-work confirmation
 
+Historical policy shipped through 0.2.1. The user-approved SESS-026 change supersedes automatic force quit for every app; save-work confirmation and ownership guards remain.
+
 **P1 · Done · User confirmed the new stopping flow · 2026-09-08**  
 Source: user reports that three of four apps need Force quit enabled and asks for full stopping by default with a save-work confirmation.
 
@@ -299,6 +302,13 @@ Done when: the chosen repository and license are in place and a tested Windows p
 Source: 0.1.0 packaging checks used the default Windows Sandbox account. They do
 not establish installation under an ordinary nonadministrator account or installed
 real-app/UAC cleanup behavior. The preview release notes disclose these limits.
+
+User confirmation (2026-09-09): the published 0.2.1 installer "works like a charm,
+as well as the uninstall." This confirms installation and uninstall in the user's
+normal environment. Account privilege, fresh install versus upgrade, operation
+timings and real-app/UAC checks were not specified. Those remaining checks keep
+this item open; installation/uninstall should no longer be described as tested
+only in Sandbox.
 
 Done when: record ordinary-user install/update/uninstall and installed launch/end
 checks, including the elevated helper and cancellation paths where applicable.
@@ -446,3 +456,72 @@ preservation. The icon lookup harness was corrected and resumed; no product fix
 was needed. The default Sandbox account was used and the Sandbox is stopped.
 Native accessibility and ordinary-user/real-app/UAC limits remain SESS-010/021.
 README and gallery now describe and link to the published refresh.
+
+## SESS-026 — Preserve unsaved work when ending a Session
+
+**P1 · Done · Implemented, validated and user-confirmed · 2026-09-09**
+
+Source: after using 0.2.1, the user added Word to a Session, started it, typed text
+in a document and ended the Session. They report that Sessions forcibly terminated
+Word with the modified document open. Word version, save-prompt visibility, timing,
+theme and window size were not supplied. Not independently reproduced with Word.
+
+Code inspection confirms the mechanism: SessionRunner supplies a three-second
+close timeout; WindowsTrackedApp enables force; WindowsProcessCleanup posts
+WM_CLOSE, waits for process exit and terminates a lingering verified owned process.
+No unsaved-document or save-dialog check gates termination. This follows the
+published 0.2.1 SESS-018 policy, but exposes a safety gap not covered by its earlier
+successful tray-app stopping trials.
+
+Research: [WM_CLOSE](https://learn.microsoft.com/en-us/windows/win32/winmsg/wm-close)
+allows an application to defer closing for user confirmation. Word exposes a
+[Document.Saved property](https://learn.microsoft.com/en-us/office/vba/api/word.document.saved),
+which could support app-specific detection. Open/temp files are not a reliable
+general signal of unsaved work; unknown status must not imply safe termination.
+
+User approved the general change on 2026-09-09. Implemented: normal close preserves
+apps still running after the grace period; named recovery rows support bring-forward
+and separately confirmed force quit for one owned app in the current run. Retry End
+and explicit leave-open remain. Background observation finishes after remaining apps
+exit; cancelling a save prompt does not automatically retry closing. Per-app
+AllowForceQuit is an explicit opt-in. V1/v2 load with it disabled; saving writes v3
+so older builds reject the policy rather than silently ignoring it. No name/temp-file
+heuristics. PRODUCT and ARCHITECTURE hold the current specification.
+
+Evidence: Release build clean; 54 Core and 101 headless app tests pass, covering
+ownership, stale requests, targeted force, failure/main-exit/late-startup policy,
+format migration, safe keyboard defaults and both themes at compact/full size.
+The final combined app run passed 121 cases (101 headless + 20 isolated native),
+with 5 unrelated opt-in checks skipped. This includes a save-dialog fixture surviving
+the real three-second timeout, Cancel without re-prompting, and Save/Discard with
+automatic completion. Exact-process helper normal/force checks and identity rejection pass;
+commands and verification limits are recorded in DEVELOPMENT_NOTES. Published 0.2.1 remains unchanged.
+
+User feedback after the implementation: "works great!" confirms the overall
+safer-closing flow. Exact app, Save/Discard/Cancel steps and UAC outcomes were not
+specified. The detailed Word/elevated-app trial matrix is not independently verified;
+retain those limits under SESS-001 rather than claiming native helper tests exercised UAC.
+
+## SESS-027 — Show executable icons in saved app lists
+
+**P2 · Done · Implemented, validated and user-confirmed · 2026-09-09**
+
+Source: after confirming the closing change, the user asks to replace app-name
+initials with the apps' icons. Code inspection found that the picker already extracts
+icons, while saved app cards only show the initial.
+
+Implemented locally: app cards load their executable artwork asynchronously through
+a bounded, case-insensitive in-memory cache and retain the initial for missing,
+unreadable or malformed icons. Late results cannot overwrite rebound/detached
+controls; decoded bitmaps are released when replaced/detached. Names, Session
+initials, running controls and execution ownership remain unchanged. No artwork is
+persisted, and obtaining an icon never launches an app. Existing branding tokens
+are reused; PRODUCT/ARCHITECTURE define the behavior and lifetime boundaries.
+
+Evidence: clean Release build; 54 Core and 110 App tests pass (25 unrelated native
+opt-in checks skipped). Nine icon cases cover actual executable artwork in a saved
+card, unavailable/corrupt/denied fallback, shared background reads, stale results
+and detach/reattach cleanup. All nine pass with 100/125/150/200% rendering coverage;
+both themes at 1440×900 and 640×480 reviewed. No real apps were launched. Headless
+rendering does not establish physical-monitor behavior. The user confirmed
+"works great, looks great!" and requested commit/push with SESS-026. Not yet released.

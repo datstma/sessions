@@ -26,7 +26,7 @@ try
     }
     if (args[0] == "window") return TestWindow.Run(directory, args.Length > 2 && args[2] == "refuse",
         guarded: args.Length > 2 && args[2] == "guarded", linger: args.Length > 2 && args[2] == "linger",
-        hidden: args.Length > 2 && args[2] == "hidden");
+        hidden: args.Length > 2 && args[2] == "hidden", savePrompt: args.Length > 2 && args[2] == "save-prompt");
     if (args[0] == "instance")
     {
         using var instance = new SingleInstanceGuard(@"Global\Sessions.Test." + args[2]);

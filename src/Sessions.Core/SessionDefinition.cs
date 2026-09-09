@@ -53,4 +53,5 @@ public sealed record StartProcessAction(
     bool RunAsAdministrator = false,
     AppReadiness Readiness = AppReadiness.LaunchCompleted,
     int ReadinessTimeoutSeconds = 30,
-    int? PauseAfterSeconds = null);
+    int? PauseAfterSeconds = null,
+    bool AllowForceQuit = false);

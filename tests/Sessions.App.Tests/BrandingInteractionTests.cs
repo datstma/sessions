@@ -163,7 +163,7 @@ public sealed class BrandingInteractionTests
     private sealed class Process : ITrackedProcess
     {
         public bool HasExited => false;
-        public Task<bool> RequestCloseAsync(TimeSpan timeout) => Task.FromResult(true);
+        public Task<bool> RequestCloseAsync(TimeSpan timeout, bool allowForceQuit = false) => Task.FromResult(true);
         public void Dispose() { }
     }
     private sealed class Source(StartProcessAction[] apps) : IAppSource

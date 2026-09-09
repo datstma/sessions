@@ -134,7 +134,7 @@ public sealed class WindowsSessionProcessHost : ISessionProcessHost
 
             return new ProcessAcquisition([tracked], owned, owned
 
-                ? "Opened by this Session · stops when you confirm End Session"
+                ? "Opened by this Session · asked to close when you end this Session"
 
                 : "Windows reused an existing app · stays open when this Session ends");
 

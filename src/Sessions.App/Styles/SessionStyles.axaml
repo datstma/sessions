@@ -84,6 +84,8 @@
     <Style Selector="views|SessionEditorView.editorContent"><Setter Property="Margin" Value="{StaticResource Inset20x24}" /></Style>
     <Style Selector="Border.editorFooter"><Setter Property="Padding" Value="{StaticResource Inset20x16}" /><Setter Property="Background" Value="{DynamicResource PanelBrush}" /></Style>
     <Style Selector="StackPanel.heroActions"><Setter Property="DockPanel.Dock" Value="Right" /></Style>
+    <Style Selector="ScrollViewer.runtimeStatus"><Setter Property="MaxHeight" Value="{StaticResource Measure200}" /></Style>
+    <Style Selector="ScrollViewer.runtimeStatus.cleanup"><Setter Property="MaxHeight" Value="{StaticResource Measure288}" /></Style>
     <Style Selector="StackPanel.runtimeActions"><Setter Property="DockPanel.Dock" Value="Right" /><Setter Property="Margin" Value="{StaticResource Inset16x0x0x0}" /></Style>
     <Style Selector="UniformGrid.explainers"><Setter Property="Columns" Value="2" /></Style>
     <Style Selector="UniformGrid.steps"><Setter Property="Columns" Value="3" /></Style>
