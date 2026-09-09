@@ -30,7 +30,7 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/session-dark.png">
   <source media="(prefers-color-scheme: light)" srcset="docs/images/session-light.png">
-  <img src="docs/images/session-light.png" alt="Sessions showing a Gaming setup with four apps, a separate Start Session action, and Discord already running.">
+  <img src="docs/images/session-light.png" alt="Sessions showing a Gaming setup with four executable icons, a separate Start Session action, and Discord already running.">
 </picture>
 
 <p align="center"><em>Your apps, their order, and what's running—all in one place.</em></p>
@@ -106,7 +106,7 @@ End Session requests a normal close and preserves apps that stay open, including
 If an app cannot be stopped or safely tracked, Sessions explains the problem and offers recovery where available. Closing Sessions during an active run lets you end the run or leave its apps open. Apps opened individually remain independent of a later Session's cleanup.
 
 [Browse the full screenshot gallery](docs/SCREENSHOTS.md). Images show the actual
-0.2.1 UI with isolated sample data and simulated process status.
+0.2.2 UI with real executable icons, isolated sample data and simulated process status.
 
 ## Downloads
 

@@ -555,3 +555,11 @@ both themes at 1440×900 and 640×480 reviewed. No real apps were launched. Head
 rendering does not establish physical-monitor behavior. The user confirmed
 "works great, looks great!" and requested commit/push with SESS-026. Released in
 0.2.2 Preview; shared release validation is recorded under SESS-006.
+
+Public screenshot follow-up requested after release: README/gallery now show the
+0.2.2 app icons in both themes and current End confirmation. The capture script takes
+explicit installed executable paths, reads icons only, retains isolated sample data,
+and requires all four icons to load. Clean Release build; 54 Core + 125 App tests
+pass (25 opt-in skips), plus four real-icon capture cases across both themes and
+full/compact sizes. Public images and compact detail views were visually reviewed;
+the editor render is unchanged. No production behavior or release asset changes.

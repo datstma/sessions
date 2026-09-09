@@ -2,7 +2,28 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.2.2 Preview published 2026-09-09
+## Resume next session — 0.2.2 screenshot refresh 2026-09-09
+
+After publication, the user requested updating screenshots to show app icons.
+Refreshed README/gallery detail images in both themes and the dark End confirmation
+from the current 0.2.2 UI; editor image was regenerated and is byte-identical.
+Captions now say 0.2.2 and Asked to close. The screenshot script requires an explicit
+map of the four installed executables; the fixture reads them through the production
+icon loader and waits for all icons. Only the icon controls receive these paths;
+sample definitions/displayed paths and fake process state remain isolated. No real
+apps are launched, no library is read, and no third-party icon files are bundled.
+Regular tests do not require installed example apps. Regeneration instructions are
+in SCREENSHOTS.md. No production code, visual tokens or release binaries changed.
+
+Validation: full Release build has zero warnings/errors; 54 Core + 125 App tests
+pass (25 opt-in native skips). Four additional capture cases pass with all icons
+loaded, covering both themes at 1440×900 and 640×480. All four public images and
+compact detail captures were visually reviewed. Captures are under ignored
+artifacts/public-screenshots/d7bb9379a18c4ec3a2d633fdd1f969f3. All 55 relative links/image
+references and git diff --check pass. The user requested committing and pushing this
+screenshot follow-up to main; published release assets remain unchanged.
+
+## Previous checkpoint — 0.2.2 Preview published 2026-09-09
 
 Published [0.2.2 Preview](https://github.com/datstma/sessions/releases/tag/v0.2.2)
 from tag v0.2.2/commit 57cfafd. The user explicitly requested publication and skipping

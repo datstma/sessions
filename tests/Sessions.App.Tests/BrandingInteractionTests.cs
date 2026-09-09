@@ -7,6 +7,7 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using System.Text.Json;
 using Sessions.App.Services;
 using Sessions.App.ViewModels;
 using Sessions.App.Views;
@@ -26,7 +27,7 @@ public sealed class BrandingInteractionTests
         var theme = dark ? ThemeVariant.Dark : ThemeVariant.Light;
         var empty = new MainWindow { DataContext = new MainViewModel(new Store()), Width = width, Height = height, RequestedThemeVariant = theme };
         empty.Show();
-        Capture(empty, "empty", dark, width);
+        await CaptureAsync(empty, "empty", dark, width);
         empty.Close();
 
         var apps = new[] { "Discord", "Playnite", "SR-ClientRadio", "TobiiGameHub" }
@@ -55,7 +56,7 @@ public sealed class BrandingInteractionTests
             Dispatcher.UIThread.RunJobs();
             Assert.NotEqual(originalBackground, Brush(window, "AppBackgroundBrush"));
             window.RequestedThemeVariant = theme;
-            Capture(window, "detail", dark, width);
+            await CaptureAsync(window, "detail", dark, width);
             var hero = window.GetVisualDescendants().OfType<Border>().Single(border => border.Classes.Contains("hero"));
             var title = hero.GetVisualDescendants().OfType<TextBlock>().Single(text => text.Text == "Gaming");
             var start = hero.GetVisualDescendants().OfType<Button>().Single(button => Equals(button.Content, "Start Session"));
@@ -65,7 +66,7 @@ public sealed class BrandingInteractionTests
                     "Compact hero actions must move below the Session title.");
 
             model.EditSessionCommand.Execute(null);
-            Capture(window, "editor", dark, width);
+            await CaptureAsync(window, "editor", dark, width);
             var nameField = window.GetVisualDescendants().OfType<TextBox>().Single(field => field.Name == "SessionName");
             var fieldBorder = nameField.GetVisualDescendants().OfType<Border>().Single(border => border.Name == "PART_BorderElement");
             Assert.True(nameField.IsFocused);
@@ -76,19 +77,19 @@ public sealed class BrandingInteractionTests
             Dispatcher.UIThread.RunJobs();
             window.UpdateLayout();
             advanced.GetVisualDescendants().OfType<ComboBox>().First().BringIntoView();
-            Capture(window, "advanced", dark, width);
+            await CaptureAsync(window, "advanced", dark, width);
             model.CancelEditCommand.Execute(null);
 
             await model.StartSessionCommand.ExecuteAsync(null);
             presence.Started = true;
             await model.RefreshPresenceAsync();
-            Capture(window, "running", dark, width);
+            await CaptureAsync(window, "running", dark, width);
             await model.EndSessionCommand.ExecuteAsync(null);
             Dispatcher.UIThread.RunJobs();
             Assert.Equal(new[] { "Discord" }, model.AppsToKeep);
             Assert.Equal(new[] { "Playnite", "SR-ClientRadio", "TobiiGameHub" }, model.AppsToStop);
             Assert.True(window.FindControl<Button>("CancelEndButton")!.IsFocused);
-            Capture(window, "end", dark, width);
+            await CaptureAsync(window, "end", dark, width);
             window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, "");
             window.KeyRelease(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, "");
             Dispatcher.UIThread.RunJobs();
@@ -105,7 +106,7 @@ public sealed class BrandingInteractionTests
                 await pickerModel.RefreshCommand.ExecuteAsync(null);
                 Dispatcher.UIThread.RunJobs();
                 picker.GetVisualDescendants().OfType<CheckBox>().First().IsChecked = true;
-                Capture(picker, "picker", dark, width);
+                await CaptureAsync(picker, "picker", dark, width);
                 Assert.True(pickerModel.CanAdd);
                 var search = picker.FindControl<TextBox>("AppSearch")!;
                 Assert.True(search.IsFocused);
@@ -127,10 +128,30 @@ public sealed class BrandingInteractionTests
         var b = Luminance(second);
         return (Math.Max(a, b) + .05) / (Math.Min(a, b) + .05);
     }
-    private static void Capture(Window window, string state, bool dark, int width)
+    private static async Task CaptureAsync(Window window, string state, bool dark, int width)
     {
         Dispatcher.UIThread.RunJobs();
         window.UpdateLayout();
+        if (Environment.GetEnvironmentVariable("SESSIONS_SCREENSHOT_APP_EXECUTABLES") is { Length: > 0 } json)
+        {
+            var executables = JsonSerializer.Deserialize<Dictionary<string, string>>(json)!;
+            var icons = window.GetVisualDescendants().OfType<AppIcon>().ToArray();
+            if (state == "detail") Assert.Equal(4, icons.Length);
+            foreach (var icon in icons)
+            {
+                // Only the icon control reads the installed file. Sample data and displayed paths
+                // stay isolated, and the fake runtime cannot launch these executables.
+                var path = executables[icon.AppName!];
+                Assert.NotNull(await WindowsAppIconSource.Shared.GetIconAsync(path));
+                icon.ExecutablePath = path;
+                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                while (icon.FindControl<Image>("IconImage")!.Source is null)
+                    await Task.Delay(10, timeout.Token);
+                Assert.False(icon.FindControl<TextBlock>("Fallback")!.IsVisible);
+            }
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+        }
         using var frame = window.CaptureRenderedFrame();
         Assert.NotNull(frame);
         if (Environment.GetEnvironmentVariable("SESSIONS_SCREENSHOT_DIR") is { Length: > 0 } directory)
