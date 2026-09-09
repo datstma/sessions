@@ -2,7 +2,52 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.2.3 Preview published 2026-09-10
+## Resume next session — plugin and Steam backlog proposals 2026-09-10
+
+The user requested plugin support with Steam as the first plugin, then explicitly
+clarified: add it to the backlog, do not solve it now. Added SESS-029 for the plugin
+foundation and linked SESS-030 for launching Steam games as part of a Session.
+SESS-028 remains the separate gaming-utility startup research proposal.
+
+These entries record desired outcomes and open questions, not an architecture or
+implementation decision. No marketplace, automatic plugin updates or third-party
+loading model is selected. Steam game discovery, launch methods, game lifetime and
+safe ownership/cleanup must be assessed when the work is selected. Initial read-only
+inspection before clarification found today's saved actions and process host assume
+executable paths; this does not prescribe the future plugin contract. A brief public
+documentation lookup was preliminary, with no adopted interface or verified launch
+behavior. No Steam client, game, user library or settings were changed.
+
+Only backlog/continuity documents are modified, including the preceding SESS-028
+proposal. The user requested committing and pushing all three proposals on
+2026-09-10. Backlog IDs, relative links and diff whitespace checks pass. No version
+bump, new release or implementation was requested.
+Stop here; do not start researching or solving these items without a new request.
+The latest published release remains 0.2.3, recorded below.
+
+## Previous checkpoint — gaming utility support proposal 2026-09-10
+
+After publication, the user requested adding bespoke startup support to the backlog
+for TrackIR, Tobii Experience, Tobii Game Hub, opentrack, GameGlass, VoiceAttack,
+DCS-SRS, MSI Afterburner, MOZA Cockpit and the MOZA Racing utility. SESS-028 records
+this as research-first future work: verify each app's flags and Session-specific
+profiles/settings before proposing a small implementation slice. The official MOZA
+product page confirms Pit House as the racing control software; that is the likely
+name the user could not recall. No launch flags were researched or verified this turn.
+
+The user expects gamers running utility-heavy DCS/Star Citizen setups to be a major
+audience. Record this as their hypothesis and prioritization input, while retaining
+the general Session-centric model. Existing Arguments/Working directory support can
+serve verified options; a capability matrix should identify where bespoke UI or new
+behavior is useful. Document unsupported capabilities and already-running/global
+configuration effects, rather than assuming every product has suitable switches.
+
+Only backlog/continuity documentation changed. No implementation, version bump,
+commit or push was requested for this proposal. The published 0.2.3 release remains
+the latest checkpoint below. Do not automatically start researching or implementing
+SESS-028 or another backlog item.
+
+## Previous checkpoint — 0.2.3 Preview published 2026-09-10
 
 The user followed the local build/commit request with an explicit request to publish
 the release. [Sessions 0.2.3 Preview](https://github.com/datstma/sessions/releases/tag/v0.2.3)

@@ -1,6 +1,6 @@
 # Sessions — Backlog
 
-Last reviewed: **2026-09-09**. Scope comes from [PRODUCT.md](PRODUCT.md); technical constraints come from [ARCHITECTURE.md](ARCHITECTURE.md). [DEVELOPMENT_NOTES.md](DEVELOPMENT_NOTES.md) contains the current handoff and validation evidence.
+Last reviewed: **2026-09-10**. Scope comes from [PRODUCT.md](PRODUCT.md); technical constraints come from [ARCHITECTURE.md](ARCHITECTURE.md). [DEVELOPMENT_NOTES.md](DEVELOPMENT_NOTES.md) contains the current handoff and validation evidence.
 
 This is a work record, not authorization to implement everything. The user explicitly requested safe Session deletion (SESS-009), a running-app picker (SESS-008), running indicators with window focus (SESS-012), and individual app launching (SESS-013), implemented below. Priorities remain an initial sequencing recommendation and can change with feedback.
 
@@ -591,3 +591,121 @@ and requires all four icons to load. Clean Release build; 54 Core + 125 App test
 pass (25 opt-in skips), plus four real-icon capture cases across both themes and
 full/compact sizes. Public images and compact detail views were visually reviewed;
 the editor render is unchanged. No production behavior or release asset changes.
+
+## SESS-028 — Bespoke startup support for gaming and simulation utilities
+
+**P2 · Proposed · Research first; implementation scope to follow · 2026-09-10**
+Source: the user expects many Sessions users to be gamers with utility-heavy DCS,
+Star Citizen and similar setups. They requested a backlog item for app-specific
+startup support: determine how each utility can start with the settings wanted for
+a particular Session. This audience expectation is a product hypothesis, not usage
+data; Sessions retains its general Session-centric model and other use cases.
+
+Initial research targets, preserving the user's list:
+
+- TrackIR
+- Tobii Experience
+- Tobii Game Hub
+- opentrack
+- GameGlass
+- VoiceAttack
+- DCS-SRS (DCS SimpleRadio Standalone)
+- MSI Afterburner
+- MOZA Cockpit
+- MOZA Pit House — likely the MOZA Racing application the user meant; the
+  [official product page](https://mozaracing.com/pages/pit-house) confirms the name.
+
+Launch flags and automation capabilities are **not yet researched or verified** for
+these apps. Do not assume every app supports command-line profile selection, or
+that similarly named products share an interface.
+
+Research deliverable: a capability matrix for each exact product/version, with
+primary-source links, date checked, supported executable/entry point and precise
+argument syntax/quoting. Investigate Session-specific profile/preset selection,
+starting minimized/in the tray, enabling tracking/listening, or choosing a connection
+where relevant; these are questions to verify, not promised features. Record required
+working directory, prerequisites/elevation, single-instance behavior, whether options
+apply only at fresh launch or also to an already-running instance, and any persistent
+or shared configuration effects. Distinguish documented support, independently tested
+behavior, community reports, unsupported capabilities and unresolved questions.
+Where no supported flags exist, record that outcome; a documented URI/API or other
+alternative can be assessed separately rather than inventing switches or silently
+editing global configuration. Do not contact vendors without user authorization.
+
+Use isolated profiles/configuration for eventual hands-on trials and record the exact
+version, command, expected result and observed result. Identify what can be expressed
+through today's per-app Arguments and Working directory fields and what would require
+additional behavior. Propose a small first implementation slice based on useful,
+verified capabilities; the app order above does not establish implementation priority.
+
+The intended follow-up is optional, understandable per-app settings in a Session
+(e.g. choosing a verified supported profile), while retaining manual arguments for
+other apps. Preserve user-entered arguments and define conflict handling before adding
+helpers. Existing process ownership, already-running-app treatment, launch independence
+and safer closing remain mandatory. App-specific support must not implicitly enable
+force quit or mutate another running Session/app's settings. Keep integrations outside
+Core's platform-neutral execution model; no plugin framework is authorized by this item.
+
+Done when: every target has a sourced capability/limitation record, candidate options
+have reproducible validation evidence, and an agreed first slice has been implemented,
+documented and tested. Research completion alone does not mean bespoke support shipped;
+split approved implementations into linked stable backlog IDs as scope becomes clear.
+This request adds future work; it does not start research across all apps or authorize
+implementation in the current turn. No product behavior or architecture has changed.
+
+## SESS-029 — Add plugin support, with Steam as the first plugin
+
+**P2 · Proposed · User-requested future capability · 2026-09-10**
+Source: the user wants Sessions to support plugins, with Steam as the first plugin
+so games can be launched as part of a Session. They explicitly clarified that this
+belongs in the backlog and must not be solved or implemented now.
+
+Future scope: define a small plugin contract and lifecycle that can support Steam
+first and additional integrations later. Work out plugin discovery/loading,
+compatibility/versioning, enable/disable behavior, failure handling and persistence
+of plugin-owned settings. Decide how bundled and third-party plugins are supported,
+including the trust boundary, before choosing an implementation. Preserve saved
+Session entries and explain unavailable capabilities when a plugin is missing,
+disabled or incompatible. A plugin marketplace and automatic plugin updates are
+not part of this request.
+
+Steam is the first concrete consumer (SESS-030); use its needs to keep the extension
+boundary focused. Relate future utility integrations to SESS-028 where useful,
+without assuming each utility needs its own plugin. Preserve Sessions' general
+purpose, local-first behavior, platform-neutral Core and existing process ownership
+and cleanup guarantees. Keep today's executable-based Sessions compatible.
+
+Done when: the plugin contract and supported lifecycle are specified, a working
+Steam plugin demonstrates the extension boundary, and compatibility, unavailable
+plugins and failures have meaningful tests and user-facing documentation. Update
+PRODUCT/ARCHITECTURE when the implementation direction is agreed. No plugin design
+or implementation has been selected or started under this item.
+
+## SESS-030 — Steam plugin: launch games as part of a Session
+
+**P2 · Proposed · First plugin; depends on SESS-029 · 2026-09-10**
+Source: the user's requested first plugin is Steam, allowing users to launch Steam
+games from within a Session. This is backlog-only work for now.
+
+Intended outcome: users can add a Steam game to a Session alongside utility apps,
+save that selection and launch it through Steam when the Session starts. Assess
+local game discovery/picking, stable Steam game identity, display names/icons,
+multiple library locations and any supported launch options during future design.
+Determine behavior for Steam being unavailable, games being uninstalled or moved,
+login/update/launch prompts, duplicate requests and games already running. Prefer
+using the installed Steam client without adding a Sessions account requirement.
+
+Explicitly define how Steam game launches participate in ordering, readiness,
+Session lifetime and End Session. A Steam launch request is not proof that a game
+is running or that Sessions owns its process. Do not use the Steam client lifetime
+as the game lifetime, close the shared client to stop one game, or infer ownership
+from a process name. Document any launch-only/manual-End limitations unless reliable
+game tracking and safe cleanup are established. Preserve pre-existing games and
+apps, existing safer-closing behavior, and user-entered Steam launch preferences.
+
+Done when: adding, saving, reopening and launching a Steam game through the plugin
+works alongside ordinary Session apps; failures and missing/disabled plugins have
+clear recovery behavior; supported lifetime/cleanup semantics and validation limits
+are documented and tested. Research launch/discovery interfaces and exact syntax
+when this work is selected. No launch method, discovery mechanism, SDK dependency
+or game-tracking implementation is chosen by this backlog entry.
