@@ -10,6 +10,9 @@ using Sessions.App.Services;
 
 namespace Sessions.App.ViewModels;
 
+public enum EditorField { SessionName, AppName, ExecutablePath, Readiness, ReadinessTimeout, AppPause, LaunchMode, SessionPause, StartupFocus, FocusApp, MainApp }
+public sealed record EditorValidationIssue(EditorField Field, string Message, AppEditorViewModel? App = null);
+
 public partial class SessionEditorViewModel : ViewModelBase
 {
     private readonly Guid _id;
@@ -46,9 +49,14 @@ public partial class SessionEditorViewModel : ViewModelBase
     public bool IsOrdered => LaunchModeIndex == 0;
     public bool NeedsFocusApp => StartupFocusIndex == 2;
     public string OrderingHint => IsOrdered ? "They open in the order shown." : "They open together. Startup waits still apply.";
-    private bool ValidStartup => LaunchModeIndex is 0 or 1 && StartupFocusIndex is >= 0 and <= 2 &&
-        ValidSeconds(PauseBetweenAppsSeconds, 0, 300) && (!NeedsFocusApp || FocusApp is not null && Apps.Contains(FocusApp)) &&
-        Apps.All(app => app.ValidStartup);
+    public string? NameError => string.IsNullOrWhiteSpace(Name) ? "Enter a Session name." : null;
+    public string? LaunchModeError => LaunchModeIndex is 0 or 1 ? null : "Choose a launch mode.";
+    public string? PauseError => ValidSeconds(PauseBetweenAppsSeconds, 0, 300) ? null : "Enter a whole number from 0 to 300 seconds.";
+    public string? StartupFocusError => StartupFocusIndex is >= 0 and <= 2 ? null : "Choose what happens when startup finishes.";
+    public string? FocusAppError => NeedsFocusApp && (FocusApp is null || !Apps.Contains(FocusApp)) ? "Choose an app to focus after startup." : null;
+    public string? MainAppError => EndWithApp && (MainApp is null || !Apps.Contains(MainApp)) ? "Choose which app should end this Session, or turn off this option." : null;
+    public bool ShowSessionPause => IsOrdered || PauseError is not null;
+    public EditorValidationIssue? FirstValidationIssue { get; private set; }
     internal static bool ValidSeconds(decimal? value, int minimum, int maximum) => value is { } seconds &&
         seconds >= minimum && seconds <= maximum && decimal.Truncate(seconds) == seconds;
 
@@ -58,11 +66,9 @@ public partial class SessionEditorViewModel : ViewModelBase
         ? "App options" : $"{SelectedApp.Name.Trim()} options";
     public string AdvancedStartupHeading => string.IsNullOrWhiteSpace(Name)
         ? "Advanced startup options" : $"{Name.Trim()} advanced startup options";
-    public string SelectedAppSummary => SelectedApp is { } app ? $"Selected: {app.Name}, app {app.Order} of {Apps.Count}." : "";
+    public string SelectedAppSummary => SelectedApp is { } app ? $"Selected: {app.DisplayName}, app {app.Order} of {Apps.Count}." : "";
     public bool HasValidationMessage => ValidationMessage is not null;
-    public bool CanSave => !string.IsNullOrWhiteSpace(Name) &&
-                           Apps.All(app => !string.IsNullOrWhiteSpace(app.Name) && !string.IsNullOrWhiteSpace(app.ExecutablePath)) &&
-                           (!EndWithApp || MainApp is not null && Apps.Contains(MainApp)) && ValidStartup;
+    public bool CanSave => FirstValidationIssue is null;
 
     public SessionEditorViewModel(SessionDefinition? definition = null)
     {
@@ -80,6 +86,7 @@ public partial class SessionEditorViewModel : ViewModelBase
         EndWithApp = MainApp is not null;
         SelectedApp = Apps.FirstOrDefault();
         FocusApp = Apps.FirstOrDefault(app => app.Id == definition?.FocusAppId);
+        NotifyValidation();
         _initialSettings = CaptureSettings();
         _initialApps = Apps.Select(CaptureApp).ToArray();
     }
@@ -174,10 +181,25 @@ public partial class SessionEditorViewModel : ViewModelBase
     }
     private void NotifyValidation()
     {
+        FirstValidationIssue = FindFirstValidationIssue();
+        foreach (var property in new[] { nameof(NameError), nameof(LaunchModeError), nameof(PauseError),
+                     nameof(StartupFocusError), nameof(FocusAppError), nameof(MainAppError), nameof(ShowSessionPause), nameof(FirstValidationIssue) })
+            OnPropertyChanged(property);
         OnPropertyChanged(nameof(CanSave));
-        ValidationMessage = EndWithApp && MainApp is null ? "Choose which app should end this Session." :
-            NeedsFocusApp && FocusApp is null ? "Choose an app to focus in Advanced startup." :
-            !ValidStartup ? "Check Advanced startup and app startup options: pauses must be whole seconds from 0 to 300; timeouts from 1 to 600." : null;
+        ValidationMessage = FirstValidationIssue is { } issue
+            ? issue.App is { } app ? $"App {app.Order} ({app.DisplayName}): {issue.Message}" : issue.Message
+            : null;
+    }
+    private EditorValidationIssue? FindFirstValidationIssue()
+    {
+        if (NameError is { } name) return new(EditorField.SessionName, name);
+        foreach (var app in Apps)
+            if (app.FirstValidationIssue is { } issue) return issue;
+        if (LaunchModeError is { } mode) return new(EditorField.LaunchMode, mode);
+        if (PauseError is { } pause) return new(EditorField.SessionPause, $"Pause between apps: {pause}");
+        if (StartupFocusError is { } focus) return new(EditorField.StartupFocus, focus);
+        if (FocusAppError is { } target) return new(EditorField.FocusApp, target);
+        return MainAppError is { } main ? new(EditorField.MainApp, main) : null;
     }
     private void NotifyAppCommands()
     {
@@ -230,15 +252,37 @@ public partial class AppEditorViewModel : ViewModelBase
     [ObservableProperty] private bool _overridePause;
     [ObservableProperty] private decimal? _pauseAfterSeconds = 0;
     public string[] ReadinessChoices { get; } = ["Launch request completed", "Process is running", "A window appears"];
-    public bool NeedsReadinessTimeout => ReadinessIndex != 0;
-    public bool ValidStartup => ReadinessIndex is >= 0 and <= 2 &&
-        SessionEditorViewModel.ValidSeconds(ReadinessTimeoutSeconds, 1, 600) &&
-        SessionEditorViewModel.ValidSeconds(PauseAfterSeconds, 0, 300);
-    partial void OnReadinessIndexChanged(int value) => OnPropertyChanged(nameof(NeedsReadinessTimeout));
+    public bool NeedsReadinessTimeout => ReadinessIndex != 0 || TimeoutError is not null;
+    public bool ShowPauseEditor => OverridePause || PauseError is not null;
+    public string DisplayName => string.IsNullOrWhiteSpace(Name) ? "Unnamed app" : Name.Trim();
+    public string? NameError => string.IsNullOrWhiteSpace(Name) ? "Enter an app display name." : null;
+    public string? PathError => string.IsNullOrWhiteSpace(ExecutablePath) ? "Enter an executable path." : null;
+    public string? ReadinessError => ReadinessIndex is >= 0 and <= 2 ? null : "Choose a startup condition.";
+    public string? TimeoutError => SessionEditorViewModel.ValidSeconds(ReadinessTimeoutSeconds, 1, 600) ? null : "Enter a whole number from 1 to 600 seconds.";
+    public string? PauseError => SessionEditorViewModel.ValidSeconds(PauseAfterSeconds, 0, 300) ? null : "Enter a whole number from 0 to 300 seconds.";
+    public EditorValidationIssue? FirstValidationIssue =>
+        NameError is { } name ? new(EditorField.AppName, name, this) :
+        PathError is { } path ? new(EditorField.ExecutablePath, path, this) :
+        ReadinessError is { } readiness ? new(EditorField.Readiness, readiness, this) :
+        TimeoutError is { } timeout ? new(EditorField.ReadinessTimeout, $"Maximum readiness wait: {timeout}", this) :
+        PauseError is { } pause ? new(EditorField.AppPause, $"Pause after this app: {pause}", this) : null;
+    public string? ValidationHint => FirstValidationIssue is { } issue ? $"{issue.Message} Review app options." : null;
+    partial void OnReadinessIndexChanged(int value) => NotifyFieldValidation();
+    partial void OnExecutablePathChanged(string value) => NotifyFieldValidation();
+    partial void OnReadinessTimeoutSecondsChanged(decimal? value) => NotifyFieldValidation();
+    partial void OnPauseAfterSecondsChanged(decimal? value) => NotifyFieldValidation();
+    partial void OnOverridePauseChanged(bool value) => NotifyFieldValidation();
+    private void NotifyFieldValidation()
+    {
+        foreach (var property in new[] { nameof(NameError), nameof(PathError), nameof(ReadinessError), nameof(TimeoutError),
+                     nameof(PauseError), nameof(FirstValidationIssue), nameof(ValidationHint), nameof(NeedsReadinessTimeout),
+                     nameof(ShowPauseEditor), nameof(DisplayName), nameof(AccessibleName) })
+            OnPropertyChanged(property);
+    }
 
-    public string AccessibleName => $"{Order}. {Name}";
+    public string AccessibleName => $"{Order}. {DisplayName}" + (ValidationHint is { } hint ? $". {hint}" : "");
     partial void OnOrderChanged(int value) => OnPropertyChanged(nameof(AccessibleName));
-    partial void OnNameChanged(string value) => OnPropertyChanged(nameof(AccessibleName));
+    partial void OnNameChanged(string value) => NotifyFieldValidation();
 
     public AppEditorViewModel(StartProcessAction app)
     {

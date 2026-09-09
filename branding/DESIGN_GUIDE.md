@@ -78,7 +78,10 @@ custom animation. Future animation must respect reduced-motion preferences.
 - **Editor:** one main card, clear name field, ordered app list and existing move/remove
   controls. Description, selected-app options and Session startup options use inset
   expandable sections. Keep contextual headings and the end-condition choices.
-  Save/Cancel stay in the footer while the form scrolls. Editing never launches apps.
+  Save/Cancel stay in the footer while the form scrolls. When fields prevent saving,
+  a quiet Review fields action opens and focuses the first problem. Use existing error
+  text tokens for wrapping nearby explanations and invalid app-row guidance; keep
+  explanations visible above the footer after navigation. Editing never launches apps.
 - **Picker:** 820px default width, source pills for Start menu and Running apps, search,
   scrollable checkbox choices with icons/initials, selected-row tint and explicit Add.
   Preserve selections across filtering/source switches, browse, source errors and

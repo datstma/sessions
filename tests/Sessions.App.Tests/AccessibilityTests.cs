@@ -80,7 +80,7 @@ public sealed class AccessibilityTests
             Assert.Empty(model.Editor.Apps);
             Assert.True(Button(window, "+  Add app").IsFocused);
             Assert.False(model.Editor.CanSave);
-            var validation = window.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Text == model.Editor.ValidationMessage);
+            var validation = window.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Name == "ValidationSummary");
             Assert.Equal(AutomationLiveSetting.Polite, ControlAutomationPeer.CreatePeerForElement(validation)!.GetLiveSetting());
             TabTo(window, () => window.GetVisualDescendants().OfType<CheckBox>().Single(c => Equals(c.Content, "Ask to end when an app closes")));
             PressKey(window, Key.Space);

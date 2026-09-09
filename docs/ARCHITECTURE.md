@@ -96,6 +96,15 @@ The implemented saved model is `SessionDefinition`: identity, name, description,
 
 The editor copies a definition into a draft and replaces the saved definition only after persistence succeeds. App reordering preserves identities, so moving the main app does not change the lifetime setting. Removing the main app requires an explicit replacement or switching back to user-bound lifetime before saving. Executable and working-directory validation occurs in the Windows adapter when an app must be launched.
 
+Editor field errors are presentation state. `SessionEditorViewModel` derives its
+first `EditorValidationIssue` and `CanSave` from the same field checks, including
+nested app errors and retained numeric values. Each issue identifies a field and,
+when applicable, the draft app instance; reordering updates its displayed position.
+The view routes Review fields to that control, opens its section, and scrolls both
+the input and nearby explanation into view. Accessible help accompanies each field;
+the summary remains a polite live notification. No filesystem inspection, execution,
+configuration schema change or additional persistence occurs during validation.
+
 `SessionEditorViewModel.HasChanges` compares the current raw editable values with
 immutable initial Session/app snapshots, including ordered app identities and
 nullable numeric inputs. It does not call `BuildDefinition`, which requires valid

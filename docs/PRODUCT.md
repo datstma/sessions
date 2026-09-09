@@ -92,6 +92,22 @@ When there are no Sessions, the main view offers **Create your first Session** w
 
 The current application implements this navigation, local creation/editing, executable-file selection, app removal and reordering, and both lifetime configurations. It follows the system light/dark theme. Sessions are saved on this computer and loaded at startup. Save failures retain the draft; load failures show a retry action and prevent replacing an unreadable library. Start Session opens configured apps using the saved startup mode and changes to an active run with End Session available. Sample Sessions are used only in tests, not inserted into the user's library.
 
+The editor explains invalid names, executable paths, app choices and startup values
+beside the affected fields. Whitespace-only required inputs are invalid. App rows
+identify problems even when their options are collapsed, using “Unnamed app” when
+needed. While Save is disabled by invalid input, **Review fields** remains available
+in the footer. It selects the first affected app, opens the relevant options, and
+scrolls the field and its explanation into view with keyboard focus. Corrections
+update feedback immediately; repeated review proceeds to the next remaining problem.
+Invalid retained timing values stay visible even when their option is inactive,
+so switching launch/readiness modes or disabling an override cannot hide a blocker.
+Reviewing a field does not change those choices or reset its value.
+
+Saving validates configuration, not current file availability. Nonblank executable
+paths on disconnected or portable drives remain saveable; Sessions checks executable
+and working-directory availability when launching. Saving never proves an app can
+launch and does not rewrite or discard offline paths.
+
 Closing Sessions with a changed new or existing Session draft first offers **Keep
 editing**, **Discard**, and **Save**. Keep editing receives initial focus; Enter
 on that button and Escape return to the editor without losing changes. Discard

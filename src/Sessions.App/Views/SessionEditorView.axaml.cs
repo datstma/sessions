@@ -1,6 +1,9 @@
 using System;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Automation;
+using Avalonia.VisualTree;
 using System.Collections.Generic;
 using System.Linq;
 using Sessions.App.Services;
@@ -18,6 +21,51 @@ public partial class SessionEditorView : UserControl
             if (DataContext is SessionEditorViewModel)
                 Avalonia.Threading.Dispatcher.UIThread.Post(() => SessionName.Focus());
         };
+    }
+
+    public void ReviewFirstInvalidField()
+    {
+        if (DataContext is not SessionEditorViewModel { FirstValidationIssue: { } issue } editor) return;
+        if (issue.App is { } app)
+        {
+            editor.SelectedApp = app;
+            AppOptions.IsExpanded = true;
+        }
+        if (issue.Field is EditorField.LaunchMode or EditorField.SessionPause or EditorField.StartupFocus or EditorField.FocusApp)
+            AdvancedStartup.IsExpanded = true;
+        var name = issue.Field switch
+        {
+            EditorField.SessionName => "Session name",
+            EditorField.AppName => "App display name",
+            EditorField.ExecutablePath => "App executable path",
+            EditorField.Readiness => "App startup condition",
+            EditorField.ReadinessTimeout => "Maximum readiness wait in seconds",
+            EditorField.AppPause => "Pause after this app in seconds",
+            EditorField.LaunchMode => "Session launch mode",
+            EditorField.SessionPause => "Pause between apps in seconds",
+            EditorField.StartupFocus => "Focus after startup",
+            EditorField.FocusApp => "App to focus after startup",
+            EditorField.MainApp => "App that ends the Session",
+            _ => throw new ArgumentOutOfRangeException()
+        };
+        // Let selection bindings and expander templates settle before moving keyboard focus.
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            if (!ReferenceEquals(DataContext, editor) || !IsEffectivelyVisible) return;
+            UpdateLayout();
+            var field = this.GetVisualDescendants().OfType<Control>()
+                .FirstOrDefault(control => AutomationProperties.GetName(control) == name);
+            field?.Focus();
+            if (field is null) return;
+            var help = AutomationProperties.GetHelpText(field);
+            var explanation = this.GetVisualDescendants().OfType<TextBlock>().FirstOrDefault(text =>
+                text.Classes.Contains("fieldError") && text.IsEffectivelyVisible &&
+                ReferenceEquals(text.DataContext, field.DataContext) && text.Text == help);
+            // Include the nearby explanation, so compact layouts don't hide it under the footer.
+            if (explanation?.TranslatePoint(default, field) is { } point && point.Y >= 0)
+                field.BringIntoView(new Rect(0, 0, field.Bounds.Width, point.Y + explanation.Bounds.Height));
+            else field.BringIntoView();
+        });
     }
 
     private void AppListActionClicked(object? sender, RoutedEventArgs e)

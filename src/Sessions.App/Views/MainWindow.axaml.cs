@@ -11,6 +11,8 @@ namespace Sessions.App.Views;
 
 public partial class MainWindow : Window
 {
+    private void ReviewFieldsClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e) => EditorView.ReviewFirstInvalidField();
+
     public IAppSource RunningAppSource { get; init; } = new WindowsRunningAppSource();
     public IAppSource StartMenuAppSource { get; init; } = new WindowsStartMenuAppSource();
     private readonly CancellationTokenSource _presenceLifetime = new();

@@ -224,11 +224,12 @@
                     </Grid>
                     <Grid IsVisible="{Binding IsEditing}" RowDefinitions="*,Auto">
                         <ScrollViewer HorizontalScrollBarVisibility="Disabled" IsEnabled="{Binding !IsBusy}">
-                            <views:SessionEditorView DataContext="{Binding Editor}" Classes="editorContent" MaxWidth="{StaticResource Measure1000}" />
+                            <views:SessionEditorView x:Name="EditorView" DataContext="{Binding Editor}" Classes="editorContent" MaxWidth="{StaticResource Measure1000}" />
                         </ScrollViewer>
                         <Border Grid.Row="1" Classes="editorFooter" BorderBrush="{DynamicResource SessionBorder}" BorderThickness="{StaticResource Inset0x1x0x0}">
                             <Grid ColumnDefinitions="*,Auto,Auto">
-                                <TextBlock Text="Nothing opens until you start." Classes="muted" FontSize="{StaticResource FontMicroSize}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="{StaticResource Inset0x0x16x0}" />
+                                <Button x:Name="ReviewFieldsButton" Content="Review fields" Classes="quiet" Click="ReviewFieldsClicked" IsVisible="{Binding !Editor.CanSave}" IsEnabled="{Binding !IsBusy}" AutomationProperties.HelpText="{Binding Editor.ValidationMessage}" ToolTip.Tip="{Binding Editor.ValidationMessage}" HorizontalAlignment="Left" Margin="{StaticResource Inset0x0x12x0}" />
+                                <TextBlock IsVisible="{Binding Editor.CanSave}" Text="Nothing opens until you start." Classes="muted" FontSize="{StaticResource FontMicroSize}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="{StaticResource Inset0x0x16x0}" />
                                 <Button Grid.Column="1" Content="Cancel" Command="{Binding CancelEditCommand}" Classes="quiet" Margin="{StaticResource Inset0x0x12x0}" />
                                 <Button Grid.Column="2" Content="{Binding Editor.SaveLabel}" Command="{Binding SaveSessionCommand}" Classes="primary" />
                             </Grid>

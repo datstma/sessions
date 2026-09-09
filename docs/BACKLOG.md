@@ -26,7 +26,7 @@ and approved by the user (SESS-024), with OS-following themes and compact suppor
 Public-facing branding polish and obsolete-asset cleanup shipped in 0.2.1 under
 SESS-025. Safer closing (SESS-026), saved-app icons (SESS-027) and draft-close
 protection (SESS-006) are user-confirmed and published in 0.2.2 Preview. Invalid-field guidance
-(SESS-011) remains a suggested follow-up. Installed-release checks and Actions maintenance
+(SESS-011) is implemented and validated in source. Installed-release checks and Actions maintenance
 remain SESS-021/022. Broader native checks stay under SESS-001, including UAC
 cancellation and the narrower Playnite-specific confirmation in SESS-017; do not
 treat the earlier overall stopping-flow confirmation as proof of unsaved-document safety.
@@ -181,12 +181,37 @@ Done when: primary actions remain reachable, labels/content do not obstruct cont
 
 ## SESS-011 — Make invalid editor fields actionable
 
-**P1 · Open · UI feedback follow-up**  
-Source: code inspection. Save is disabled for blank names/app paths, but the explicit validation message currently focuses on a missing main app. Executable existence is not checked by the editor.
+**P1 · Done · Implemented, validated and user-confirmed · 2026-09-09**
+Source: code inspection found that blank names/paths disabled Save without explaining
+why; startup feedback did not locate the app or field. The user selected SESS-011.
 
-Verify the invalid-field experience with the user. Provide nearby explanations for fields preventing a save, including fields inside collapsed app options. Distinguish valid saved configuration from launch-time availability: portable/offline paths should not be silently rewritten or discarded. Avoid treating successful configuration saving as proof an app can launch.
+Implemented nearby explanations for Session/app names, executable paths, main/focus
+choices and each startup value. Invalid rows remain identifiable with options
+collapsed; unnamed entries have a display fallback. Review fields beside Save opens
+the relevant section, selects the app, and focuses/scrolls the input and explanation.
+Corrections, reordering and removal update the reported blocker. Invalid retained
+numeric values remain reachable after switching their option off, without resetting
+values or changing the choice. Nonblank offline paths remain saveable; launch-time
+availability checks are unchanged. No new visual tokens, Core or schema changes.
 
-Done when: users can locate and fix the reason Save is disabled; whitespace-only inputs and missing main-app choices have understandable feedback; launch-time checks remain consistent with SESS-002.
+Evidence: full Release solution build has zero warnings/errors; 54 Core + 141 App
+tests pass (25 unrelated opt-in native checks skipped). Sixteen new cases cover
+whitespace/untouched drafts, unselected collapsed app errors, keyboard review and
+numeric clearing, retained hidden timings, main/focus target removal, reordering,
+correction and saving an offline path without modifying the original definition.
+Both themes at 1440×900 and 640×480, with 100/125/150/200% headless scaling, pass.
+Visual review caught and fixed explanations scrolling beneath the compact footer;
+regressions check that both the focused field and its explanation remain visible.
+Captures are under ignored artifacts/validation-review. Documentation links and
+git diff --check pass. The user confirms it "works like a charm!" after their trial.
+Native screen-reader and physical-monitor checks remain SESS-010.
+
+On 2026-09-10 the user requested a version bump, release build, commit and push.
+Version 0.2.3 builds a local MSI with clean solution/MSI builds, 54 Core + 141 App
+tests passing (25 opt-in skips), verified MSI version/checksum and release notes.
+Installer lifecycle checks were not repeated. GitHub publication is a separate step;
+the published download remains 0.2.2.
+
 
 ## SESS-012 — Show running apps and bring their windows forward
 

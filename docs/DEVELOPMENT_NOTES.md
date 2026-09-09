@@ -2,7 +2,59 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.2.2 screenshot refresh 2026-09-09
+## Resume next session — 0.2.3 release build 2026-09-10
+
+The user selected SESS-011 from the remaining backlog and confirms it "works like
+a charm!" after their trial. Implemented, validated and user-confirmed in the working
+tree. On 2026-09-10 they requested a version bump, release build, commit and push,
+then stopping for the evening. Shared app/MSI version is now 0.2.3, with release
+notes under docs/release-notes/0.2.3.md. This is a local installer build; GitHub
+publication was not requested. Public downloads/screenshots remain accurately
+labelled 0.2.2, and its published assets and tag are unchanged.
+
+The editor now explains every save-blocking field beside its input. App rows identify
+invalid configuration even when options are collapsed, with an Unnamed app fallback.
+Review fields in the fixed footer selects the first affected app, expands the relevant
+section, and focuses/scrolls the input and explanation into view. Corrections update
+feedback immediately; reordering/removal update the reported app. Accessible field
+help accompanies a polite live summary. The existing accessibility test now identifies
+the summary by name because the same explanation also appears beside its field.
+
+Inspection found invalid retained timing values could become hidden when changing
+launch/readiness modes or disabling an override. Those inputs remain visible while
+invalid, without resetting values or changing the selected option. Review navigation
+never changes those settings. Nonblank offline executable paths remain saveable;
+Windows launch-time executable/working-directory checks are unchanged. No Core,
+library format or new visual token changes. PRODUCT/ARCHITECTURE and the branding
+guide record the behavior; SESS-011 is Done with validation and user confirmation.
+
+Validation: full Release solution build, zero warnings/errors; 54 Core + 141 App
+cases pass (25 unrelated opt-in native skips). Sixteen new cases cover whitespace,
+untouched new drafts, empty Sessions, collapsed/unselected app errors, removed
+main/focus targets, reordering, correction and offline-path saving, retained hidden
+timings and real keyboard clearing of numeric input. Both themes at 1440×900 and
+640×480, with 100/125/150/200% headless scaling, pass. Actual captures were reviewed
+under ignored artifacts/validation-review. Visual review found compact scrolling
+could leave the nearby error under the footer; navigation now includes the error
+rectangle and regression assertions verify it stays above the footer. A test-only
+virtualized-row lookup was corrected to scroll the row into view before reading
+its automation peer. No real user apps or saved library were used as fixtures.
+Documentation links and git diff --check pass. Native screen-reader, physical
+monitor and OS text-size trials remain SESS-010; no installed-app check was needed.
+
+0.2.3 packaging: Build-Installer.ps1 completed clean Release solution/MSI builds,
+54 Core + 141 App tests passing (25 opt-in native skips), self-contained publishing,
+notice collection and configured WiX validation. The app reports 0.2.3.0 / 0.2.3;
+MSI ProductVersion and its SHA-256 sidecar verify. Installer output is
+artifacts/releases/0.2.3/Sessions-0.2.3-win-x64.msi. Build staging is under
+artifacts/installer/d46a17e367a14fcf83a045094d0e1b88. This pre-commit local package
+includes the prior HEAD (7439faf) in its informational version; it is not a tagged
+GitHub release asset. No install/uninstall or Sandbox lifecycle checks were run.
+All 53 relative documentation links and git diff --check pass. The user authorized
+committing and pushing this completed checkpoint to main. Stop here for the evening;
+do not automatically start another backlog item or publish a GitHub release.
+
+## Previous checkpoint — 0.2.2 screenshot refresh 2026-09-09
 
 After publication, the user requested updating screenshots to show app icons.
 Refreshed README/gallery detail images in both themes and the dark End confirmation
