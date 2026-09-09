@@ -45,6 +45,10 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     public string EndConfirmationTitle => $"End “{Runtime?.Name}”?";
     public string[] AppsToStop => Runtime?.Apps.Where(app => app.Owned && app.State is not (SessionAppState.Closed or SessionAppState.Exited))
         .Select(app => app.Name).ToArray() ?? [];
+    public string[] AppsToKeep => Runtime?.Apps.Where(app => !app.Owned && app.State == SessionAppState.AlreadyRunning)
+        .Select(app => app.Name).ToArray() ?? [];
+    public bool HasAppsToKeep => AppsToKeep.Length > 0;
+    public bool HasAppsToStop => AppsToStop.Length > 0;
     private bool _closeAfterEnd;
     public event EventHandler? CloseRequested;
     public bool HasActiveRun => Runtime?.IsActive == true;
@@ -486,7 +490,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
                      nameof(IsConfirmingDelete), nameof(DeleteTitle), nameof(DeleteButtonLabel),
                      nameof(HasActiveRun), nameof(HasRuntime), nameof(NeedsCleanup), nameof(SelectedIsActive), nameof(ShowStart),
                      nameof(ShowActiveNavigation), nameof(RuntimeTitle), nameof(EndLabel), nameof(StartHint), nameof(AppInteractionHint), nameof(IsMainContentEnabled),
-                     nameof(IsEndConfirmation), nameof(EndConfirmationTitle), nameof(AppsToStop) })
+                     nameof(IsEndConfirmation), nameof(EndConfirmationTitle), nameof(AppsToStop), nameof(AppsToKeep), nameof(HasAppsToKeep), nameof(HasAppsToStop) })
             OnPropertyChanged(property);
         StartSessionCommand.NotifyCanExecuteChanged();
         ViewActiveSessionCommand.NotifyCanExecuteChanged();

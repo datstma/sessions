@@ -2,7 +2,54 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.2.0 published 2026-09-09
+## Resume next session — branding approved 2026-09-09
+
+The user approved adapting the supplied mockups to the current product, confirmed
+OS-following light/dark as the default, delegated missing tokens/assets, prioritised
+readability and excluded prototype-only features (history, Recently added, etc.).
+The existing 640×480 minimum is retained with compact adaptation below 900px.
+AGENTS.md and the branding guide now agree with these decisions.
+
+SESS-024 is implemented: Manrope 500/700/800, indigo primary actions, green running
+states, rounded sidebar/hero/app cards, shared editor/picker/confirmation styling,
+and Will be closed / Stays open ownership lists. No startup/cleanup semantics or
+saved schema changed. Existing advanced options, contextual headings, validation,
+empty-Session start guard and recovery remain. No fake history/timer/shortcut UI.
+
+`branding/tokens/tokens.json` is canonical. Run `python scripts/Generate-BrandTheme.py`
+after token edits; both AXAML copies and CSS are generated. Missing readable
+text/fill/hover colours and typed layout tokens were added. Manrope source/license
+is pinned under branding/fonts; `scripts/Generate-BrandAssets.py` generates static
+fonts and the ICO with optional fontTools/Pillow tools. Normal builds use the bundled
+assets offline. Original SVG/PNG references are preserved. The pre-implementation
+findings in [BRANDING_REVIEW.md](BRANDING_REVIEW.md) are labelled historical.
+
+Validation using the pinned SDK in artifacts/dotnet: Release solution build has
+zero warnings/errors; 45 Core tests and 94 App tests pass, 22 opt-in native tests
+skipped. Four new theme/ownership rendering cases cover 1440×900 and 640×480 in
+both themes, font loading, dynamic theme switching, contrast, focused field/search
+appearance, compact title/actions, picker selection and safe confirmation focus.
+Existing keyboard/automation and 125%/150%/200% render-scaling cases also pass.
+All 100 local documentation links/anchors pass. Staged whitespace checks pass apart
+from one upstream trailing space in Manrope's OFL notice, retained verbatim. Theme
+and font/icon regeneration are byte-identical; all view resource keys resolve,
+all three font weights and seven ICO sizes verify, and the font notice is present
+in build output.
+Review PNGs are in ignored artifacts/branding-review. Visual review found and fixed
+Fluent focused-field colours, faded placeholders, checkbox shape and fixed local
+layout values overriding compact styles. Native screen-reader/monitor/text-size
+checks remain SESS-010; installed-app/UAC checks remain SESS-021. No new native trial
+or installer smoke test was run for this presentation change.
+
+Commands: `dotnet build Sessions.slnx -c Release`, then Core and App `dotnet test`
+with `-c Release --no-build`. Set SESSIONS_SCREENSHOT_DIR to capture review PNGs.
+Put artifacts/dotnet first on PATH and set DOTNET_ROOT to it for the pinned SDK.
+The user reviewed and approved the visual refresh, confirmed the guidelines were
+updated, and requested commit/push of this checkpoint. No new release was requested;
+the current public release remains 0.2.0. Do not automatically start another backlog
+item or publish a release.
+
+## Previous checkpoint — 0.2.0 published 2026-09-09
 
 The user requested a new release after checkpoint `851e476` was committed and pushed.
 [Sessions 0.2.0 Preview](https://github.com/datstma/sessions/releases/tag/v0.2.0) is

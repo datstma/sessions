@@ -130,6 +130,23 @@ Manual launches create no Session run or ownership records. Apps opened this way
 
 ### Accessibility and available space
 
+The presentation theme is generated from `branding/tokens/tokens.json` by
+`scripts/Generate-BrandTheme.py`; the checked-in `Styles/BrandTheme.axaml` and
+`branding/tokens/Theme.axaml` match. `App.axaml` imports the resource dictionary
+and retains `RequestedThemeVariant="Default"`. Dynamic colour resources follow
+OS theme changes; `SessionStyles.axaml` supplies shared branded control states and
+compact layout rules. Existing Session resource aliases keep view bindings simple.
+The CSS export is a reference asset, not a desktop runtime dependency.
+
+Manrope 500/700/800 static weights are bundled as Avalonia resources. The upstream
+source, OFL notice and regeneration instructions live in `branding/fonts`; the
+project copies the notice into build/publish output. The native vector BrandMark
+adapts the supplied logo to theme colours; a generated multi-size ICO brands the
+Windows executable and windows. Python/fontTools/Pillow are only regeneration tools,
+not required by normal builds or application startup. No Core dependency changes.
+The End dialog's two ownership lists are projections of existing run snapshots;
+this visual presentation does not change acquisition or cleanup rules.
+
 Accessibility metadata belongs to the presentation layer: item-container styles bind
 Session names/counts/active state, editor app names/order, and main-app choice names.
 Picker choices expose their unavailable/source explanation through HelpText. Text

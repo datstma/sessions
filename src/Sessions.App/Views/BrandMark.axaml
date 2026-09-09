@@ -1,0 +1,11 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Sessions.App.Views.BrandMark" Focusable="False" IsHitTestVisible="False">
+    <Viewbox>
+        <!-- Geometry follows the supplied cascading-square mark; palette follows the surface theme. -->
+        <Canvas Width="48" Height="48">
+            <Rectangle Canvas.Left="4" Canvas.Top="4" Width="19" Height="19" RadiusX="5" RadiusY="5" Fill="{DynamicResource TextMutedBrush}" />
+            <Rectangle Canvas.Left="14.5" Canvas.Top="14.5" Width="19" Height="19" RadiusX="5" RadiusY="5" Fill="{DynamicResource TextPrimaryBrush}" />
+            <Rectangle Canvas.Left="25" Canvas.Top="25" Width="19" Height="19" RadiusX="5" RadiusY="5" Fill="{DynamicResource BrandForegroundBrush}" />
+        </Canvas>
+    </Viewbox>
+</UserControl>

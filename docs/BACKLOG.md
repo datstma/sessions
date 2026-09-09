@@ -20,7 +20,8 @@ The 0.2.0 preview is published (SESS-020/023). The user selected accessibility/s
 with native screen-reader/scaling trials awaiting feedback. The user approved the
 first advanced-startup slice; SESS-023 now implements timing, concurrent launching,
 readiness checks, and completion focus. Launch stages and configurable failure
-policies remain later ideas; no next implementation slice is selected.
+policies remain later ideas. The supplied branding is now implemented, validated
+and approved by the user (SESS-024), with OS-following themes and compact support retained.
 Suggested app follow-ups remain draft-close protection (SESS-006) and
 invalid-field guidance (SESS-011). Installed-release checks and Actions maintenance
 remain SESS-021/022. Broader native checks stay under SESS-001, including UAC
@@ -358,18 +359,28 @@ failure policies, progress/history and preflight checks, window placement, rever
 audio/settings changes, local Session shortcuts, and import/export/duplication.
 These are ideas rather than authorized implementation scope.
 
-Completion criteria met by the tests and documentation above. No release or commit
-was requested for this slice.
+Completion criteria met by the tests and documentation above; published in 0.2.0.
 
-## Completed baseline
+## SESS-024 — Apply the supplied branding and visual direction
 
-| Date | Work | Evidence |
-| --- | --- | --- |
-| 2026-09-08 | Choose sidebar/detail interaction direction | User explicitly selected option 2; recorded in PRODUCT.md. |
-| 2026-09-08 | Native UI preview: first-run creator, sidebar/details, draft editing, ordered app configuration, both lifetime settings, local persistence, light/dark themes | Solution built with zero warnings/errors; 9 Core and 9 App test cases passed; rendered screens reviewed. Native picker/restart validation remains SESS-001. |
-| 2026-09-08 | Recoverable invalid-library and save-error handling | Tests cover preservation/retry; InvalidDataException is explicitly handled by the UI. |
-| 2026-09-08 | Safe Session deletion (SESS-009) | Named confirmation, keyboard cancellation, save-before-removal, error retry, identity/order protection, JSON reload and referenced-file preservation; 26 total tests pass. |
-| 2026-09-08 | Running-app picker (SESS-008) | Search, multi-selection, icons, duplicate/unavailable states, refresh and browse fallback; 34 regular tests and 1 native discovery check pass. |
-| 2026-09-08 | Start/End Session and single-instance protection (SESS-002/003/004/005/007) | Ordered startup, owned-only graceful cleanup, main lifetime, rollback/retry/leave-open, active navigation and close choices; zero build warnings/errors and 74 tests/checks pass (18 Core, 48 regular App, 8 native). |
+**P1 · Done · Implemented, validated and approved by the user · 2026-09-09**
 
-Import/export, compact mode, custom icons, website/settings actions, and other future possibilities remain uncommitted directions in PRODUCT.md and ARCHITECTURE.md. Add specific backlog items when a real need emerges, rather than treating that catalogue as the next implementation queue.
+Source: user supplied branding/ and AGENTS.md UI instructions, then approved adapting
+the mockups to existing screens with OS-following themes, readable text and delegated
+token/asset completion. Prototype-only history, Recently added and other new features
+were explicitly excluded. The initial [review](BRANDING_REVIEW.md) remains historical.
+
+Implemented canonical JSON/generated theme exports, bundled Manrope fonts/license,
+Windows icon, branded shell/hero/app cards and shared editor/picker/confirmation styles.
+End confirmation presents owned apps and already-running apps separately. Compact
+640×480 support, existing validation/advanced settings, active-run editing protection,
+cleanup/recovery, safe confirmation focus and empty-Session behaviour are preserved.
+
+Evidence: Release solution build with zero warnings/errors; 45 Core and 94 App tests
+pass, with 22 opt-in native tests skipped. Both themes rendered at 1440×900 and
+640×480, plus existing 125%/150%/200% scaling/keyboard/automation cases. New assertions
+cover real font loading, theme changes, contrast, focused input/placeholder appearance,
+compact title/action geometry, picker selection and ownership confirmation/Escape.
+Visual review corrected control-state and compact-layout issues. Screenshots are in
+ignored artifacts/branding-review. Native screen-reader and monitor/text-scaling
+limits remain SESS-010; this does not claim installed/native validation or a release.

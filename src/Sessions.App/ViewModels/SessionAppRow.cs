@@ -18,6 +18,8 @@ public partial class SessionAppRow(int order, string name, string executablePath
     public bool IsOpening => _launchInProgress || (IsStarting && _pendingUntil > DateTimeOffset.UtcNow);
     public int Order { get; } = order;
     public string Name { get; } = name;
+    public string Initial => System.Globalization.StringInfo.GetNextTextElement(Name).ToUpperInvariant();
+    public string PathSummary => $"{Order} · {ExecutablePath}";
     public string ExecutablePath { get; } = executablePath;
     public string Role { get; } = role;
     [ObservableProperty] private AppPresence _presence = AppPresence.Checking;

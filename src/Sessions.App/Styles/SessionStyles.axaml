@@ -1,85 +1,129 @@
 <Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:views="using:Sessions.App.Views">
-    <Styles.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.ThemeDictionaries>
-                <ResourceDictionary x:Key="Light">
-                    <SolidColorBrush x:Key="SessionBackground">#FAFBFA</SolidColorBrush>
-                    <SolidColorBrush x:Key="SessionSidebar">#F0F3F0</SolidColorBrush>
-                    <SolidColorBrush x:Key="SessionSurface">#FFFFFF</SolidColorBrush>
-                    <SolidColorBrush x:Key="SessionForeground">#202B25</SolidColorBrush>
-                    <SolidColorBrush x:Key="SessionMuted">#58665E</SolidColorBrush>
-                    <SolidColorBrush x:Key="SessionBorder">#DDE4DE</SolidColorBrush>
-                    <SolidColorBrush x:Key="SessionAccent">#276C4D</SolidColorBrush>
-                    <SolidColorBrush x:Key="SessionAccentText">#FFFFFF</SolidColorBrush>
-                    <SolidColorBrush x:Key="SessionSelection">#DCEDE2</SolidColorBrush>
-                    <SolidColorBrush x:Key="SessionError">#9C352A</SolidColorBrush>
-                </ResourceDictionary>
-                <ResourceDictionary x:Key="Dark">
-                    <SolidColorBrush x:Key="SessionBackground">#202522</SolidColorBrush>
-                    <SolidColorBrush x:Key="SessionSidebar">#191E1B</SolidColorBrush>
-                    <SolidColorBrush x:Key="SessionSurface">#282F2A</SolidColorBrush>
-                    <SolidColorBrush x:Key="SessionForeground">#EDF3ED</SolidColorBrush>
-                    <SolidColorBrush x:Key="SessionMuted">#ADBBAF</SolidColorBrush>
-                    <SolidColorBrush x:Key="SessionBorder">#39443C</SolidColorBrush>
-                    <SolidColorBrush x:Key="SessionAccent">#9CDBB4</SolidColorBrush>
-                    <SolidColorBrush x:Key="SessionAccentText">#183224</SolidColorBrush>
-                    <SolidColorBrush x:Key="SessionSelection">#304C3A</SolidColorBrush>
-                    <SolidColorBrush x:Key="SessionError">#FFB4A8</SolidColorBrush>
-                </ResourceDictionary>
-            </ResourceDictionary.ThemeDictionaries>
-        </ResourceDictionary>
-    </Styles.Resources>
     <Style Selector="Window">
-        <Setter Property="FontFamily" Value="avares://Avalonia.Fonts.Inter/Assets#Inter" />
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="Background" Value="{DynamicResource SessionBackground}" />
-        <Setter Property="Foreground" Value="{DynamicResource SessionForeground}" />
+        <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
+        <Setter Property="FontSize" Value="{StaticResource FontBodySize}" />
+        <Setter Property="FontWeight" Value="{StaticResource WeightBody}" />
+        <Setter Property="Background" Value="{DynamicResource AppBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
-    <Style Selector="TextBlock"><Setter Property="Foreground" Value="{DynamicResource SessionForeground}" /></Style>
-    <Style Selector="TextBlock.muted"><Setter Property="Foreground" Value="{DynamicResource SessionMuted}" /></Style>
-    <Style Selector="TextBlock.eyebrow">
-        <Setter Property="Foreground" Value="{DynamicResource SessionMuted}" />
-        <Setter Property="FontSize" Value="11" /><Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="LetterSpacing" Value="1.5" />
-    </Style>
-    <Style Selector="TextBlock.section"><Setter Property="FontSize" Value="17" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+    <Style Selector="TextBlock"><Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" /></Style>
+    <Style Selector="TextBlock.muted"><Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" /></Style>
+    <Style Selector="TextBlock.eyebrow"><Setter Property="FontSize" Value="{StaticResource FontMicroSize}" /><Setter Property="FontWeight" Value="{StaticResource WeightHeading}" /><Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" /></Style>
+    <Style Selector="TextBlock.section"><Setter Property="FontSize" Value="{StaticResource FontSubtitleSize}" /><Setter Property="FontWeight" Value="{StaticResource WeightHeading}" /></Style>
     <Style Selector="Button">
-        <Setter Property="MinHeight" Value="38" /><Setter Property="Padding" Value="16,9" /><Setter Property="CornerRadius" Value="7" />
+        <Setter Property="MinHeight" Value="{StaticResource Measure44}" /><Setter Property="Padding" Value="{StaticResource Inset16x10}" />
+        <Setter Property="CornerRadius" Value="{StaticResource Round11}" /><Setter Property="FontWeight" Value="{StaticResource WeightHeading}" />
+        <Setter Property="Background" Value="{DynamicResource PanelAltBrush}" /><Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" /><Setter Property="BorderThickness" Value="{StaticResource Inset1}" />
     </Style>
     <Style Selector="Button.primary">
-        <Setter Property="Background" Value="{DynamicResource SessionAccent}" />
-        <Setter Property="Foreground" Value="{DynamicResource SessionAccentText}" />
-        <Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Padding" Value="22,12" />
+        <Setter Property="Background" Value="{DynamicResource BrandBrush}" /><Setter Property="Foreground" Value="{DynamicResource OnBrandBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrandBrush}" />
     </Style>
     <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource SessionAccent}" />
-        <Setter Property="Foreground" Value="{DynamicResource SessionAccentText}" /><Setter Property="Opacity" Value="0.86" />
+        <Setter Property="Background" Value="{DynamicResource BrandHoverBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource BrandHoverBrush}" /><Setter Property="Foreground" Value="{DynamicResource OnBrandBrush}" />
     </Style>
-    <Style Selector="Button.quiet">
-        <Setter Property="Background" Value="Transparent" /><Setter Property="BorderBrush" Value="{DynamicResource SessionBorder}" />
-        <Setter Property="BorderThickness" Value="1" />
+    <Style Selector="Button.primary:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BrandBrush}" /><Setter Property="Foreground" Value="{DynamicResource OnBrandBrush}" />
     </Style>
-    <Style Selector="TextBox">
-        <Setter Property="MinHeight" Value="40" /><Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Background" Value="{DynamicResource SessionSurface}" />
+    <Style Selector="Button.danger">
+        <Setter Property="Background" Value="{DynamicResource DangerFillBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource DangerFillBrush}" /><Setter Property="Foreground" Value="{DynamicResource OnBrandBrush}" />
     </Style>
-    <Style Selector="ListBox.sessions"><Setter Property="Background" Value="Transparent" /></Style>
+    <Style Selector="Button.danger:pointerover /template/ ContentPresenter, Button.danger:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource DangerHoverBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource DangerHoverBrush}" /><Setter Property="Foreground" Value="{DynamicResource OnBrandBrush}" />
+    </Style>
+    <Style Selector="Button.quiet:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BrandSoftBrush}" /><Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <Style Selector="Button:focus-visible /template/ ContentPresenter">
+        <Setter Property="BorderBrush" Value="{DynamicResource BrandForegroundBrush}" /><Setter Property="BorderThickness" Value="{StaticResource Inset2}" />
+    </Style>
+    <Style Selector="Button.runningStatus">
+        <Setter Property="Background" Value="{DynamicResource RunningSoftBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource RunningBrush}" /><Setter Property="Foreground" Value="{DynamicResource RunningBrush}" />
+    </Style>
+    <Style Selector="Button.runningStatus TextBlock"><Setter Property="Foreground" Value="{DynamicResource RunningBrush}" /></Style>
+    <Style Selector="Button.runningStatus:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource RunningSoftBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource RunningBrush}" />
+    </Style>
+    <Style Selector="TextBox, NumericUpDown, ComboBox">
+        <Setter Property="MinHeight" Value="{StaticResource Measure44}" /><Setter Property="CornerRadius" Value="{StaticResource Round10}" />
+        <Setter Property="Background" Value="{DynamicResource PanelAltBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource PanelAltBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrandForegroundBrush}" />
+    </Style>
+    <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource PanelAltBrush}" />
+    </Style>
+    <Style Selector="TextBox"><Setter Property="PlaceholderForeground" Value="{DynamicResource TextMutedBrush}" /></Style>
+    <Style Selector="ListBox.sessions"><Setter Property="Background" Value="{DynamicResource TransparentBrush}" /></Style>
     <Style Selector="ListBox.sessions ListBoxItem">
-        <Setter Property="Padding" Value="12,11" /><Setter Property="Margin" Value="0,0,0,4" /><Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="{StaticResource Inset10x9}" /><Setter Property="Margin" Value="{StaticResource Inset0x0x0x8}" /><Setter Property="CornerRadius" Value="{StaticResource Round12}" />
     </Style>
     <Style Selector="ListBox.sessions ListBoxItem:selected /template/ ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource SessionSelection}" />
+        <Setter Property="Background" Value="{DynamicResource BrandSoftBrush}" />
     </Style>
+    <Style Selector="ListBox.sessions ListBoxItem:selected Border.sessionAvatar"><Setter Property="Background" Value="{DynamicResource BrandBrush}" /></Style>
+    <Style Selector="ListBox.sessions ListBoxItem:selected Border.sessionAvatar TextBlock"><Setter Property="Foreground" Value="{DynamicResource OnBrandBrush}" /></Style>
     <Style Selector="Border.surface">
-        <Setter Property="Background" Value="{DynamicResource SessionSurface}" /><Setter Property="BorderBrush" Value="{DynamicResource SessionBorder}" />
-        <Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Background" Value="{DynamicResource PanelBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+        <Setter Property="BorderThickness" Value="{StaticResource Inset1}" /><Setter Property="CornerRadius" Value="{StaticResource Round12}" />
     </Style>
-    <Style Selector="Border.sidebar"><Setter Property="Width" Value="236" /></Style>
-    <Style Selector="StackPanel.detailContent"><Setter Property="Margin" Value="44,38,44,36" /></Style>
-    <Style Selector="views|SessionEditorView.editorContent"><Setter Property="Margin" Value="40,30,40,24" /></Style>
-    <Style Selector="Border.editorFooter"><Setter Property="Padding" Value="40,18" /></Style>
-    <Style Selector="Window.compact Border.sidebar"><Setter Property="Width" Value="184" /></Style>
-    <Style Selector="Window.compact StackPanel.detailContent"><Setter Property="Margin" Value="20,24" /></Style>
-    <Style Selector="Window.compact views|SessionEditorView.editorContent"><Setter Property="Margin" Value="20,24" /></Style>
-    <Style Selector="Window.compact Border.editorFooter"><Setter Property="Padding" Value="20,12" /></Style>
+    <Style Selector="Border.modal"><Setter Property="CornerRadius" Value="{StaticResource Round16}" /></Style>
+    <Style Selector="Border.appTile, Border.heroAvatar">
+        <Setter Property="Background" Value="{DynamicResource BrandSoftBrush}" /><Setter Property="CornerRadius" Value="{StaticResource Round12}" />
+    </Style>
+    <Style Selector="Border.heroAvatar"><Setter Property="CornerRadius" Value="{StaticResource Round18}" /></Style>
+    <Style Selector="Border.heroAvatar TextBlock"><Setter Property="Foreground" Value="{DynamicResource BrandForegroundBrush}" /></Style>
+    <Style Selector="Border.heroAvatar.active"><Setter Property="BorderBrush" Value="{DynamicResource RunningBrush}" /><Setter Property="BorderThickness" Value="{StaticResource Inset2}" /></Style>
+    <Style Selector="Border.runtime.running"><Setter Property="Background" Value="{DynamicResource RunningSoftBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource RunningBrush}" /></Style>
+    <Style Selector="Border.sidebar"><Setter Property="Width" Value="{StaticResource Measure288}" /></Style>
+    <Style Selector="StackPanel.detailContent"><Setter Property="Margin" Value="{StaticResource Inset20x24x20x24}" /></Style>
+    <Style Selector="views|SessionEditorView.editorContent"><Setter Property="Margin" Value="{StaticResource Inset20x24}" /></Style>
+    <Style Selector="Border.editorFooter"><Setter Property="Padding" Value="{StaticResource Inset20x16}" /><Setter Property="Background" Value="{DynamicResource PanelBrush}" /></Style>
+    <Style Selector="StackPanel.heroActions"><Setter Property="DockPanel.Dock" Value="Right" /></Style>
+    <Style Selector="StackPanel.runtimeActions"><Setter Property="DockPanel.Dock" Value="Right" /><Setter Property="Margin" Value="{StaticResource Inset16x0x0x0}" /></Style>
+    <Style Selector="UniformGrid.explainers"><Setter Property="Columns" Value="2" /></Style>
+    <Style Selector="UniformGrid.steps"><Setter Property="Columns" Value="3" /></Style>
+    <Style Selector="Button.appStatus, Border.appStatus"><Setter Property="Grid.Column" Value="2" /></Style>
+    <Style Selector="Window.compact Border.sidebar"><Setter Property="Width" Value="{StaticResource Measure184}" /></Style>
+    <Style Selector="Window.compact StackPanel.detailContent"><Setter Property="Margin" Value="{StaticResource Inset16x20}" /></Style>
+    <Style Selector="Window.compact views|SessionEditorView.editorContent"><Setter Property="Margin" Value="{StaticResource Inset12x20}" /></Style>
+    <Style Selector="Window.compact Border.editorFooter"><Setter Property="Padding" Value="{StaticResource Inset16x12}" /></Style>
+    <Style Selector="Window.compact StackPanel.heroActions"><Setter Property="DockPanel.Dock" Value="Bottom" /><Setter Property="Margin" Value="{StaticResource Inset0x16x0x0}" /></Style>
+    <Style Selector="Window.compact UniformGrid.explainers"><Setter Property="Columns" Value="1" /></Style>
+    <Style Selector="Window.compact Button.appStatus, Window.compact Border.appStatus">
+        <Setter Property="Grid.Row" Value="1" /><Setter Property="Grid.Column" Value="1" /><Setter Property="Grid.ColumnSpan" Value="2" /><Setter Property="HorizontalAlignment" Value="Left" /><Setter Property="Margin" Value="{StaticResource Inset0x8x0x0}" />
+    </Style>
+    <Style Selector="CheckBox.appChoice"><Setter Property="CornerRadius" Value="{StaticResource Round12}" /><Setter Property="Margin" Value="{StaticResource Inset0x0x0x8}" /></Style>
+    <Style Selector="CheckBox.appChoice:checked"><Setter Property="Background" Value="{DynamicResource BrandSoftBrush}" /></Style>
+    <Style Selector="CheckBox.appChoice /template/ Border#NormalRectangle"><Setter Property="CornerRadius" Value="{StaticResource Round4}" /></Style>
+    <Style Selector="CheckBox.appChoice /template/ Grid#RootGrid > Grid"><Setter Property="VerticalAlignment" Value="Center" /></Style>
+    <Style Selector="RadioButton.source">
+        <Setter Property="Padding" Value="{StaticResource Inset14x10}" /><Setter Property="MinHeight" Value="{StaticResource Measure44}" />
+        <Setter Property="Template"><ControlTemplate><Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{StaticResource Inset2}" CornerRadius="{StaticResource Round9}" Padding="{TemplateBinding Padding}"><ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" /></Border></ControlTemplate></Setter>
+        <Setter Property="Background" Value="{DynamicResource TransparentBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource TransparentBrush}" />
+    </Style>
+    <Style Selector="RadioButton.source:checked"><Setter Property="Background" Value="{DynamicResource BrandSoftBrush}" /><Setter Property="Foreground" Value="{DynamicResource BrandForegroundBrush}" /></Style>
+    <Style Selector="RadioButton.source:focus-visible"><Setter Property="BorderBrush" Value="{DynamicResource BrandForegroundBrush}" /></Style>
+    <Style Selector="Expander"><Setter Property="Background" Value="{DynamicResource PanelAltBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" /><Setter Property="BorderThickness" Value="{StaticResource Inset1}" /><Setter Property="CornerRadius" Value="{StaticResource Round12}" /></Style>
+
+    <Style Selector="TextBox /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource PanelAltBrush}" />
+    </Style>
+    <Style Selector="CheckBox:checked /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource BrandBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource BrandBrush}" />
+    </Style>
+    <Style Selector="CheckBox:checked /template/ Path#CheckGlyph"><Setter Property="Fill" Value="{DynamicResource OnBrandBrush}" /></Style>
+    <Style Selector="Expander /template/ ToggleButton#ExpanderHeader">
+        <Setter Property="Background" Value="{DynamicResource PanelAltBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="FontWeight" Value="{StaticResource WeightStrong}" />
+    </Style>
+    <Style Selector="Expander /template/ ToggleButton#ExpanderHeader:pointerover /template/ Border#ToggleButtonBackground, Expander /template/ ToggleButton#ExpanderHeader:pressed /template/ Border#ToggleButtonBackground">
+        <Setter Property="Background" Value="{DynamicResource BrandSoftBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource BrandForegroundBrush}" />
+    </Style>
+    <Style Selector="Window.compact StackPanel.runtimeActions"><Setter Property="DockPanel.Dock" Value="Bottom" /><Setter Property="Margin" Value="{StaticResource Inset0x8x0x0}" /></Style>
 </Styles>

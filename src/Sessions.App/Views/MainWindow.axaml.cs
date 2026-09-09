@@ -19,7 +19,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        SizeChanged += (_, _) => Classes.Set("compact", Bounds.Width < 900);
+        SizeChanged += (_, _) => Classes.Set("compact", Bounds.Width < (double)this.FindResource("CompactBreakpoint")!);
         _presenceTimer.Tick += async (_, _) => await RefreshPresenceAsync();
         Activated += async (_, _) => await RefreshPresenceAsync();
         MainViewModel? observedModel = null;
@@ -62,8 +62,8 @@ public partial class MainWindow : Window
             // Size in logical pixels: leave space for the taskbar and window decorations at high DPI.
             if (Screens.ScreenFromWindow(this) is { } screen)
             {
-                Width = Math.Min(Width, Math.Max(MinWidth, screen.WorkingArea.Width / screen.Scaling - 32));
-                Height = Math.Min(Height, Math.Max(MinHeight, screen.WorkingArea.Height / screen.Scaling - 64));
+                Width = Math.Min(Width, Math.Max(MinWidth, screen.WorkingArea.Width / screen.Scaling - (double)this.FindResource("WindowHorizontalAllowance")!));
+                Height = Math.Min(Height, Math.Max(MinHeight, screen.WorkingArea.Height / screen.Scaling - (double)this.FindResource("WindowVerticalAllowance")!));
             }
             if (DataContext is MainViewModel viewModel && viewModel.LoadCommand.CanExecute(null))
                 await viewModel.LoadCommand.ExecuteAsync(null);

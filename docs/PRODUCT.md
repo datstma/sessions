@@ -92,6 +92,15 @@ When there are no Sessions, the main view offers **Create your first Session** w
 
 The current application implements this navigation, local creation/editing, executable-file selection, app removal and reordering, and both lifetime configurations. It follows the system light/dark theme. Sessions are saved on this computer and loaded at startup. Save failures retain the draft; load failures show a retry action and prevent replacing an unreadable library. Start Session opens configured apps using the saved startup mode and changes to an active run with End Session available. Sample Sessions are used only in tests, not inserted into the user's library.
 
+The visual treatment follows the supplied [branding guide](../branding/DESIGN_GUIDE.md):
+Manrope typography, rounded Session/app cards, indigo primary actions, green running
+states and red destructive actions. Both OS-selected themes use readable text/fill
+variants. The sidebar includes the Sessions mark and local-storage reassurance;
+the selected Session has a stronger header and individual app cards. End confirmation
+separates apps this run owns from already-open apps that stay open. The mockups guide
+appearance; history, Recently added, timers, shortcut chips and a theme toggle are
+not part of this refresh. Existing advanced settings and recovery flows remain.
+
 The main window supports a 640×480 logical-pixel minimum and uses a narrower sidebar
 and smaller content margins below 900 logical pixels. Main and picker windows limit
 their initial size to the display's working area, within their minimum sizes. Content
