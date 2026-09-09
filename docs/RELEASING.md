@@ -8,7 +8,7 @@ no separate .NET download on the target computer.
 ## Versioning
 
 Set the version once in [Directory.Build.props](../Directory.Build.props).
-Use `major.minor.patch`, starting at `0.1.0`. Bug fixes increment the last field;
+Use `major.minor.patch`, starting at `0.1.0`. Bug fixes and visual polish increment the last field;
 feature releases increment the middle field. `1.0.0` is a product-readiness decision.
 The installer and application metadata use this value. Do not change the Session
 library's JSON schema version simply because the application version changes.
@@ -57,7 +57,8 @@ The script does not install Sessions, access your library, or upload anything.
 
 - Program files: `%LOCALAPPDATA%\Programs\Sessions` for the installing user.
 - Saved library: `%LOCALAPPDATA%\Sessions\sessions.json`, outside installer ownership.
-- Start menu shortcut and Windows Installed apps registration.
+- Start menu shortcut and Windows Installed apps registration, both using the
+  Sessions icon embedded in the published executable.
 - A stable upgrade identity; higher versions replace previous versions, and lower
   versions are rejected. Rebuilding a published version is not an update mechanism.
 - Uninstall removes installed files and empty program directories, preserving the
@@ -122,6 +123,8 @@ Use a disposable Windows VM with no separately installed .NET runtime and a
 standard user. Never replace the real development library with test fixtures.
 
 - Install, use the Start menu shortcut, create/save a Session, close and reopen.
+  Check the Sessions icon in the shortcut, taskbar and Installed apps, and verify
+  the bundled Manrope typography in both themes.
 - Install a higher-version MSI over the previous release and verify the saved
   library and single Installed apps entry. Reject installation of the older MSI.
 - While Sessions is running, attempt install/upgrade/uninstall (including silent

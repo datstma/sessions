@@ -22,7 +22,8 @@ first advanced-startup slice; SESS-023 now implements timing, concurrent launchi
 readiness checks, and completion focus. Launch stages and configurable failure
 policies remain later ideas. The supplied branding is now implemented, validated
 and approved by the user (SESS-024), with OS-following themes and compact support retained.
-Suggested app follow-ups remain draft-close protection (SESS-006) and
+Public-facing branding polish and obsolete-asset cleanup are complete under
+SESS-025, awaiting a future release. Suggested app follow-ups remain draft-close protection (SESS-006) and
 invalid-field guidance (SESS-011). Installed-release checks and Actions maintenance
 remain SESS-021/022. Broader native checks stay under SESS-001, including UAC
 cancellation and the narrower Playnite-specific confirmation in SESS-017; do not
@@ -384,3 +385,47 @@ compact title/action geometry, picker selection and ownership confirmation/Escap
 Visual review corrected control-state and compact-layout issues. Screenshots are in
 ignored artifacts/branding-review. Native screen-reader and monitor/text-scaling
 limits remain SESS-010; this does not claim installed/native validation or a release.
+
+## SESS-025 — Finish public-facing branding and remove obsolete assets
+
+**P1 · Done · Implemented and locally validated; unreleased · 2026-09-09**
+
+Source: the user requested completion of public-facing polish and old-asset cleanup.
+Code inspection found the Avalonia template icon, Inter package/registration, no
+explicit MSI registration icon and no public UI screenshots. The existing Manrope
+font resource already names Segoe UI as fallback.
+
+Scope: README logo and actual UI screenshots with accurate source/release wording,
+reproducible screenshot capture, installer/shortcut icon from the published app,
+removal of unused assets and their obsolete notice, and packaging/documentation QA.
+This does not publish a release or change startup/cleanup behavior.
+
+Implemented: README tile and theme-aware screenshot, a four-image gallery of actual
+UI renders, and `scripts/Update-PublicScreenshots.ps1` using isolated fixture data.
+The screenshots explicitly preview source newer than the 0.2.0 download. MSI
+Installed apps and Start menu icons reference the branded published executable.
+Removed the template ICO, Inter package, production/test registration and obsolete
+supplemental Inter notice; Manrope and its Segoe UI fallback remain.
+
+Evidence: Release solution and MSI builds have zero warnings/errors; 45 Core and
+94 App tests pass (22 opt-in native cases skipped). Four public 1440×900 images
+were visually reviewed; the suite also covers both themes at 640×480 and scaling.
+All 272 extracted MSI payload files match the fresh publish; MSI icon bytes match
+the published executable, shortcut/Installed apps icon references verify, removed
+package/notice files are absent, Manrope OFL and the checksum verify. Documentation
+links, HTML image references, unchanged theme generation and whitespace checks pass.
+Evidence is in ignored `artifacts/public-branding-qa/`. Native installed icon/UI,
+accessibility and real-app checks remain SESS-010/021; no installation or release
+was performed. The local MSI is a development rebuild, not an update to public 0.2.0.
+
+Follow-up: the user selected 0.2.1 for the branding refresh and requested a stronger
+app-like GitHub README. Shared application/MSI version is now 0.2.1, with draft
+release notes. The README has a centered logo/tagline, theme-aware hero screenshot,
+feature overview, inline editor/End screenshots and an expandable theme comparison.
+Public download links still point to the published 0.2.0; 0.2.1 is labelled upcoming.
+GitHub Markdown rendering preserves the layout elements, with all local anchors,
+links and eight image/source references verified. The versioned 0.2.1 solution/MSI
+builds have zero warnings/errors; 45 Core and 94 App tests pass, 22 native cases
+skip. All 272 extracted files, icons, notices, checksum and version metadata verify
+in ignored `artifacts/version-0.2.1-qa/`. The user requested commit/push of this
+checkpoint; tagging and release publication remain separate.

@@ -2,7 +2,89 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — branding approved 2026-09-09
+## Resume next session — 0.2.1 prepared and README refined 2026-09-09
+
+The user selected 0.2.1 for the branding refresh and requested a GitHub README
+that looks more like the app and shows its logo/screenshots. Directory.Build.props
+now sets 0.2.1 for app and installer; draft release notes are in
+[release-notes/0.2.1.md](release-notes/0.2.1.md). Version policy now explicitly
+includes visual polish as a patch release. The library remains v2.
+
+README now leads with a centered tile, Sessions heading, tagline and download
+navigation, then a theme-aware hero screenshot. It adds a compact feature overview,
+an expandable side-by-side theme comparison, and full-width editor/End screenshots
+within the relevant explanations. Existing setup, safety, compatibility, source,
+license and preview-limit information remains. Images are the actual-UI captures
+from SESS-025; no new UI behavior or visual tokens were introduced.
+
+GitHub API confirmed v0.2.0 and v0.1.0 remain the only published previews. README
+and screenshot gallery label 0.2.1 as upcoming and retain the real 0.2.0 download.
+GitHub's Markdown renderer accepted the centered header, picture/sources, details
+and tables; all rendered navigation/local links and eight image/source references
+verify. Rendered HTML is in ignored artifacts/readme-review/github-rendered.html.
+
+Versioned validation: Release solution and MSI builds have zero warnings/errors;
+45 Core and 94 App tests pass, 22 opt-in native cases skipped. All 272 extracted
+MSI payload files match publish; icon source/references, removed Inter package,
+Manrope OFL and checksum pass. MSI reports 0.2.1; EXE file version is 0.2.1.0.
+108 local documentation links/anchors, regenerated-theme identity and whitespace
+checks pass. Evidence is in ignored
+artifacts/version-0.2.1-qa and artifacts/installer/43fc715e3420474db64e8f17cf99fdf1.
+Local MSI: artifacts/releases/0.2.1/Sessions-0.2.1-win-x64.msi; SHA-256:
+`eb49e20d1bdbe8ab0e31ef6b4e59052e5ce610464c8d16f9211d4a8d51c7d5b8`.
+
+The user requested commit and push of this source checkpoint. This checkpoint
+contains the branding cleanup, README/gallery and 0.2.1 preparation; no tag,
+GitHub release draft or publication was requested.
+No 0.2.1 installed upgrade or downloaded-asset validation was performed. Before
+publication, follow RELEASING.md using a committed/tagged build and verify its exact
+assets; the local MSI embeds the previous commit hash and is not that release
+artifact. Native accessibility/monitor and installed real-app/UAC checks remain
+SESS-010/021. Do not automatically publish or start another backlog item.
+
+## Previous checkpoint — public branding polish complete 2026-09-09
+
+The user requested finishing public-facing polish and removing old branding assets.
+SESS-025 is implemented locally, not committed or published. README now uses the
+supplied Sessions tile and a theme-aware actual-UI screenshot; docs/SCREENSHOTS.md
+adds light/dark detail, editor and End-confirmation views. Four checked-in images
+use isolated sample data and simulated process state, with no real app launch or
+personal library access. `scripts/Update-PublicScreenshots.ps1` regenerates them
+through the existing branding interaction fixtures. The README/gallery explicitly
+state that public 0.2.0 still uses the earlier design.
+
+Removed the Avalonia template icon, Avalonia.Fonts.Inter package, production/test
+WithInterFont calls and the obsolete supplemental Inter notice. Existing Manrope
+500/700/800 and explicit Segoe UI fallback remain. The MSI uses its published
+executable as the icon source for Installed apps and the Start menu shortcut;
+architecture, releasing and logo documentation now describe that integration.
+
+Validation: pinned SDK Release solution and MSI builds succeed with zero warnings
+or errors; 45 Core and 94 App tests pass, 22 opt-in native cases skipped. All four
+public images were visually reviewed. Existing tests retain both themes, compact
+640×480, 125%/150%/200% scaling, font loading, keyboard and ownership coverage.
+Fresh publish/extraction verifies all 272 MSI payload files byte-for-byte, exact
+published-executable bytes in the Icon table, both icon references, absent Inter
+package/notice, preserved Manrope OFL and the MSI checksum. WiX decompilation emits
+only its expected informational warning about the existing custom cleanup table;
+the MSI build and configured ICE validation have no warnings. Documentation links,
+README HTML asset paths, unchanged generated theme exports and whitespace pass.
+
+Evidence: ignored artifacts/public-branding-qa/result.json and extracted MSI,
+plus artifacts/installer/2ff2a92c619c4a71a23e0a0a827a70e3. Local MSI SHA-256:
+`fbbeb34c54a3e49db62d97c6cfd41f3fcfcf5c6e28b7ddc673a12040a0f52366`.
+This is a development rebuild with the existing 0.2.0 version, not a distributable
+update or replacement for published assets. No installer was run and no release
+was requested/published. Native Installed apps/taskbar appearance and real-app/UAC
+checks remain SESS-021; Narrator/monitor/text-size checks remain SESS-010.
+
+Commands: put artifacts/dotnet first on PATH and set DOTNET_ROOT to that directory;
+run `./scripts/Update-PublicScreenshots.ps1` and `./scripts/Build-Installer.ps1`.
+NuGet signature lookups required network-enabled execution in this environment.
+Next release preparation must select a new version and update screenshot wording;
+do not automatically publish or start another backlog item.
+
+## Previous checkpoint — branding approved 2026-09-09
 
 The user approved adapting the supplied mockups to the current product, confirmed
 OS-following light/dark as the default, delegated missing tokens/assets, prioritised

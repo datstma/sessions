@@ -142,7 +142,10 @@ Manrope 500/700/800 static weights are bundled as Avalonia resources. The upstre
 source, OFL notice and regeneration instructions live in `branding/fonts`; the
 project copies the notice into build/publish output. The native vector BrandMark
 adapts the supplied logo to theme colours; a generated multi-size ICO brands the
-Windows executable and windows. Python/fontTools/Pillow are only regeneration tools,
+Windows executable and windows. The MSI reuses that executable as the icon source for its
+Installed apps registration and Start menu shortcut. Manrope uses Segoe UI fallback;
+the previous Inter package/registration and Avalonia template icon are removed.
+Python/fontTools/Pillow are only regeneration tools,
 not required by normal builds or application startup. No Core dependency changes.
 The End dialog's two ownership lists are projections of existing run snapshots;
 this visual presentation does not change acquisition or cleanup rules.

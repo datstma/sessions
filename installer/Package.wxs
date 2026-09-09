@@ -6,6 +6,8 @@
                   Schedule="afterInstallInitialize" />
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
     <Property Id="ARPNOMODIFY" Value="1" />
+    <Icon Id="Sessions.exe" SourceFile="$(PublishDirectory)/Sessions.App.exe" />
+    <Property Id="ARPPRODUCTICON" Value="Sessions.exe" />
     <Property Id="ARPURLINFOABOUT" Value="https://github.com/datstma/sessions" />
     <!-- Do not let Restart Manager close an active Session behind its confirmation UI. -->
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable" />
@@ -19,7 +21,8 @@
     <StandardDirectory Id="ProgramMenuFolder">
       <Component Id="StartMenuShortcut" Guid="*">
         <Shortcut Id="SessionsShortcut" Name="Sessions" Target="[INSTALLFOLDER]Sessions.App.exe"
-                  WorkingDirectory="INSTALLFOLDER" />
+                  WorkingDirectory="INSTALLFOLDER" Icon="Sessions.exe" IconIndex="0"
+                  Description="Get your apps together." />
         <RegistryValue Root="HKCU" Key="Software\Sessions\Installer" Name="StartMenuShortcut"
                        Type="integer" Value="1" KeyPath="yes" />
       </Component>

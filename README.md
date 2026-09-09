@@ -1,14 +1,57 @@
-# Sessions
+<p align="center">
+  <img src="branding/logo/sessions-tile.svg" width="96" height="96" alt="Sessions app icon">
+</p>
 
-**Get your apps together. Get on with your day.**
+<h1 align="center">Sessions</h1>
 
-Work, fly, stream, build. Each activity comes with its own collection of apps—and the same routine of opening them all again.
+<p align="center">
+  <strong>Get your apps together.<br>Get on with your day.</strong>
+</p>
 
-Sessions is a local-first Windows desktop app that lets you save that collection as a named **Session**. Choose it, start it, and see what's running. When you're finished, Sessions stops the apps it opened and leaves apps that were already running alone.
+<p align="center">
+  Save the apps you use together. Start them as a Session.<br>
+  When you're finished, close the apps it opened and keep your other apps running.
+</p>
 
-No account. No cloud sync. Your setup stays on your computer.
+<p align="center">
+  Windows desktop · Local-first · Open source<br>
+  No account. No cloud sync. Your setup stays on your computer.
+</p>
 
-[How it works](#how-it-works) · [Downloads](#downloads) · [Build from source](#build-from-source) · [Project direction](#project-direction)
+<p align="center">
+  <a href="#downloads"><strong>Download for Windows</strong></a> ·
+  <a href="#see-it-in-action">Screenshots</a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#build-from-source">Build from source</a>
+</p>
+
+## See it in action
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/session-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="docs/images/session-light.png">
+  <img src="docs/images/session-light.png" alt="Sessions showing a Gaming setup with four apps, a separate Start Session action, and Discord already running.">
+</picture>
+
+<p align="center"><em>Your apps, their order, and what's running—all in one place.</em></p>
+
+**A first look at 0.2.1.** The branding refresh is in the current source and is
+being prepared for release. The available **0.2.0 download uses the earlier design**.
+
+| Make it yours | Start together | End with clarity |
+| --- | --- | --- |
+| Give each activity its own apps, order and launch settings. | Open apps in order or all at once, with readiness waits when you need them. | Review what will close. Apps that were already running stay open. |
+
+<details>
+<summary><strong>See the light and dark themes side by side</strong></summary>
+
+| Light | Dark |
+| --- | --- |
+| ![Sessions detail in the light theme.](docs/images/session-light.png) | ![The same Session in the dark theme.](docs/images/session-dark.png) |
+
+Sessions follows your system appearance, including changes while the app is open.
+
+</details>
 
 ## A setup for whatever you're doing
 
@@ -19,7 +62,9 @@ No account. No cloud sync. Your setup stays on your computer.
 | Streaming | OBS, chat, and the app you're sharing |
 | Development | Your editor, terminal, and browser |
 
-Give each Session its own app order and launch options. You can end it manually, or choose an app whose exit prompts you to end the Session. A main app is optional.
+Work, fly, stream, build. Each activity can have its own collection of apps. You
+can end a Session manually, or choose an app whose exit prompts you to end it.
+A main app is optional.
 
 ## How it works
 
@@ -31,14 +76,12 @@ Give each Session its own app order and launch options. You can end it manually,
 
 Selecting a Session only shows its details; starting it is a separate action. Creating or editing one never launches its apps.
 
-**Sessions 0.2.0** offers advanced startup: open apps in order or
-together, configure readiness waits and pauses, and optionally bring Sessions or a
-chosen app forward when startup finishes. Options headings follow the selected app
-and Session names; each app has its own wait/pause settings. Empty Sessions remain
-editable and show Start Session only after apps are added and saved. It also
-improves keyboard focus, accessibility labels, and layouts in small windows.
-Saving in 0.2.0 upgrades the library to format v2, which the
-older 0.1.0 preview cannot read. Existing libraries load with their old defaults.
+![Edit a Session: name your setup, arrange its apps, and expand the options you need.](docs/images/editor-dark.png)
+
+**Set the pace.** Advanced startup lets you open apps in order or together, add
+pauses, wait for a process or window, and optionally bring Sessions or a chosen
+app forward when startup finishes. Empty Sessions stay editable until you're ready
+to add apps and start.
 
 ### Small details that make daily use easier
 
@@ -57,9 +100,17 @@ For example, if your chat app is already running when you start a Streaming Sess
 
 **Save your work before confirming End Session.** After confirmation, Sessions requests a normal close, then force quits an owned app if it remains running. This also handles apps that normally minimise to the tray when closed; unsaved changes can be lost.
 
+![Before ending a Session, see which apps will be closed and which will stay open.](docs/images/end-dark.png)
+
 If an app cannot be stopped or safely tracked, Sessions explains the problem and offers recovery where available. Closing Sessions during an active run lets you end the run or leave its apps open. Apps opened individually remain independent of a later Session's cleanup.
 
+[Browse the full screenshot gallery](docs/SCREENSHOTS.md). Images show the actual
+0.2.1 UI with isolated sample data and simulated process status.
+
 ## Downloads
+
+**Coming next: [0.2.1 — the branding refresh](docs/release-notes/0.2.1.md).**
+The version is set in source; its installer has not been published yet.
 
 **Sessions 0.2.0 is a development preview.** Download the
 [Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.2.0/Sessions-0.2.0-win-x64.msi)
@@ -70,6 +121,10 @@ shortcut. Installer and application binaries are unsigned.
 Close Sessions before installing, updating, or uninstalling. Updates and uninstall
 preserve your saved Sessions. To update, download and run a newer MSI; there is no
 automatic updater. The release page includes checksums, source, and validation limits.
+
+**Library compatibility:** 0.2.1 keeps the same v2 format as 0.2.0. Saving a library
+from 0.1.0 upgrades it to v2, which 0.1.0 cannot open; loading alone does not rewrite
+it. Keep a copy before saving if you need to return to 0.1.0.
 
 See [Building and releasing Sessions](docs/RELEASING.md) for versioning and packaging.
 

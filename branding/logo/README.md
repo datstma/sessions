@@ -19,4 +19,6 @@ both sidebar and card surfaces without introducing an SVG runtime dependency.
 The fixed indigo tile is used for the Windows icon; its white mark is artwork,
 not small action text. [Generate-BrandAssets.py](../../scripts/Generate-BrandAssets.py)
 exports all seven ICO sizes above into `src/Sessions.App/Assets/sessions.ico`.
-Both windows and the application executable use that icon.
+Both windows and the application executable use that icon. The MSI uses the
+published executable's icon for Installed apps and the Start menu shortcut.
+The repository README uses the supplied tile SVG directly.
