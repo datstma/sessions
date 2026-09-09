@@ -670,7 +670,8 @@ disabled or incompatible. A plugin marketplace and automatic plugin updates are
 not part of this request.
 
 Steam is the first concrete consumer (SESS-030); use its needs to keep the extension
-boundary focused. Relate future utility integrations to SESS-028 where useful,
+boundary focused. Philips Hue (SESS-033) and Home Assistant (SESS-034) are additional
+requested plugins for later work; Steam remains first. Relate future utility integrations to SESS-028 where useful,
 without assuming each utility needs its own plugin. Preserve Sessions' general
 purpose, local-first behavior, platform-neutral Core and existing process ownership
 and cleanup guarantees. Keep today's executable-based Sessions compatible.
@@ -803,3 +804,50 @@ from v0.3.0/9bc12cb. Workflow 34414859067 passed clean solution/MSI builds and
 74 Core + 153 App tests (27 opt-in native skips). Downloaded hashes, all 174 tagged
 source entries, WiX source/license and MSI ProductVersion 0.3.0 verify. Repeated
 Sandbox lifecycle tests were omitted under the user's instruction and disclosed.
+
+## SESS-033 — Philips Hue plugin
+
+**P2 · Proposed · Depends on SESS-029 · 2026-09-10**
+Source: the user requested Philips Hue support in the plugin backlog. This is
+future work; no integration research or implementation is authorized now.
+
+Candidate outcome: choose lighting scenes or light settings for a Session, such as
+a gaming or streaming setup. When selected, verify supported local connection,
+pairing/authentication, discovery and device/scene identities before choosing an API
+or dependency. Keep connection credentials separate from shareable Session definitions.
+Coordinate connection/preferences UI with SESS-031.
+
+Define when actions run, how unavailable bridges/devices and partial failures affect
+startup, and what End, cancellation and app close do. Decide whether ending restores
+captured state, applies an explicit end scene or leaves lighting unchanged; do not
+assume ownership of shared lights or overwrite later user/automation changes.
+Coordinate with SESS-034 if the same lights are reachable through Home Assistant.
+
+Done when: an agreed first slice can save/reload Session lighting choices, execute
+them through the plugin, handle missing/disabled plugins and connection failures,
+and demonstrate documented start/end behavior with tests and device validation.
+No bridge model, API version, cloud dependency or restoration policy is selected yet.
+
+## SESS-034 — Home Assistant plugin
+
+**P2 · Proposed · Depends on SESS-029 · 2026-09-10**
+Source: the user requested Home Assistant support in the plugin backlog. This is
+future work; no integration research or implementation is authorized now.
+
+Candidate outcome: connect to the user's Home Assistant instance and choose explicit
+Session actions, such as activating a scene or running a script. Verify supported
+interfaces, authentication, discovery and stable action/entity identities when selected.
+Prefer local operation and keep credentials outside shareable Session definitions;
+coordinate connection/preferences UI with SESS-031.
+
+Agree a small initial set of actions and explain their effects before execution.
+Define ordering, timeouts, unavailable instances/entities, partial failures and retry
+behavior without duplicating actions unintentionally. Specify optional end actions
+separately: an arbitrary scene/script may have effects that cannot be inferred or
+reversed. Respect changes made by users and other automations; do not claim automatic
+rollback of arbitrary actions. Coordinate overlapping Hue control with SESS-033.
+
+Done when: the agreed Session actions can be selected, saved/reloaded and executed
+through the plugin, with clear missing-plugin/connection recovery and tested,
+documented start/end semantics against a Home Assistant instance. No API, SDK,
+entity scope or automatic restoration policy is selected yet.

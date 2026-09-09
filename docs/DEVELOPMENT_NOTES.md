@@ -2,7 +2,19 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.3.0 published 2026-09-10
+## Resume next session — Hue and Home Assistant backlog 2026-09-10
+
+The user requested Philips Hue and Home Assistant support in the plugin backlog,
+then explicitly requested commit and push. Added SESS-033 (Hue) and SESS-034
+(Home Assistant), linked from the plugin foundation SESS-029. Steam remains the
+first plugin under SESS-030. Candidate lighting scenes and explicit home-automation
+actions are proposals; APIs, authentication and start/end policies remain future
+design work. No research, implementation, dependency or version change. Product
+and architecture specifications remain unchanged. Documentation links, unique IDs
+and diff whitespace are checked for this documentation-only update.
+Latest published release remains 0.3.0. Do not automatically implement these items.
+
+## Previous checkpoint — 0.3.0 published 2026-09-10
 
 Sessions 0.3.0 Preview is public:
 https://github.com/datstma/sessions/releases/tag/v0.3.0.
