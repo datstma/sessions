@@ -4,6 +4,12 @@ Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authorit
 
 ## Resume next session — 0.2.2 version preparation 2026-09-09
 
+Release follow-up: the user explicitly requested publishing 0.2.2 and skipping
+the repeated Sandbox installer lifecycle checks, citing successful installer use.
+Proceed with the existing tagged build/test/package workflow and asset/checksum
+verification. Do not repeat Sandbox installation. Release notes disclose this
+validation limit. Version preparation and draft protection were pushed as b09686c.
+
 The user selected SESS-006 after reviewing the backlog and confirms it "works great".
 They requested a version bump, commit and push. Shared application/MSI version is
 now 0.2.2, with upcoming release notes covering SESS-006, SESS-026 and SESS-027.
@@ -40,11 +46,11 @@ The executable reports 0.2.2.0 / 0.2.2; local MSI and checksum are under ignored
 artifacts/releases/0.2.2. This pre-commit package carries the previous commit in
 its informational version and is a packaging check, not a published release asset.
 All 70 relative links in the changed documents resolve; git diff --check passes.
-The exact release-tag installer still needs lifecycle validation when released.
+Exact release-tag installer lifecycle checks are omitted for 0.2.2 at the user's
+request above; the automated workflow and artifact checks still apply.
 
 The previous safer-closing/icon work was committed and pushed as e04b00c on main.
-The current request covers committing and pushing draft protection and 0.2.2
-preparation to main. Publishing/tagging 0.2.2 is a separate step; published 0.2.1
+The current request now authorizes tagging and publishing 0.2.2. Published 0.2.1
 remains unchanged. Do not automatically start SESS-011 or another backlog item.
 
 ## Previous checkpoint — safer closing and app icons 2026-09-09
