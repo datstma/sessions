@@ -1,6 +1,6 @@
 # Sessions — Backlog
 
-Last reviewed: **2026-09-08**. Scope comes from [PRODUCT.md](PRODUCT.md); technical constraints come from [ARCHITECTURE.md](ARCHITECTURE.md). [DEVELOPMENT_NOTES.md](DEVELOPMENT_NOTES.md) contains the current handoff and evidence behind this initial backlog.
+Last reviewed: **2026-09-09**. Scope comes from [PRODUCT.md](PRODUCT.md); technical constraints come from [ARCHITECTURE.md](ARCHITECTURE.md). [DEVELOPMENT_NOTES.md](DEVELOPMENT_NOTES.md) contains the current handoff and validation evidence.
 
 This is a work record, not authorization to implement everything. The user explicitly requested safe Session deletion (SESS-009), a running-app picker (SESS-008), running indicators with window focus (SESS-012), and individual app launching (SESS-013), implemented below. Priorities remain an initial sequencing recommendation and can change with feedback.
 
@@ -213,7 +213,7 @@ User confirmation at the end of the day: “it's working!” The Start menu pick
 
 ## SESS-020 — Prepare the public GitHub project and downloadable releases
 
-**P1 · Open · Publication authorized; release build pending · 2026-09-09**
+**P1 · Done · 0.1.0 preview published · 2026-09-09**
 Source: user wants a proper GitHub repository, starting with a clever public-facing README, and is considering public distribution with downloadable releases eventually.
 
 Implemented: root README explains the app, examples, setup flow, ownership and full-stop behaviour, preview limitations, local storage, source build/test commands, and links to project documentation. It now includes the 0.1.0 preview download and setup instructions.
@@ -228,17 +228,41 @@ Licensing validation: clean build and local Debug publish; output LICENSE hashes
 
 Accepted on 2026-09-09: start at 0.1.0 with a shared numeric version, per-user self-contained Windows x64 MSI, local packaging script, and manually triggered GitHub Actions workflow that creates a draft from a matching version tag. Normal pushes/tags do not publish releases. Source archive, checksums, release notes, and notice collection are included. Details and validation requirements are in [RELEASING.md](RELEASING.md).
 
-Implemented configuration: shared version and pinned SDK, separate WiX 7 project, fresh publish/intermediate staging, per-user payload generation with HKCU key paths and deterministic component GUIDs, detection-only running-app refusal, and draft-release workflow. NuGet/runtime notices and pinned supplemental Avalonia/Inter/MicroCom/Tmds/WiX notices are collected. The user explicitly authorized WiX 7 terms acceptance; `AcceptEula=wix7` resolves WIX7015. The local unsigned 0.1.0 MSI and checksum are produced under `artifacts/releases/0.1.0/`; no public release has been published.
+Implemented configuration: shared version and pinned SDK, separate WiX 7 project, fresh publish/intermediate staging, per-user payload generation with HKCU key paths and deterministic component GUIDs, detection-only running-app refusal, and draft-release workflow. NuGet/runtime notices and pinned supplemental Avalonia/Inter/MicroCom/Tmds/WiX notices are collected. The user explicitly authorized WiX 7 terms acceptance; `AcceptEula=wix7` resolves WIX7015. Local builds produce the unsigned MSI and checksum under `artifacts/releases/0.1.0/`; the tagged GitHub build supplies the public release.
 
-Validation on 2026-09-09: full Debug and Release solution builds succeed with zero warnings/errors; 23 Core and 58 regular App tests pass (20 opt-in native checks skipped). Self-contained Release publishing, notice collection, payload generation, MSI compilation, and configured ICE validation pass. ICE91 is the only exclusion, documented for exclusively per-user installs; ALLUSERS is rejected. Raw MSI tables confirm the running-app check precedes changes and old-version removal is inside the install transaction. Remote GitHub workflow execution is not yet verified.
+Validation on 2026-09-09: full Debug and Release solution builds succeed with zero warnings/errors; 23 Core and 58 regular App tests pass (20 opt-in native checks skipped). Self-contained Release publishing, notice collection, payload generation, MSI compilation, and configured ICE validation pass. ICE91 is the only exclusion, documented for exclusively per-user installs; ALLUSERS is rejected. Raw MSI tables confirm the running-app check precedes changes and old-version removal is inside the install transaction. The tagged GitHub workflow also passes build, tests, packaging, artifact transfer, and draft creation.
 
 Installer evidence: the final MSI's 274 extracted files match the publish payload and its SHA-256 sidecar verifies. Windows Sandbox passes install and installed app launch without shared .NET, running-app refusal, per-user registration, upgrade to a test-only 0.1.1 fixture with one remaining product, removed-file cleanup, downgrade rejection, uninstall/reinstall, and byte-for-byte library preservation. All 69 local links/anchors and workflow YAML/permission checks pass. The default Sandbox account was used, and real-app/UAC cleanup was not tested. Offline fresh MSI operations took about two minutes; the cause is not established.
 
 Publication authorized on 2026-09-09: the user explicitly requested documentation, commit, and release publication. Dependency/asset inventory and notice coverage have been reviewed; the workflow provides matching Sessions source/build materials and WiX utility-action source. Reader-facing release notes disclose unsigned binaries, the default Sandbox account, and the remaining ordinary nonadministrator and installed real-app/UAC checks. Keep automated fixture coverage distinct from hands-on real-app/UAC verification (SESS-001).
 
-Remaining for publication: push the release commit/tag, run the GitHub draft workflow, verify the exact downloaded assets, and publish the preview.
+Published: [Sessions 0.1.0 preview](https://github.com/datstma/sessions/releases/tag/v0.1.0), from commit `4ec492f` and tag `v0.1.0`, with MSI, matching Sessions/WiX source ZIPs, checksums, setup instructions, and validation limits. All downloaded hashes verify; every Sessions source archive entry matches the tag. The exact downloaded MSI passed a fresh Sandbox install/launch, running-app refusal, upgrade/downgrade, uninstall/reinstall, and library-preservation run before publication. See the current DEVELOPMENT_NOTES handoff for its hash and evidence. Remaining installed-release validation and Actions runtime maintenance are separate SESS-021/022 items.
 
 Done when: the chosen repository and license are in place and a tested Windows preview has accurate download/setup instructions and disclosed validation limits. Screenshots can be added from representative app states when preparing the public listing.
+
+## SESS-021 — Extend installed-release validation
+
+**P1 · Open · Verification limits, not reproduced failures · 2026-09-09**
+Source: 0.1.0 packaging checks used the default Windows Sandbox account. They do
+not establish installation under an ordinary nonadministrator account or installed
+real-app/UAC cleanup behavior. The preview release notes disclose these limits.
+
+Done when: record ordinary-user install/update/uninstall and installed launch/end
+checks, including the elevated helper and cancellation paths where applicable.
+Keep test libraries and apps isolated. Coordinate hands-on app findings with SESS-001.
+Fresh offline Sandbox MSI operations also took about two minutes; record behavior
+in a normal Windows environment before deciding whether a delay investigation is needed.
+
+## SESS-022 — Refresh GitHub Actions runtimes
+
+**P2 · Open · CI maintenance finding · 2026-09-09**
+Source: [the successful 0.1.0 workflow](https://github.com/datstma/sessions/actions/runs/34292417455)
+reported that checkout/setup-dotnet/upload-artifact/download-artifact v4 target
+deprecated Node.js 20 and were forced onto Node.js 24. Builds, tests, artifact
+upload/download, and draft creation still passed.
+
+Done when: review and update the action versions, then validate the manual release
+workflow without replacing the published 0.1.0 assets or moving its tag.
 
 ## Completed baseline
 

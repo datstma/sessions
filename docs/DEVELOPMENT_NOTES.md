@@ -2,15 +2,39 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — release preparation 2026-09-09
+## Resume next session — 0.1.0 published 2026-09-09
 
 The user explicitly requested **“update the documentation, commit and publish the
-release please.”** Publication of the unsigned 0.1.0 preview is authorized. The
-release commit includes packaging, public download instructions, and reader-facing
-release notes. Next steps for this checkpoint are to push the commit and `v0.1.0`,
-run the manual workflow, verify its exact assets, and publish the draft. Do not
-move a published tag or replace published binaries. Record the resulting release
-and workflow links here when complete.
+release please.”** Completed: packaging and release documentation were committed
+and pushed as `4ec492f`; annotated tag `v0.1.0` points to that commit. The
+[0.1.0 preview](https://github.com/datstma/sessions/releases/tag/v0.1.0) is public
+(published 2026-09-09 00:05 UTC). Do not move its tag or replace its binaries.
+No next app feature has been selected. SESS-020 is complete; SESS-021/022 retain
+installed-release validation and Actions maintenance work.
+
+[GitHub workflow 34292417455](https://github.com/datstma/sessions/actions/runs/34292417455)
+built the exact tag and created the draft successfully. Full solution/MSI builds
+had zero build warnings/errors; **23 Core + 58 regular App tests passed**, with
+20 opt-in native checks skipped. GitHub emitted Actions Node.js runtime deprecation
+notices, recorded separately in SESS-022. The pre-commit local solution build and
+documentation checks also passed.
+
+Downloaded release assets: MSI, matching Sessions source ZIP, WiX source ZIP, and
+SHA256SUMS.txt. All three hashes verify; all 108 entries of the Sessions archive
+match a fresh `git archive v0.1.0`. The WiX archive has the pinned source commit,
+matching license, and CloseApplications source. The MSI has 274 extracted payload
+files, bundles .NET 10.0.11, and identifies the application as
+`0.1.0+4ec492f8e9432b5880dcc69e51d54cf17f8e1aa7`. It is unsigned, 59,406,141 bytes;
+SHA-256: `b70c026f427e880bae8701e80dcc70143e9fb0a25e7f91a159ccddeecbbd2a67`.
+
+The exact downloaded MSI passed a fresh Windows Sandbox run: install/shortcut,
+installed window without shared .NET, library preservation, running-app refusal
+without terminating the app, normal close, upgrade to the test-only 0.1.1 fixture,
+one per-user registration, downgrade rejection, uninstall/reinstall, and final
+uninstall. Evidence is under ignored `artifacts/release-verification/`, including
+the workflow log, downloaded assets, extracted MSI, source verification script,
+and `results/result.json` with status passed. The disposable Sandbox was stopped.
+The host's real Session library and installed apps were not used as test fixtures.
 
 The dependency inventory and notice coverage were reviewed: published NuGet
 metadata/notices, bundled .NET notices, and the pinned supplemental notices cover
@@ -19,10 +43,11 @@ WiX 7 source archive because its native utility action is embedded in the MSI.
 The Sessions source archive comes from the same Git tag as the binary. This is a
 packaging/source review, not a legal opinion. Standard-user and installed real-app/
 UAC checks remain explicitly disclosed preview limits; they are not represented as
-passing checks. SESS-020 tracks publication; SESS-001 retains native validation work.
+passing checks. SESS-021 tracks those installed-release checks; SESS-001 retains
+the broader native UI review.
 
-The previous local installer evidence below applies to the pre-commit package.
-The release must be rebuilt from the tag and its downloaded assets verified.
+The previous local installer evidence below is historical and refers to the
+pre-commit package. The public release's source, size, and hash are recorded above.
 
 ## Previous checkpoint — packaging follow-up 2026-09-09
 
@@ -56,7 +81,7 @@ remains unverified. Reproduce packaging with
 `./scripts/Build-Installer.ps1` in PowerShell 7; `-SkipTests` is for local iteration
 after tests pass. Staging/output is ignored under `artifacts/`.
 
-Additional checks: all five PowerShell scripts parse; matching version tags pass
+Additional checks: all four PowerShell scripts parse; matching version tags pass
 and mismatched tags fail; the staged payload has unique definitions,
 existing sources, and HKCU component key paths. Published executable metadata is
 0.1.0.0 with the source commit in ProductVersion. Workflow YAML and manual-only,

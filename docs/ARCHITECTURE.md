@@ -45,10 +45,12 @@ because it warns about user folders in per-machine packages; this MSI rejects
 
 The user authorized WiX 7 EULA acceptance on 2026-09-09, recorded by the project's
 `AcceptEula=wix7` property. MSI compilation and the configured ICE checks pass.
-Release-readiness checks and remote GitHub workflow execution remain tracked
-separately from packaging compilation. See [RELEASING.md](RELEASING.md) for operational instructions
+The tagged 0.1.0 GitHub workflow also passes full solution build, regular tests,
+MSI validation, source/checksum generation, and draft creation. Installed-release
+verification limits and Actions runtime maintenance are tracked in SESS-021/022.
+See [RELEASING.md](RELEASING.md) for operational instructions
 and [BACKLOG.md](BACKLOG.md#sess-020--prepare-the-public-github-project-and-downloadable-releases)
-for outstanding release work.
+for release history and follow-ups.
 
 ### Technology and platform
 
