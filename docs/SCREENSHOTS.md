@@ -1,7 +1,7 @@
 # Sessions in pictures
 
-The current **0.2.1 source** includes the refreshed Sessions interface shown here.
-The published **0.2.0 preview uses the earlier design**; 0.2.1 is not published yet.
+**Sessions 0.2.1** includes the refreshed interface shown here. You can
+[download the Windows preview](https://github.com/datstma/sessions/releases/tag/v0.2.1).
 Sessions follows your system's light or dark appearance.
 
 ## Your apps, ready together
@@ -38,5 +38,5 @@ To refresh these images from the repository root with the pinned .NET SDK:
 ./scripts/Update-PublicScreenshots.ps1
 ```
 
-Review the resulting images in both themes before committing them. Update the
-release wording here and in the [README](../README.md) when the refresh is published.
+Review the resulting images in both themes before committing them. Keep the
+release wording here and in the [README](../README.md) aligned with the version shown.

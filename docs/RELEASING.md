@@ -82,6 +82,15 @@ registration, byte-for-byte library preservation, v1 load without rewriting,
 running-app refusal, downgrade rejection, uninstall/reinstall, and shortcut removal.
 The same ordinary-user and installed real-app/UAC limits apply to 0.2.0.
 
+The downloaded 0.2.1 MSI passed the same lifecycle checks on 2026-09-09 with the
+published 0.2.0 MSI as baseline: 34 assertions plus baseline installation. Added
+checks verify exact release-commit metadata, removal of Inter files, Manrope OFL,
+Installed apps/Start menu icon registrations and decoding the installed Sessions
+icon. The icon check uses Windows Installer ProductInfo(ProductIcon), expanding
+its environment variables, rather than assuming an uninstall-registry location.
+The default Sandbox account was used; ordinary-user, real-app/UAC and native
+accessibility/display verification remain separate limitations.
+
 The 2026-09-09 offline Sandbox checks preserved the library byte-for-byte, verified
 one per-user registration after upgrading, and verified removal of a file absent
 from the newer fixture. Fresh MSI operations took approximately two minutes before

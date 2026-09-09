@@ -2,13 +2,45 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.2.1 release authorized 2026-09-09
+## Resume next session — 0.2.1 published 2026-09-09
 
 The user requested "do a release" after checkpoint `239a28e` was committed and
-pushed. Proceed with the manually triggered exact-tag build, download/check its
-assets and isolated installer smoke testing, then publish 0.2.1 as a preview.
-Update README download/screenshot wording and record final evidence after
-publication. Existing published tags and assets must remain unchanged.
+pushed. [Sessions 0.2.1 Preview](https://github.com/datstma/sessions/releases/tag/v0.2.1)
+is public, published at 20:14:59 UTC on 2026-09-09. Annotated tag `v0.2.1` points
+to `863f75d`; do not move it or replace its assets. README download links and
+screenshot wording now match the published branding refresh. No next feature
+slice is selected and no saved-schema or runtime behavior changed.
+
+[Workflow 34398030125](https://github.com/datstma/sessions/actions/runs/34398030125)
+built the exact tag: clean solution/MSI builds, 45 Core and 94 App tests passing,
+22 opt-in native cases skipped. Runtime/Actions deprecation notices remain SESS-022.
+All downloaded checksums and all 160 source-archive entries verify. The MSI has
+272 files; 42 notices/metadata match reviewed local output allowing checkout line
+endings. Manrope OFL, removed Inter package/notice and the MSI/shortcut icons verify.
+Downloaded MSI SHA-256:
+`becc8d63b73b26413d7786a581572bfcd985eac3238d8590f778a7f0b2b36428`.
+
+The exact downloaded MSI passed all 34 Sandbox smoke assertions plus initial
+0.2.0 installation: upgrade, exact release-commit metadata, installed launch with
+no shared .NET, one per-user registration, running-app refusal, v1 load without
+rewriting, downgrade rejection, uninstall/reinstall and byte-for-byte library
+preservation. Upgrade removes the old Inter DLL/notice and installs Manrope OFL.
+Installed apps/shortcut icon registrations resolve to the Sessions icon, decoded
+and visually reviewed. No real user apps or library were used as fixtures.
+
+The first script assumed the wrong HKCU uninstall-key location for the icon.
+Windows Installer ProductInfo(ProductIcon) returns its actual per-user location;
+the harness was corrected and resumed after the verified upgrade. First-pass and
+resume evidence are retained; no product fix was needed. Final result.json has
+status passed and 34 checks. The default Sandbox account was used; ordinary-user
+and real-app/UAC checks remain SESS-021, native Narrator/monitor/text-size review
+remains SESS-010. Some offline MSI steps again took about two minutes.
+
+Evidence is in ignored artifacts/release-verification-0.2.1 (downloads, workflow
+log, source/asset verification, extraction, scripts and results). Test Sandbox
+`89f5685a-99a1-4a0b-9d75-88c5656f5604` is stopped. Release notes include final
+verification results. These post-publication documentation changes do not alter
+the tagged source archive. Do not automatically start another backlog item.
 
 ## Previous checkpoint — 0.2.1 prepared and README refined 2026-09-09
 

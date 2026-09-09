@@ -35,8 +35,8 @@
 
 <p align="center"><em>Your apps, their order, and what's running—all in one place.</em></p>
 
-**A first look at 0.2.1.** The branding refresh is in the current source and is
-being prepared for release. The available **0.2.0 download uses the earlier design**.
+**Sessions 0.2.1 brings the refreshed design shown here.**
+[Download the Windows preview](#downloads) to try it with your own apps.
 
 | Make it yours | Start together | End with clarity |
 | --- | --- | --- |
@@ -109,14 +109,14 @@ If an app cannot be stopped or safely tracked, Sessions explains the problem and
 
 ## Downloads
 
-**Coming next: [0.2.1 — the branding refresh](docs/release-notes/0.2.1.md).**
-The version is set in source; its installer has not been published yet.
-
-**Sessions 0.2.0 is a development preview.** Download the
-[Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.2.0/Sessions-0.2.0-win-x64.msi)
-from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.2.0).
+**Sessions 0.2.1 is a development preview.** Download the
+[Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.2.1/Sessions-0.2.1-win-x64.msi)
+from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.2.1).
 The installer includes .NET and installs for your Windows user, with a Start menu
 shortcut. Installer and application binaries are unsigned.
+
+[What's new in 0.2.1](docs/release-notes/0.2.1.md): the refreshed interface,
+clearer stopping confirmation and consistent app/installer branding.
 
 Close Sessions before installing, updating, or uninstalling. Updates and uninstall
 preserve your saved Sessions. To update, download and run a newer MSI; there is no

@@ -15,15 +15,16 @@ This is a work record, not authorization to implement everything. The user expli
 
 ## Suggested sequence
 
-The 0.2.0 preview is published (SESS-020/023). The user selected accessibility/scaling
+The 0.2.1 branding preview is published (SESS-020/024/025); advanced startup shipped
+in 0.2.0 (SESS-023). The user selected accessibility/scaling
 (SESS-010) on 2026-09-09; the implementation and automated review below are complete,
 with native screen-reader/scaling trials awaiting feedback. The user approved the
 first advanced-startup slice; SESS-023 now implements timing, concurrent launching,
 readiness checks, and completion focus. Launch stages and configurable failure
 policies remain later ideas. The supplied branding is now implemented, validated
 and approved by the user (SESS-024), with OS-following themes and compact support retained.
-Public-facing branding polish and obsolete-asset cleanup are complete under
-SESS-025, awaiting a future release. Suggested app follow-ups remain draft-close protection (SESS-006) and
+Public-facing branding polish and obsolete-asset cleanup shipped in 0.2.1 under
+SESS-025. Suggested app follow-ups remain draft-close protection (SESS-006) and
 invalid-field guidance (SESS-011). Installed-release checks and Actions maintenance
 remain SESS-021/022. Broader native checks stay under SESS-001, including UAC
 cancellation and the narrower Playnite-specific confirmation in SESS-017; do not
@@ -316,6 +317,10 @@ upload/download, and draft creation still passed.
 Done when: review and update the action versions, then validate the manual release
 workflow without replacing the published 0.1.0 assets or moving its tag.
 
+The successful 0.2.1 workflow (34398030125) repeats the forced Node.js 24/runtime
+deprecation notices; application and MSI builds still have zero warnings/errors.
+This remains CI maintenance, not a release-build failure.
+
 ## SESS-023 — Advanced startup timing, readiness, and completion focus
 
 **P1 · Done · Released in 0.2.0 Preview · 2026-09-09**
@@ -364,7 +369,7 @@ Completion criteria met by the tests and documentation above; published in 0.2.0
 
 ## SESS-024 — Apply the supplied branding and visual direction
 
-**P1 · Done · Implemented, validated and approved by the user · 2026-09-09**
+**P1 · Done · Released in 0.2.1 Preview · 2026-09-09**
 
 Source: user supplied branding/ and AGENTS.md UI instructions, then approved adapting
 the mockups to existing screens with OS-following themes, readable text and delegated
@@ -388,7 +393,7 @@ limits remain SESS-010; this does not claim installed/native validation or a rel
 
 ## SESS-025 — Finish public-facing branding and remove obsolete assets
 
-**P1 · Done · Implemented and locally validated; unreleased · 2026-09-09**
+**P1 · Done · Released in 0.2.1 Preview · 2026-09-09**
 
 Source: the user requested completion of public-facing polish and old-asset cleanup.
 Code inspection found the Avalonia template icon, Inter package/registration, no
@@ -429,3 +434,15 @@ builds have zero warnings/errors; 45 Core and 94 App tests pass, 22 native cases
 skip. All 272 extracted files, icons, notices, checksum and version metadata verify
 in ignored `artifacts/version-0.2.1-qa/`. The user requested commit/push of this
 checkpoint; tagging and release publication remain separate.
+
+Published on the user's request: [0.2.1 Preview](https://github.com/datstma/sessions/releases/tag/v0.2.1)
+from tag v0.2.1/commit `863f75d`. Workflow 34398030125 has clean solution/MSI builds
+and all 139 regular tests passing (22 native skipped). Downloaded checksums, all
+160 source entries, 272 payload files and 42 notice/metadata files verify. Exact
+MSI testing passes 34 assertions plus baseline installation, including 0.2.0
+upgrade, installed launch, removed Inter files, icon registrations/decoding,
+running-app refusal, downgrade rejection, uninstall/reinstall and library
+preservation. The icon lookup harness was corrected and resumed; no product fix
+was needed. The default Sandbox account was used and the Sandbox is stopped.
+Native accessibility and ordinary-user/real-app/UAC limits remain SESS-010/021.
+README and gallery now describe and link to the published refresh.
