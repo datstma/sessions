@@ -195,7 +195,7 @@ public sealed class AdvancedStartupInteractionTests
         Assert.Contains("editing", model.StartupFocusMessage!);
         model.CancelEditCommand.Execute(null);
         Assert.Empty(focus.Paths);
-        runner.LeaveAppsOpen();
+        await runner.LeaveAppsOpenAsync();
     }
 
     [AvaloniaFact]

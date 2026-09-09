@@ -116,7 +116,7 @@ public sealed class BrandingInteractionTests
             }
             finally { picker.Close(); }
         }
-        finally { runner.LeaveAppsOpen(); window.Close(); }
+        finally { await runner.LeaveAppsOpenAsync(); window.Close(); }
     }
 
     private static Color Brush(Window window, string key) => ((ISolidColorBrush)window.FindResource(window.ActualThemeVariant, key)!).Color;

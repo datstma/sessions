@@ -18,6 +18,8 @@ public sealed partial class SessionViewModel(SessionDefinition definition, IAppP
     public string AppCount => Definition.Apps.Count == 1 ? "1 app" : $"{Definition.Apps.Count} apps";
     public string AccessibleName => $"{Name}, {AppCount}{(IsActive ? ", active" : "")}";
     partial void OnIsActiveChanged(bool value) => OnPropertyChanged(nameof(AccessibleName));
+    public bool HasAudioChoices => Definition.OutputAudioDevice is not null || Definition.InputAudioDevice is not null;
+    public string AudioSummary => $"Output: {Definition.OutputAudioDevice?.Name ?? "Leave unchanged"}. Input: {Definition.InputAudioDevice?.Name ?? "Leave unchanged"}. Previous devices are restored on End Session.";
     public bool HasApps => Definition.Apps.Count > 0;
     public string StartupSummary => (Definition.LaunchMode == SessionLaunchMode.Together ? "Apps open together; pauses are ignored." :
         $"Apps open in order; {Definition.PauseBetweenAppsSeconds}s between apps unless overridden.") +

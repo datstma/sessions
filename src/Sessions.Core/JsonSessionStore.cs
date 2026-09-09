@@ -20,14 +20,16 @@ public sealed class JsonSessionStore(string filePath) : ISessionStore
             await using var stream = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read,
                 4096, FileOptions.Asynchronous);
             var library = await JsonSerializer.DeserializeAsync<Library>(stream, Options, cancellationToken);
-            if (library is null || library.Version is not (1 or 2 or 3) || library.Sessions is null)
+            if (library is null || library.Version is not (1 or 2 or 3 or 4) || library.Sessions is null)
                 throw new InvalidDataException("This Session library has an unsupported format.");
             Validate(library.Sessions);
             // Old forceClose flags and unknown fields in older formats must not opt apps into force quit.
-            return library.Version < 3 ? library.Sessions.Select(session => session with
+            return library.Sessions.Select(session => session with
             {
-                Apps = session.Apps.Select(app => app with { AllowForceQuit = false }).ToArray()
-            }).ToArray() : library.Sessions;
+                Apps = library.Version < 3 ? session.Apps.Select(app => app with { AllowForceQuit = false }).ToArray() : session.Apps,
+                OutputAudioDevice = library.Version < 4 ? null : session.OutputAudioDevice,
+                InputAudioDevice = library.Version < 4 ? null : session.InputAudioDevice
+            }).ToArray();
         }
         catch (FileNotFoundException) { return []; }
         catch (DirectoryNotFoundException) { return []; }
@@ -52,8 +54,8 @@ public sealed class JsonSessionStore(string filePath) : ISessionStore
             await using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write,
                              FileShare.None, 4096, FileOptions.Asynchronous))
             {
-                // Older builds force quit every app; they must reject libraries using the safer closing policy.
-                await JsonSerializer.SerializeAsync(stream, new Library(3, sessions), Options, cancellationToken);
+                // Older builds must reject audio-enabled libraries rather than silently ignoring device choices.
+                await JsonSerializer.SerializeAsync(stream, new Library(4, sessions), Options, cancellationToken);
                 await stream.FlushAsync(cancellationToken);
             }
             cancellationToken.ThrowIfCancellationRequested();

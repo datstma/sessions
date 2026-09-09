@@ -35,7 +35,7 @@
 
 <p align="center"><em>Your apps, their order, and what's running—all in one place.</em></p>
 
-**Sessions 0.2.3 adds clear field guidance and a Review fields action when editing.**
+**Sessions 0.3.0 adds sound output and microphone choices for each Session.**
 [Download the Windows preview](#downloads) to try it with your own apps.
 
 | Make it yours | Start together | End with clarity |
@@ -70,7 +70,7 @@ A main app is optional.
 
 1. **Create a Session.** Give it a name you'll recognise in the sidebar.
 2. **Add your apps.** Search or scroll through Start menu apps, choose from running apps, or browse for an executable. Select several at once.
-3. **Make it yours.** Arrange the opening order and choose when the Session ends. Arguments, working folders, and administrator launch settings are available when needed.
+3. **Make it yours.** Arrange the opening order, choose when the Session ends, and optionally select sound output and microphone devices. Arguments, working folders, and administrator launch settings are available when needed.
 4. **Start the Session.** Apps open using your chosen startup mode (in order by default). Matching apps that are already running stay open without becoming part of its cleanup.
 5. **End when you're ready.** Review which apps will stop, save your work, and confirm.
 
@@ -82,6 +82,14 @@ Selecting a Session only shows its details; starting it is a separate action. Cr
 pauses, wait for a process or window, and optionally bring Sessions or a chosen
 app forward when startup finishes. Empty Sessions stay editable until you're ready
 to add apps and start.
+
+**Bring your audio setup.** Expand **Session audio** in the editor to choose your
+headphones, speakers or microphone independently, or leave either unchanged.
+Sessions applies Windows ordinary and communication defaults before opening apps
+and restores previous defaults when you end the run—even if some apps stay open.
+Later device changes are kept; missing devices and failed restoration show recovery
+guidance. Apps with their own explicit audio selection may keep it. This changes
+Windows defaults, so other apps following those defaults are affected too.
 
 ### Small details that make daily use easier
 
@@ -110,20 +118,20 @@ If an app cannot be stopped or safely tracked, Sessions explains the problem and
 
 ## Downloads
 
-**Sessions 0.2.3 is a development preview.** Download the
-[Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.2.3/Sessions-0.2.3-win-x64.msi)
-from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.2.3).
+**Sessions 0.3.0 is a development preview.** Download the
+[Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.3.0/Sessions-0.3.0-win-x64.msi)
+from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.3.0).
 The installer includes .NET and installs for your Windows user, with a Start menu
 shortcut. Installer and application binaries are unsigned.
 
-[What's new in 0.2.3](docs/release-notes/0.2.3.md): nearby explanations for invalid
-editor fields and a Review fields action that opens and focuses the setting to fix.
+[What's new in 0.3.0](docs/release-notes/0.3.0.md): per-Session sound output and
+microphone choices, automatic restoration and recovery for unavailable devices.
 
 Close Sessions before installing, updating, or uninstalling. Updates and uninstall
 preserve your saved Sessions. To update, download and run a newer MSI; there is no
 automatic updater. The release page includes checksums, source, and validation limits.
 
-**Library compatibility:** saving in 0.2.2 and 0.2.3 uses v3, which 0.2.1 and earlier cannot
+**Library compatibility:** saving in 0.3.0 uses v4, which 0.2.3 and earlier cannot
 open. Loading an older library alone does not rewrite it. Keep a copy of
 `%LOCALAPPDATA%\Sessions\sessions.json` before saving if you need to return to an
 older release.
@@ -139,6 +147,7 @@ See [Building and releasing Sessions](docs/RELEASING.md) for versioning and pack
 - Running apps without an accessible window can show their status but cannot be brought forward by the Running control.
 - Sessions opens apps with saved launch settings; it does not capture your current windows, documents, browser tabs, or desktop layout.
 - Window closing protects changed drafts. Editor Cancel explicitly discards edits; crash recovery and autosave are not included.
+- Audio choices change Windows defaults, not per-app routing or volume. Restoration requires a normal Session end or close; a crash or forced termination cannot restore devices.
 
 ## Build from source
 

@@ -20,18 +20,20 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private readonly IIndividualAppLauncher? appLauncher;
     private readonly SessionRunner? runner;
     private readonly IStartupFocusService? startupFocus;
+    private readonly IAudioDeviceService? audioDevices;
     private CancellationTokenSource _startupFocusCancellation = new();
     private Guid? _focusRunId;
     private bool _disposed;
 
     public MainViewModel(ISessionStore store, IAppPresenceService? presenceService = null,
-        IIndividualAppLauncher? appLauncher = null, SessionRunner? runner = null, IStartupFocusService? startupFocus = null)
+        IIndividualAppLauncher? appLauncher = null, SessionRunner? runner = null, IStartupFocusService? startupFocus = null, IAudioDeviceService? audioDevices = null)
     {
         this.store = store;
         this.presenceService = presenceService;
         this.appLauncher = appLauncher;
         this.runner = runner;
         this.startupFocus = startupFocus;
+        this.audioDevices = audioDevices;
         if (runner is not null) runner.Changed += RuntimeChanged;
     }
 
@@ -153,7 +155,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     public string RuntimeTitle => Runtime is null ? "" : $"{Runtime.Name} · {Runtime.State switch
     {
         SessionRunState.Starting => "Starting…", SessionRunState.Running => "Active",
-        SessionRunState.Stopping => "Ending…", SessionRunState.NeedsAttention => "Apps still open",
+        SessionRunState.Stopping => "Ending…", SessionRunState.NeedsAttention => "Needs attention",
         SessionRunState.AwaitingEndConfirmation => "Ready to end",
         SessionRunState.Failed => "Couldn't start", _ => "Ended"
     }}";
@@ -258,10 +260,10 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     }
 
     [RelayCommand(CanExecute = nameof(CanFinishSession))]
-    private void FinishSession()
+    private async Task FinishSessionAsync()
     {
         if (!CanFinishSession()) return;
-        runner!.LeaveAppsOpen();
+        await runner!.LeaveAppsOpenAsync();
         ApplyRuntime();
     }
 
@@ -312,13 +314,13 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         if (shouldClose && !HasActiveRun) CloseRequested?.Invoke(this, EventArgs.Empty);
     }
     [RelayCommand(CanExecute = nameof(CanLeaveApps))]
-    private void LeaveAppsAndClose()
+    private async Task LeaveAppsAndCloseAsync()
     {
         if (!CanLeaveApps()) return;
-        runner!.LeaveAppsOpen();
+        await runner!.LeaveAppsOpenAsync();
         ApplyRuntime();
         IsCloseConfirmation = false;
-        CloseRequested?.Invoke(this, EventArgs.Empty);
+        if (!HasActiveRun) CloseRequested?.Invoke(this, EventArgs.Empty);
     }
 
     private void RuntimeChanged(object? sender, EventArgs e)
@@ -506,7 +508,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private void NewSession()
     {
         ErrorMessage = null;
-        Editor = new SessionEditorViewModel();
+        Editor = new SessionEditorViewModel(audioDevices: audioDevices);
     }
 
     private bool CanEdit() => CanBrowse && SelectedSession is not null && !SelectedIsActive && !HasOpeningApps;
@@ -515,7 +517,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private void EditSession()
     {
         ErrorMessage = null;
-        Editor = new SessionEditorViewModel(SelectedSession!.Definition);
+        Editor = new SessionEditorViewModel(SelectedSession!.Definition, audioDevices);
     }
 
     private bool CanCancel() => IsEditing && !IsBusy && !IsDraftCloseConfirmation;

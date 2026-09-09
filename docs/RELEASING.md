@@ -152,7 +152,7 @@ standard user. Never replace the real development library with test fixtures.
   mode) and verify it refuses without closing Sessions or its apps.
 - Uninstall and reinstall; verify program/shortcut removal and library preservation.
 - Exercise launch and confirmed cleanup in the installed build, including the
-  elevated helper path where relevant. Regular CI skips the 25 opt-in native checks;
+  elevated helper path where relevant. Regular CI skips the 27 opt-in native checks;
   a GitHub runner is not a substitute for desktop/UAC and installation testing.
 - Compare checksums, inspect packaged license notices, and review matching source
   and build instructions. `Collect-ReleaseNotices.ps1` inventories packages from the

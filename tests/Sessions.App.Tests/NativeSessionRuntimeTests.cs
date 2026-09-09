@@ -33,7 +33,7 @@ public sealed class NativeSessionRuntimeTests
             Assert.True(ownedProcess.HasExited);
             Assert.False(existingProcess.HasExited);
         }
-        finally { if (runner.Snapshot?.IsActive == true) runner.LeaveAppsOpen(); }
+        finally { if (runner.Snapshot?.IsActive == true) await runner.LeaveAppsOpenAsync(); }
     }
 
     [Theory(Skip = "Opt-in isolated off-screen test windows; never touches user apps.", SkipUnless = nameof(RunNativeRuntime))]
@@ -58,7 +58,7 @@ public sealed class NativeSessionRuntimeTests
             Assert.True(ownedProcess.HasExited);
             Assert.Equal(SessionRunState.Completed, runner.Snapshot.State);
         }
-        finally { if (runner.Snapshot?.IsActive == true) runner.LeaveAppsOpen(); }
+        finally { if (runner.Snapshot?.IsActive == true) await runner.LeaveAppsOpenAsync(); }
     }
 
     [Fact(Skip = "Opt-in isolated off-screen main-app lifetime test.", SkipUnless = nameof(RunNativeRuntime))]
@@ -81,7 +81,7 @@ public sealed class NativeSessionRuntimeTests
             Assert.True(supportProcess.HasExited);
             Assert.Equal(SessionRunState.Completed, runner.Snapshot.State);
         }
-        finally { if (runner.Snapshot?.IsActive == true) runner.LeaveAppsOpen(); }
+        finally { if (runner.Snapshot?.IsActive == true) await runner.LeaveAppsOpenAsync(); }
     }
 
     [Fact(Skip = "Opt-in isolated single-instance/activation test processes.", SkipUnless = nameof(RunNativeRuntime))]
@@ -133,7 +133,7 @@ public sealed class NativeSessionRuntimeTests
             Assert.False(existingProcess.HasExited);
             Assert.Equal(SessionRunState.Completed, runner.Snapshot!.State);
         }
-        finally { if (runner.Snapshot?.IsActive == true) runner.LeaveAppsOpen(); }
+        finally { if (runner.Snapshot?.IsActive == true) await runner.LeaveAppsOpenAsync(); }
     }
 
     [Theory(Skip = "Opt-in isolated self-restart tests; no real UAC prompts.", SkipUnless = nameof(RunNativeRuntime))]
@@ -175,7 +175,7 @@ public sealed class NativeSessionRuntimeTests
             Assert.False(unrelatedProcess.HasExited);
             Assert.Equal(SessionRunState.Completed, runner.Snapshot.State);
         }
-        finally { if (runner.Snapshot?.IsActive == true) runner.LeaveAppsOpen(); }
+        finally { if (runner.Snapshot?.IsActive == true) await runner.LeaveAppsOpenAsync(); }
     }
 
     [Theory(Skip = "Opt-in helper identity tests; helper runs without elevation and touches only its own fixture.", SkipUnless = nameof(RunNativeRuntime))]
@@ -220,7 +220,7 @@ public sealed class NativeSessionRuntimeTests
             Assert.True(process.HasExited);
             Assert.Equal(SessionRunState.Completed, runner.Snapshot!.State);
         }
-        finally { if (runner.Snapshot?.IsActive == true) runner.LeaveAppsOpen(); }
+        finally { if (runner.Snapshot?.IsActive == true) await runner.LeaveAppsOpenAsync(); }
     }
 
     [Theory(Skip = "Opt-in lingering-process regression; only uses an isolated helper app.", SkipUnless = nameof(RunNativeRuntime))]
@@ -272,7 +272,7 @@ public sealed class NativeSessionRuntimeTests
             Assert.Equal(SessionRunState.Completed, runner.Snapshot.State);
             Assert.Equal(choice == "save", File.Exists(Path.Combine(app.WorkingDirectory, "saved-document")));
         }
-        finally { if (runner.Snapshot?.IsActive == true) runner.LeaveAppsOpen(); }
+        finally { if (runner.Snapshot?.IsActive == true) await runner.LeaveAppsOpenAsync(); }
     }
 
     private sealed class NativeFixture : IDisposable

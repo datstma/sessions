@@ -205,6 +205,9 @@
                                     <TextBlock Text="{Binding $parent[Window].((vm:MainViewModel)DataContext).AppInteractionHint}" Classes="muted" FontSize="{StaticResource FontMicroSize}"
                                                TextWrapping="Wrap" IsVisible="{Binding HasApps}" />
                                 </StackPanel>
+                                <Border Classes="surface" Padding="{StaticResource Inset20}" IsVisible="{Binding HasAudioChoices}">
+                                    <StackPanel Spacing="{StaticResource Measure8}"><TextBlock Text="Session audio" FontWeight="{StaticResource WeightStrong}" /><TextBlock Text="{Binding AudioSummary}" TextWrapping="Wrap" /></StackPanel>
+                                </Border>
                                 <UniformGrid Classes="explainers">
                                     <Border Classes="surface" Padding="{StaticResource Inset20}" Margin="{StaticResource Inset0x0x8x8}"><StackPanel Spacing="{StaticResource Measure8}">
                                         <TextBlock Text="When you're finished" FontWeight="{StaticResource WeightStrong}" />

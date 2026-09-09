@@ -59,7 +59,7 @@ public sealed class AccessibilityTests
             Assert.True(save.TranslatePoint(default, window)!.Value.Y + save.Bounds.Height <= 480);
             Capture(window, $"accessibility-runtime-error-{dark}");
         }
-        finally { runner.LeaveAppsOpen(); model.CancelEditCommand.Execute(null); window.Close(); }
+        finally { await runner.LeaveAppsOpenAsync(); model.CancelEditCommand.Execute(null); window.Close(); }
     }
     [AvaloniaFact]
     public void FirstRunAndLastAppRemovalKeepKeyboardFocusUsable()

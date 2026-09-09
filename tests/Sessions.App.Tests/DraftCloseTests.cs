@@ -280,7 +280,7 @@ public sealed class DraftCloseTests
             Assert.True(host.Support.Exited);
             Assert.False(window.IsVisible);
         }
-        finally { if (runner.Snapshot?.IsActive == true) runner.LeaveAppsOpen(); CleanUp(model, window); }
+        finally { if (runner.Snapshot?.IsActive == true) await runner.LeaveAppsOpenAsync(); CleanUp(model, window); }
     }
 
     private static SessionDefinition Definition() => new(Guid.NewGuid(), "Work", "",

@@ -709,3 +709,94 @@ clear recovery behavior; supported lifetime/cleanup semantics and validation lim
 are documented and tested. Research launch/discovery interfaces and exact syntax
 when this work is selected. No launch method, discovery mechanism, SDK dependency
 or game-tracking implementation is chosen by this backlog entry.
+
+## SESS-031 — Settings entry point and application preferences
+
+**P2 · Proposed · User-requested suggestions and backlog entry · 2026-09-10**
+Source: the user requested a Settings button for preferences such as color theme,
+plugins, UI scaling and font sizes, and asked for suggestions to record in the
+backlog. This is a proposal, not an implementation request.
+
+Suggested entry point: a consistently reachable Settings button near the bottom of
+the sidebar, with an accessible name and keyboard access. Keep it reachable from the
+empty-library screen too. Decide between an in-app page and a separate window when
+this item is selected; preserve unsaved Session drafts and active-run controls when
+opening or closing Settings.
+
+Suggested first slice:
+
+- Appearance: System / Light / Dark theme, with System remaining the default.
+  Theme overrides are future behavior; the current app still follows the OS.
+- Accessibility: overall interface scale relative to Windows DPI, plus a separate
+  text-size preference so larger text need not enlarge every control. Keep Manrope
+  and the existing fallback initially; arbitrary font-family selection can be
+  discussed later. Establish tested ranges and interaction with Windows text size
+  to avoid accidental double scaling. Include a preview and an accessible reset.
+- Plugins: show installed/bundled plugins, status, version, enable/disable and each
+  plugin's own settings when supported. Depends on SESS-029/030; do not display
+  nonfunctional plugin switches before the plugin lifecycle exists. Explain restart
+  requirements and handle changes during active runs without losing ownership or
+  invalidating the captured run. Game/profile choices for a particular Session
+  stay with that Session rather than becoming global plugin defaults accidentally.
+- Preferences persistence: save locally per user, separately from Session
+  definitions; restore on restart and provide Reset preferences that leaves saved
+  Sessions intact. Define safe recovery for invalid or unreadable preferences.
+
+Additional candidates for later discussion, not automatically part of the first slice:
+
+- General: remember the last selected Session and window size/position. Optionally
+  start Sessions with Windows or start it minimized; launching Sessions must not
+  automatically start a saved Session. Tray/minimize-on-close behavior needs its own
+  explicit design and must preserve existing draft and active-run close protection.
+- Notifications: choose whether startup completion or failures show notifications,
+  if notifications are introduced. Keep errors and outcomes visible inside Sessions.
+- About and support: version, license, release notes and an action to open the local
+  data folder. Consider a user-reviewed diagnostic export separately if useful;
+  avoid automatically sending paths, Session contents or logs anywhere.
+
+Keep the first Settings screen small and expose only implemented preferences.
+Appearance changes must use branding tokens, preserve semantic action colors,
+keyboard/focus access and readable contrast, and remain usable in light/dark and
+compact layouts. Provide a way back to usable defaults even after enlarging the UI.
+Keep process ownership, force-quit permissions and Session startup behavior outside
+unrelated appearance/global settings. Coordinate native accessibility/scaling review
+with SESS-010 and future plugin preferences with SESS-029/030.
+
+Done when: an agreed first slice has a discoverable Settings entry point, durable
+local preferences, working reset/recovery, and tested interactions with OS theme,
+DPI/text size, compact layouts, unsaved drafts and active runs. Update PRODUCT,
+ARCHITECTURE and branding guidance alongside implementation. This item does not
+change those current specifications or authorize a settings implementation now.
+
+## SESS-032 — Choose audio output and input devices per Session
+
+**P2 · Done · Implemented, validated and user-confirmed · 2026-09-10**
+Source: the user proposed Session-specific sound output/input, then selected SESS-032
+for implementation. The editor now saves independent endpoint choices, each defaulting
+to Leave unchanged, with discovery/refresh and retained unavailable selections.
+
+Start applies Windows ordinary and communication defaults before launching apps.
+End restores after process-close attempts, including when apps remain open; Finish
+and Leave-and-close also restore. Partial/cancelled/failed startup rolls audio back.
+Later differing choices are preserved, with console/multimedia treated as linked
+roles. Unresolved restoration keeps the run active for explicit retry. See
+[product behavior](PRODUCT.md#session-audio-devices) and
+[audio lifecycle](ARCHITECTURE.md#session-audio-lifecycle) for the authoritative policy.
+
+Validation: clean full Release build; Core lifecycle/persistence regressions and
+headless editor tests cover both themes, compact/reference layouts, scaling,
+keyboard selection, draft protection, unavailable devices, partial failures,
+startup cancellation, later defaults, apps remaining open and restoration retry.
+Native checks enumerated active Windows devices, reapplied current defaults and
+briefly switched to an alternate output through the real runner, verifying all
+three original output roles were restored. This exposed and verified the fix for
+Windows coupling console/multimedia writes. Counts and commands are in the handoff.
+
+The user confirmed the feature works on 2026-09-10 and requested release publication.
+Broader validation limits: real gaming/voice apps, physical and virtual device playback
+and microphone behavior, and physical disconnect/reconnect. No audio was played or
+recorded during automated checks. The Windows default setter is undocumented;
+crash restoration, per-app routing, volume and effects are outside this slice.
+Library v4 preserves audio settings and is unreadable by published 0.2.3 and earlier.
+SESS-031 global Settings remains a separate proposal. Source version is 0.3.0;
+this feature has not been released yet.

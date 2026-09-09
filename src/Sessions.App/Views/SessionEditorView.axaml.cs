@@ -23,6 +23,12 @@ public partial class SessionEditorView : UserControl
         };
     }
 
+    private void AudioExpanding(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SessionEditorViewModel editor && !editor.IsLoadingAudioDevices)
+            _ = editor.RefreshAudioDevicesCommand.ExecuteAsync(null);
+    }
+
     public void ReviewFirstInvalidField()
     {
         if (DataContext is not SessionEditorViewModel { FirstValidationIssue: { } issue } editor) return;

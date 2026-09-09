@@ -14,10 +14,15 @@ public sealed record SessionDefinition(
     SessionLaunchMode LaunchMode = SessionLaunchMode.InOrder,
     int PauseBetweenAppsSeconds = 0,
     StartupFocus FocusAfterStartup = StartupFocus.Unchanged,
-    Guid? FocusAppId = null)
+    Guid? FocusAppId = null,
+    AudioDeviceChoice? OutputAudioDevice = null,
+    AudioDeviceChoice? InputAudioDevice = null)
 {
     public void Validate()
     {
+        foreach (var device in new[] { OutputAudioDevice, InputAudioDevice })
+            if (device is not null && (string.IsNullOrWhiteSpace(device.Id) || string.IsNullOrWhiteSpace(device.Name)))
+                throw new ArgumentException("An audio selection needs a device identity and name.");
         if (Id == Guid.Empty || string.IsNullOrWhiteSpace(Name) || Description is null || Apps is null)
             throw new ArgumentException("A Session needs an identity, a name, and an app list.");
         if (!Enum.IsDefined(LaunchMode) || !Enum.IsDefined(FocusAfterStartup) || PauseBetweenAppsSeconds is < 0 or > 300)

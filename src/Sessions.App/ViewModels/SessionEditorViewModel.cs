@@ -3,6 +3,8 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Sessions.Core;
@@ -12,21 +14,65 @@ namespace Sessions.App.ViewModels;
 
 public enum EditorField { SessionName, AppName, ExecutablePath, Readiness, ReadinessTimeout, AppPause, LaunchMode, SessionPause, StartupFocus, FocusApp, MainApp }
 public sealed record EditorValidationIssue(EditorField Field, string Message, AppEditorViewModel? App = null);
+public sealed record AudioDeviceOption(AudioDeviceChoice? Choice, string Label);
 
 public partial class SessionEditorViewModel : ViewModelBase
 {
     private readonly Guid _id;
+    private readonly IAudioDeviceService? _audioDevices;
+    private static readonly AudioDeviceOption UnchangedAudio = new(null, "Leave unchanged");
+    [ObservableProperty] private AudioDeviceOption? _outputAudio = UnchangedAudio;
+    [ObservableProperty] private AudioDeviceOption? _inputAudio = UnchangedAudio;
+    [ObservableProperty] private IReadOnlyList<AudioDeviceOption> _outputAudioOptions = [UnchangedAudio];
+    [ObservableProperty] private IReadOnlyList<AudioDeviceOption> _inputAudioOptions = [UnchangedAudio];
+    [ObservableProperty] private string? _audioDevicesMessage;
+    [ObservableProperty] private bool _isLoadingAudioDevices;
+
+    [RelayCommand]
+    private async Task RefreshAudioDevicesAsync()
+    {
+        IsLoadingAudioDevices = true;
+        AudioDevicesMessage = "Looking for audio devices…";
+        try
+        {
+            if (_audioDevices is null) throw new InvalidOperationException("Audio device discovery is unavailable.");
+            var devices = await _audioDevices.GetDevicesAsync();
+            var output = OutputAudio?.Choice;
+            var input = InputAudio?.Choice;
+            OutputAudioOptions = AudioOptions(devices, AudioFlow.Output, output);
+            InputAudioOptions = AudioOptions(devices, AudioFlow.Input, input);
+            OutputAudio = OutputAudioOptions.First(option => option.Choice?.Id == output?.Id);
+            InputAudio = InputAudioOptions.First(option => option.Choice?.Id == input?.Id);
+            AudioDevicesMessage = "Device list refreshed. Unavailable selections are kept; connect them before starting.";
+        }
+        catch (Exception exception) { AudioDevicesMessage = "Couldn't list audio devices. Your choices are kept. " + exception.Message; }
+        finally { IsLoadingAudioDevices = false; }
+    }
+
+    private static IReadOnlyList<AudioDeviceOption> AudioOptions(IReadOnlyList<AudioDevice> devices, AudioFlow flow, AudioDeviceChoice? selected)
+    {
+        var options = new List<AudioDeviceOption> { UnchangedAudio };
+        var matching = devices.Where(device => device.Flow == flow).ToArray();
+        foreach (var device in matching)
+        {
+            var label = matching.Count(other => other.Name == device.Name) > 1 ? $"{device.Name} ({device.Id})" : device.Name;
+            options.Add(new(device.Id == selected?.Id ? selected : new(device.Id, device.Name), label));
+        }
+        if (selected is not null && options.All(option => option.Choice?.Id != selected.Id))
+            options.Add(new(selected, $"{selected.Name} (unavailable)"));
+        return options;
+    }
     private readonly DraftSettings _initialSettings;
     private readonly AppDraft[] _initialApps;
     // Compare raw editable values, including invalid inputs; building a valid definition would lose them.
     public bool HasChanges => CaptureSettings() != _initialSettings || !Apps.Select(CaptureApp).SequenceEqual(_initialApps);
     private DraftSettings CaptureSettings() => new(Name, Description, EndWithApp, MainApp?.Id,
-        LaunchModeIndex, PauseBetweenAppsSeconds, StartupFocusIndex, FocusApp?.Id);
+        LaunchModeIndex, PauseBetweenAppsSeconds, StartupFocusIndex, FocusApp?.Id, OutputAudio?.Choice, InputAudio?.Choice);
     private static AppDraft CaptureApp(AppEditorViewModel app) => new(app.Id, app.Name, app.ExecutablePath,
         app.Arguments, app.WorkingDirectory, app.RunAsAdministrator, app.AllowForceQuit,
         app.ReadinessIndex, app.ReadinessTimeoutSeconds, app.OverridePause, app.PauseAfterSeconds);
     private sealed record DraftSettings(string Name, string Description, bool EndWithApp, Guid? MainAppId,
-        int LaunchMode, decimal? Pause, int StartupFocus, Guid? FocusAppId);
+        int LaunchMode, decimal? Pause, int StartupFocus, Guid? FocusAppId, AudioDeviceChoice? Output, AudioDeviceChoice? Input);
     private sealed record AppDraft(Guid Id, string Name, string Path, string Arguments, string Directory,
         bool Administrator, bool ForceQuit, int Readiness, decimal? Timeout, bool OverridePause, decimal? Pause);
     public bool IsNew { get; }
@@ -70,8 +116,13 @@ public partial class SessionEditorViewModel : ViewModelBase
     public bool HasValidationMessage => ValidationMessage is not null;
     public bool CanSave => FirstValidationIssue is null;
 
-    public SessionEditorViewModel(SessionDefinition? definition = null)
+    public SessionEditorViewModel(SessionDefinition? definition = null, IAudioDeviceService? audioDevices = null)
     {
+        _audioDevices = audioDevices;
+        OutputAudioOptions = AudioOptions([], AudioFlow.Output, definition?.OutputAudioDevice);
+        InputAudioOptions = AudioOptions([], AudioFlow.Input, definition?.InputAudioDevice);
+        OutputAudio = OutputAudioOptions.Last();
+        InputAudio = InputAudioOptions.Last();
         IsNew = definition is null;
         _id = definition?.Id ?? Guid.NewGuid();
         Name = definition?.Name ?? "";
@@ -124,7 +175,7 @@ public partial class SessionEditorViewModel : ViewModelBase
         var definition = new SessionDefinition(_id, Name.Trim(), Description.Trim(),
             Apps.Select(app => app.BuildAction()).ToArray(), EndWithApp ? MainApp?.Id : null,
             (SessionLaunchMode)LaunchModeIndex, (int)PauseBetweenAppsSeconds!.Value,
-            (StartupFocus)StartupFocusIndex, FocusApp?.Id);
+            (StartupFocus)StartupFocusIndex, FocusApp?.Id, OutputAudio?.Choice, InputAudio?.Choice);
         definition.Validate();
         return definition;
     }

@@ -174,6 +174,48 @@ Session details also offer **Delete Session…**. A confirmation names the Sessi
 
 Start Session captures the saved setup, uses its configured launch mode (in order by default), and leaves matching already-open apps running without taking ownership. Only one Session can be active at a time. Its sidebar marker and a persistent status panel remain visible while browsing another Session; switching selection never starts/ends anything. Editing/deleting the active definition and individual launch controls are unavailable until the run ends. Other saved Sessions can still be edited. Starting waits for an individual launch already in progress to settle.
 
+### Session audio devices
+
+The editor's collapsed **Session audio** section independently selects a sound output
+and microphone input, each defaulting to **Leave unchanged**. Refresh lists active
+Windows endpoints without changing audio. Saved selections use device identities and
+friendly names; unavailable selections remain visible and saveable. Merely editing,
+refreshing or saving never switches devices. Device changes count as unsaved edits.
+The detail view summarizes configured audio choices. Sessions still requires at least
+one app to offer Start; audio-only Sessions are not introduced in this slice.
+
+Start captures the choices and applies Windows console, multimedia and communication
+defaults for each selected direction before opening any app. This affects other apps
+that follow Windows defaults; apps with their own explicit device choice may keep it.
+This is not per-app routing, volume control, mixing or an audio-effects feature.
+Validate both target devices and previous defaults before switching. Missing targets,
+unrestorable previous defaults or a failed switch stop app startup with an explanation.
+Defaults changed externally during preparation abort startup rather than replacing
+that later choice. Partial changes and cancelled/failed startup attempt audio rollback;
+opened apps still require the existing save-work confirmation before process cleanup.
+
+On confirmed End, restore audio after asking apps to close, even if some are waiting
+for a save prompt. Finish and leave apps open, and Leave apps open and close, restore
+audio without stopping apps. For each changed direction/role, restore only if the
+current default still equals what this run set; otherwise keep the later selection.
+Windows can link console and multimedia defaults: if either ordinary role has a
+later selection distinct from its original and applied devices, preserve both
+ordinary roles for that direction. Communication roles remain independent.
+Already-matching defaults are not owned changes. If restoration fails, retain the
+pending changes, show **Needs attention**, block another Session and keep the window
+open for retry. Users can reconnect the previous device and retry, or choose their
+own defaults in Windows and retry. No automatic loop repeatedly changes audio.
+
+Restoration state is in memory: a crash, forced termination or machine shutdown
+cannot restore devices, and restarting Sessions does not guess prior defaults.
+Comparison protects defaults that differ at cleanup, not an undetectable change away
+and back to the same device; Windows offers no atomic compare-and-set here.
+
+Saving now writes library format v4, preserving the Session audio choices. Formats
+v1–v3 load without rewriting and leave audio unchanged. Published 0.2.3 and earlier
+cannot read v4; preserve a library copy before saving with this source build if an
+older release is still needed. The source application version is 0.3.0.
+
 The editor's options headings follow the current draft: **[App name] options** for
 the selected app and **[Session name] advanced startup options** for the Session.
 They update when selection or names change, with **App options** and **Advanced

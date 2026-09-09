@@ -106,6 +106,24 @@
                 </StackPanel>
             </Expander>
         </StackPanel>
+        <Expander Header="Session audio" HorizontalAlignment="Stretch" Expanding="AudioExpanding">
+            <StackPanel Spacing="{StaticResource Measure12}">
+                <TextBlock Text="Choose Windows defaults before your apps open. This includes communication devices and can affect other apps using defaults. Apps with their own device selection may keep it." Classes="muted" TextWrapping="Wrap" />
+                <TextBlock Text="Sound output" />
+                <ComboBox ItemsSource="{Binding OutputAudioOptions}" SelectedItem="{Binding OutputAudio}" HorizontalAlignment="Stretch" AutomationProperties.Name="Session sound output" IsEnabled="{Binding !IsLoadingAudioDevices}">
+                    <ComboBox.Styles><Style Selector="ComboBoxItem" x:DataType="vm:AudioDeviceOption"><Setter Property="AutomationProperties.Name" Value="{Binding Label}" /></Style></ComboBox.Styles>
+                    <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:AudioDeviceOption"><TextBlock Text="{Binding Label}" TextWrapping="Wrap" /></DataTemplate></ComboBox.ItemTemplate>
+                </ComboBox>
+                <TextBlock Text="Microphone input" />
+                <ComboBox ItemsSource="{Binding InputAudioOptions}" SelectedItem="{Binding InputAudio}" HorizontalAlignment="Stretch" AutomationProperties.Name="Session microphone input" IsEnabled="{Binding !IsLoadingAudioDevices}">
+                    <ComboBox.Styles><Style Selector="ComboBoxItem" x:DataType="vm:AudioDeviceOption"><Setter Property="AutomationProperties.Name" Value="{Binding Label}" /></Style></ComboBox.Styles>
+                    <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:AudioDeviceOption"><TextBlock Text="{Binding Label}" TextWrapping="Wrap" /></DataTemplate></ComboBox.ItemTemplate>
+                </ComboBox>
+                <Button Content="Refresh audio devices" Command="{Binding RefreshAudioDevicesCommand}" Classes="quiet" />
+                <TextBlock Text="{Binding AudioDevicesMessage}" Classes="muted" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                <TextBlock Text="End Session restores previous devices after asking apps to close, even if some stay open. Later device changes are kept. Closing Sessions with apps left open also restores audio; a crash cannot restore it." Classes="muted" TextWrapping="Wrap" />
+            </StackPanel>
+        </Expander>
         <Expander x:Name="AdvancedStartup" Header="{Binding AdvancedStartupHeading}" HorizontalAlignment="Stretch">
             <Expander.HeaderTemplate>
                 <DataTemplate x:DataType="x:String"><TextBlock Text="{Binding .}" TextWrapping="Wrap" /></DataTemplate>

@@ -24,12 +24,13 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var presence = new WindowsAppPresenceService();
+            var audio = new WindowsAudioDeviceService();
             var launcher = new IndividualAppLauncher(presence, new WindowsProcessStarter());
             var window = new MainWindow();
             window.DataContext = new MainViewModel(new JsonSessionStore(Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "Sessions", "sessions.json")), presence, launcher, new SessionRunner(new WindowsSessionProcessHost()),
-                    new WindowStartupFocusService(window, presence));
+                    "Sessions", "sessions.json")), presence, launcher, new SessionRunner(new WindowsSessionProcessHost(), audioDevices: audio),
+                    new WindowStartupFocusService(window, presence), audio);
             desktop.MainWindow = window;
             Program.Instance?.Listen(() => Dispatcher.UIThread.Post(() =>
             {

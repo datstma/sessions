@@ -267,6 +267,51 @@ Confirmed End during Starting cancels waits/pauses and pending launches, waits f
 
 MainViewModel's End command only captures the active Session ID and opens a save-work confirmation. ConfirmEndSession checks that the same run is still active before calling SessionRunner.EndAsync; the latter is the platform-neutral execution entry point for an already-confirmed operation. Cancel performs no process operation. Automatic main-exit and startup-failure requests are represented in Core state, then shown by the UI when editing/saving/other modals permit. End-and-close requires the close dialog to be open and uses its explicit save-work warning as approval. No automatic runner path invokes destructive cleanup without a request already confirmed by the caller. Default Cancel focus, Escape, modal keyboard containment and named active-run selection are covered by headless interaction tests.
 
+### Session audio lifecycle
+
+`SessionDefinition` stores optional `AudioDeviceChoice` values for output and input,
+containing endpoint identity and a display name. `IAudioDeviceService` is the Core
+boundary for listing endpoints and reading/writing a default for a direction/role.
+The Windows adapter uses documented Core Audio endpoint enumeration and property
+stores; endpoint IDs, not friendly names, determine device identity. Enumeration
+and policy calls run on workers with scoped COM lifetimes. No third-party package
+or external utility is required.
+
+Default switching uses Windows' undocumented `IPolicyConfig::SetDefaultEndpoint`
+interface, isolated in `WindowsAudioDeviceService`. This is a compatibility limit,
+not a publicly supported Microsoft setter API. Reference sources:
+[Microsoft endpoint enumeration](https://learn.microsoft.com/en-us/windows/win32/api/mmdeviceapi/nf-mmdeviceapi-immdeviceenumerator-enumaudioendpoints),
+[default role lookup](https://learn.microsoft.com/en-us/windows/win32/api/mmdeviceapi/nf-mmdeviceapi-immdeviceenumerator-getdefaultaudioendpoint),
+and [EarTrumpet's policy interface declarations](https://github.com/File-New-Project/EarTrumpet/blob/master/EarTrumpet/Interop/MMDeviceAPI/IPolicyConfig.cs).
+The adapter validates active state/direction before writes; Core reads back defaults
+after each write. Access or interface failures become normal recoverable run errors.
+
+A run-local `SessionAudio` records original/applied IDs separately for console,
+multimedia and communication roles. Apply validates both selections and captures all
+original defaults before writes; it rechecks the baseline immediately before each
+write, accepting the target if an earlier setter already applied it. All planned
+changes are retained before the first setter because Windows can switch console
+and multimedia roles together, including when a later setter fails. End waits for
+startup/rollback to settle before cleanup, retaining late
+writes during cancellation. Startup failure rolls audio back without implicitly
+closing owned apps. Confirmed End restores audio after its process-close attempts,
+including when apps remain open; Finish/Leave-and-close await restoration without
+closing apps. `LeaveAppsOpenAsync` serializes this work in Stopping; close callers
+check active-run state again before exiting.
+
+Restoration runs in reverse order, checks current ID against the run's applied ID,
+and relinquishes roles with a different current default. Failed restoration retains
+only unresolved roles for explicit retry and prevents terminal completion, including
+monitor-driven completion after an app closes. Console and multimedia form a
+restoration group per direction: check both captured roles, even one already matching
+the target at startup, and relinquish both if either now differs from its original
+and applied IDs. If either lookup fails, retain both pending roles without writing.
+This prevents a linked setter from overwriting a later ordinary-device selection;
+communications restoration is independent. A successful restore is not repeated.
+There is no crash recovery journal or audio mutation on editor save/refresh. Compare
+and write are not atomic; later choices that return to the same ID cannot be detected.
+The UI shows runtime audio errors through the existing bounded status/recovery area.
+
 ### Process ownership and cleanup
 
 The authoritative rule is in [PRODUCT.md](PRODUCT.md#ownership-and-cleanup). `ISessionProcessHost` and `ITrackedProcess` form the Core/platform boundary. The Windows adapter restricts queries to the current Windows login session, matches full executable paths case-insensitively, and retains handles identifying exact process lifetimes. Existing matching instances are observed but never owned; when several main-app instances already exist, automatic ending waits for all captured instances to exit. An unreadable same-name candidate prevents a new launch when no existing match can be established.
@@ -293,7 +338,7 @@ The policy aborts remaining startup on acquisition/readiness failure and cancels
 
 Use simple local JSON persistence initially. Prefer readable, portable configuration that supports the [future product uses](PRODUCT.md#local-first-and-open-source-philosophy) of export, import, sharing, and source control.
 
-Do not introduce a database until there is a demonstrated need. The JSON envelope has a `version` and an ordered `sessions` array. The reader accepts versions 1, 2 and 3; the writer uses version 3 and readable string enums for startup settings. Missing settings in version-1 definitions retain ordered launching, zero pause, launch-completed readiness, a 30-second readiness timeout, no per-app override, and unchanged focus. Loading never rewrites the file. Versions 1 and 2 load with AllowForceQuit false even if unknown fields request otherwise. Version 3 prevents published 0.2.1 and earlier builds from silently ignoring the safer cleanup policy; version 2 previously protected startup settings. Only configuration is persisted; runtime state and RunId are excluded. Saves validate first, write a uniquely named temporary file beside the destination, then replace the destination after the complete write. Missing files start an empty library; malformed, invalid, or unsupported files produce errors and remain untouched. The UI blocks library writes after a failed initial load until a retry succeeds. The store has one application writer: `Program.Main` acquires `SingleInstanceGuard` before Avalonia composition/library access. A Global named mutex, keyed by a hash of the local app-data profile path, prevents competing instances (including the same profile in another Windows login session). A second launch signals a named event and exits without reading/writing the library; the owner requests restoration/activation of its window. The mutex is released on normal exit and recovered if abandoned after a crash. This guards application instances, not arbitrary external editors of the JSON file.
+Do not introduce a database until there is a demonstrated need. The JSON envelope has a `version` and an ordered `sessions` array. The reader accepts versions 1, 2, 3 and 4; the writer uses version 4 and readable string enums for startup settings. Missing settings in version-1 definitions retain ordered launching, zero pause, launch-completed readiness, a 30-second readiness timeout, no per-app override, and unchanged focus. Loading never rewrites the file. Versions 1 and 2 load with AllowForceQuit false even if unknown fields request otherwise. Version 3 prevents published 0.2.1 and earlier builds from silently ignoring the safer cleanup policy; version 2 previously protected startup settings. Version 4 adds Session audio identities/names; formats 1–3 leave audio unchanged, and published 0.2.3 and earlier reject v4. Only configuration is persisted; runtime state, audio restoration records and RunId are excluded. Saves validate first, write a uniquely named temporary file beside the destination, then replace the destination after the complete write. Missing files start an empty library; malformed, invalid, or unsupported files produce errors and remain untouched. The UI blocks library writes after a failed initial load until a retry succeeds. The store has one application writer: `Program.Main` acquires `SingleInstanceGuard` before Avalonia composition/library access. A Global named mutex, keyed by a hash of the local app-data profile path, prevents competing instances (including the same profile in another Windows login session). A second launch signals a named event and exits without reading/writing the library; the owner requests restoration/activation of its window. The mutex is released on normal exit and recovered if abandoned after a crash. This guards application instances, not arbitrary external editors of the JSON file.
 
 The App test project uses Avalonia's headless platform with Skia for rendering and xUnit v3, as required by Avalonia 12's headless runner. Core tests retain xUnit v2. Run `dotnet test tests/Sessions.App.Tests/Sessions.App.Tests.csproj` in addition to Core tests when changing UI behaviour. Setting `SESSIONS_SCREENSHOT_DIR` to an output directory saves review PNGs from the headless tests; they do not open desktop windows or use the real Session library.
 

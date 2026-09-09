@@ -114,7 +114,7 @@ public sealed class SessionRunnerTests
         Assert.Equal(SessionRunState.NeedsAttention, runner.Snapshot!.State);
         Assert.False(process.Disposed);
         await Assert.ThrowsAsync<InvalidOperationException>(() => runner.StartAsync(Definition("Other")));
-        if (leaveOpen) runner.LeaveAppsOpen();
+        if (leaveOpen) await runner.LeaveAppsOpenAsync();
         else { process.AcceptClose = true; await runner.EndAsync(); }
         Assert.False(runner.Snapshot.IsActive);
         Assert.Equal(!leaveOpen, process.Exited);
@@ -134,7 +134,7 @@ public sealed class SessionRunnerTests
         Assert.True(one.Exited);
         Assert.Equal(SessionRunState.NeedsAttention, runner.Snapshot!.State);
         Assert.Contains("Cannot reach app", runner.Snapshot.Apps[1].Message);
-        runner.LeaveAppsOpen();
+        await runner.LeaveAppsOpenAsync();
     }
 
     [Fact]
@@ -285,7 +285,7 @@ public sealed class SessionRunnerTests
         }
         Assert.Equal(new[] { force }, support.ForceRequests);
         Assert.Equal(force, support.Exited);
-        if (!force) runner.LeaveAppsOpen();
+        if (!force) await runner.LeaveAppsOpenAsync();
     }
 
     private static SessionDefinition Definition(params string[] names) => new(Guid.NewGuid(), "Test", "",

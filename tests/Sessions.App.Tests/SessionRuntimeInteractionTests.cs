@@ -84,7 +84,7 @@ public sealed class SessionRuntimeInteractionTests
             Assert.True(model.StartSessionCommand.CanExecute(null));
             Assert.True(host.Process.Closed);
         }
-        finally { if (runner.Snapshot?.IsActive == true) runner.LeaveAppsOpen(); model.CancelEditCommand.Execute(null); window.Close(); }
+        finally { if (runner.Snapshot?.IsActive == true) await runner.LeaveAppsOpenAsync(); model.CancelEditCommand.Execute(null); window.Close(); }
     }
 
     [AvaloniaFact]
@@ -164,7 +164,7 @@ public sealed class SessionRuntimeInteractionTests
             Assert.False(model.HasActiveRun);
             Assert.Empty(model.CleanupApps);
         }
-        finally { if (runner.Snapshot?.IsActive == true) runner.LeaveAppsOpen(); window.Close(); }
+        finally { if (runner.Snapshot?.IsActive == true) await runner.LeaveAppsOpenAsync(); window.Close(); }
     }
 
     [AvaloniaFact]
@@ -224,7 +224,7 @@ public sealed class SessionRuntimeInteractionTests
             Assert.False(model.HasActiveRun);
             Assert.True(window.IsVisible);
         }
-        finally { if (runner.Snapshot?.IsActive == true) runner.LeaveAppsOpen(); window.Close(); }
+        finally { if (runner.Snapshot?.IsActive == true) await runner.LeaveAppsOpenAsync(); window.Close(); }
     }
 
     private sealed class CleanupPresence : IAppPresenceService

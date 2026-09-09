@@ -2,7 +2,103 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — plugin and Steam backlog proposals 2026-09-10
+## Resume next session — 0.3.0 release preparation 2026-09-10
+
+The user confirmed Session audio works, then explicitly requested a full release
+build, README update, commit/push and publication. SESS-032 is user-confirmed and
+Done. README and 0.3.0 release notes describe audio and library v4 compatibility.
+The full local Build-Installer.ps1 run passed: zero solution/MSI warnings/errors,
+74 Core and 153 App tests (27 opt-in native skips), self-contained publish, notices
+and WiX validation. No new dependencies were added. Tagged CI and artifact checks
+are the remaining publication steps. Repeated Sandbox lifecycle checks remain
+omitted under the user's earlier instruction; disclose this in release notes.
+The pre-existing SESS-031 Settings proposal is included in this requested commit.
+
+## Previous checkpoint — SESS-032 audio implemented 2026-09-10
+
+The user selected SESS-032. Edit a Session and expand Session audio to select output
+and microphone independently. This switches Windows console, multimedia and
+communication defaults before app launch. Discovery/save never change defaults.
+Confirmed End restores after process cleanup even with apps left open; Finish and
+Leave-and-close await restoration. Failed/cancelled startup rolls back audio, while
+owned apps still require existing cleanup confirmation. Failed restoration retains
+the active run and blocks close/new starts until retry resolves it. Later differing
+device selections are preserved. PRODUCT and ARCHITECTURE contain the policy.
+
+Core owns the lifecycle through IAudioDeviceService; WindowsAudioDeviceService
+isolates Core Audio COM and the undocumented policy setter. Native testing found
+that setting Console can also change Multimedia. Capture all role changes before
+the first write, accept already-applied linked roles during startup, and guard both
+ordinary roles before restoration. The alternate-output native test passed after
+this correction and verified all original output defaults restored. Input defaults
+were reapplied unchanged; no audio playback/capture, microphone switch, physical
+disconnect/reconnect or game-specific routing was exercised. These remain user trials.
+
+Validation uses the local artifacts/dotnet SDK with DOTNET_ROOT and PATH set:
+`dotnet build Sessions.slnx -c Release` passed with zero warnings/errors;
+`dotnet test tests/Sessions.Core.Tests/Sessions.Core.Tests.csproj -c Release --no-build`
+passed all 74 tests;
+`dotnet test tests/Sessions.App.Tests/Sessions.App.Tests.csproj -c Release --no-build`
+passed 153 tests with 27 opt-in native cases skipped. A separate run with both audio
+flags and `--filter FullyQualifiedName~NativeAudioDeviceTests` passed both native
+audio cases against the final build, including restoration of all original output
+roles. Relative documentation links and `git diff --check` pass.
+Headless audio captures in ignored artifacts/audio-review were reviewed in both
+themes at 1440x900 and 640x480; keyboard selection and scale variants are automated.
+Native audio fixtures are opt-in via SESSIONS_NATIVE_AUDIO=1 (current defaults) and
+SESSIONS_NATIVE_AUDIO_SWITCH=1 (brief alternate output switch), filtered to
+NativeAudioDeviceTests. They use an isolated run, no user library and no launched apps.
+
+Saving writes library v4; versions 1–3 still load without rewriting. Published
+0.2.3 and earlier cannot read v4: preserve a library backup before source-build
+saves if rollback is needed. README explains this. Runtime restoration is in memory;
+crash/forced termination cannot restore devices. The user subsequently requested a
+version bump: Directory.Build.props now specifies 0.3.0, following the release guide's
+minor-version rule for features. No installer build, commit, push or release was
+requested. Latest public release remains 0.2.3.
+After the bump, version/tag validation returned 0.3.0, the full Release build passed
+with zero warnings/errors, and all 74 Core tests passed again. The prior UI/native
+results above apply to the unchanged audio implementation.
+SESS-031 Settings remains the pre-existing local proposal; preserve it. SESS-032 is
+awaiting user feedback, and no other backlog implementation should start automatically.
+
+## Previous checkpoint — per-Session audio proposal 2026-09-10
+
+The user requested adding Session-specific audio output and input device selection
+to the backlog. Added SESS-032 as a proposal: independent device choices with Leave
+unchanged defaults, proposed application before app launch, and explicit design work
+for restoration, missing devices, failures and manual changes during a run. Windows
+default/communications devices versus per-app routing remains a scope decision;
+no audio API or implementation has been selected and no device settings were changed.
+This is Session configuration, distinct from global preferences under SESS-031.
+
+SESS-031 (Settings) and SESS-032 (audio) plus continuity notes are local, uncommitted
+documentation changes. SESS-028/029/030 were previously pushed as edd327b. No new
+commit, push, release or implementation was requested. Backlog IDs, relative links
+and diff whitespace checks pass. Do not implement or research these proposals until
+selected by the user. Latest public release remains 0.2.3.
+
+## Previous checkpoint — Settings proposal 2026-09-10
+
+The user requested suggestions for a Settings button and preferences (theme,
+plugins, interface scale and font size), to put in the backlog. Added SESS-031 as
+a proposal only. Suggested initial scope: an accessible Settings entry point,
+System/Light/Dark with System default, separate interface/text sizing, local
+preference persistence and reset, and plugin settings when SESS-029/030 exist.
+Keep the established font initially. General startup/window preferences,
+notifications and About/support are discussion candidates rather than promised work.
+
+Settings must preserve Session drafts and active-run controls; preference reset must
+not delete Sessions. Native scaling/accessibility validation stays linked to SESS-010.
+The current OS-following theme and branding specifications remain unchanged until
+implementation is selected and documented. No UI, runtime, version or release changes.
+
+The previous utility/plugin/Steam proposals (SESS-028/029/030) were committed and
+pushed as edd327b on main. This new SESS-031 and handoff update are local documentation
+changes; commit/push has not been requested for them. Do not implement these proposals
+or start further research without a new request. Latest public release remains 0.2.3.
+
+## Previous checkpoint — plugin and Steam backlog proposals 2026-09-10
 
 The user requested plugin support with Steam as the first plugin, then explicitly
 clarified: add it to the backlog, do not solve it now. Added SESS-029 for the plugin

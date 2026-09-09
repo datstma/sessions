@@ -178,7 +178,7 @@ public sealed class AdvancedStartupTests
         await start.WaitAsync(TimeSpan.FromSeconds(4));
         Assert.True(starts[2] - starts[1] >= TimeSpan.FromMilliseconds(900));
         Assert.True(runner.Snapshot!.StartupSucceeded);
-        runner.LeaveAppsOpen();
+        await runner.LeaveAppsOpenAsync();
     }
 
     [Theory]
@@ -191,7 +191,7 @@ public sealed class AdvancedStartupTests
         await runner.StartAsync(Definition(App("A") with { Readiness = AppReadiness.ProcessRunning }));
         Assert.Equal(!exited, runner.Snapshot!.StartupSucceeded);
         Assert.Equal(exited ? SessionRunState.Failed : SessionRunState.Running, runner.Snapshot.State);
-        if (!exited) runner.LeaveAppsOpen();
+        if (!exited) await runner.LeaveAppsOpenAsync();
         Assert.False(process.Closed);
     }
 
@@ -230,7 +230,7 @@ public sealed class AdvancedStartupTests
         await runner.EndAsync();
         await runner.StartAsync(Definition());
         Assert.NotEqual(firstId, runner.Snapshot.RunId);
-        runner.LeaveAppsOpen();
+        await runner.LeaveAppsOpenAsync();
     }
 
     private static StartProcessAction App(string name) => new(Guid.NewGuid(), name, Path.Combine(Path.GetTempPath(), name + ".exe"));

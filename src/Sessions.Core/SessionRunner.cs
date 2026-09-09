@@ -1,7 +1,7 @@
 namespace Sessions.Core;
 
 /// <summary>One active run, configurable startup, lifetime observation, and ownership-safe cleanup.</summary>
-public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeout = null)
+public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeout = null, IAudioDeviceService? audioDevices = null)
 {
     private readonly object _sync = new();
     private Run? _run;
@@ -17,7 +17,7 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
         lock (_sync)
         {
             if (_run is not null) throw new InvalidOperationException("End the active Session before starting another.");
-            run = new Run(definition with { Apps = definition.Apps.ToArray() });
+            run = new Run(definition with { Apps = definition.Apps.ToArray() }, audioDevices);
             _run = run;
             _latestRun = run;
         }
@@ -30,6 +30,8 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
     {
         try
         {
+            await run.Audio.ApplyAsync(run.Definition, run.StartCancellation.Token).ConfigureAwait(false);
+            run.StartCancellation.Token.ThrowIfCancellationRequested();
             if (run.Definition.LaunchMode == SessionLaunchMode.Together)
             {
                 // Same-executable rows cannot race the host's existing-process check.
@@ -48,7 +50,16 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
             }
             else foreach (var entry in run.Entries) await StartEntryAsync(run, entry).ConfigureAwait(false);
         }
-        finally { run.StartFinished.TrySetResult(); }
+        catch (OperationCanceledException) when (run.StopRequested) { }
+        catch (Exception exception)
+        {
+            lock (_sync) { run.Failed = true; run.StartError = exception.Message; }
+        }
+        finally
+        {
+            if (run.Failed || run.StopRequested) await run.Audio.RestoreAsync().ConfigureAwait(false);
+            run.StartFinished.TrySetResult();
+        }
 
         bool end;
         lock (_sync)
@@ -58,6 +69,11 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
             {
                 if (run.Entries.Any(e => e.Owned))
                     RequestEndConfirmation(run, "Startup stopped. Save any work in the opened apps before confirming cleanup.");
+                else if (run.Audio.HasPendingChanges)
+                {
+                    run.State = SessionRunState.NeedsAttention;
+                    run.Message = "Startup stopped. Restore the audio devices before starting another Session.";
+                }
                 else Finish(run, SessionRunState.Failed, "Session couldn't start. No owned apps need cleanup.");
             }
             else if (!end)
@@ -255,9 +271,15 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
             }
             Publish(run);
         }
+        await run.Audio.RestoreAsync().ConfigureAwait(false);
         lock (_sync)
         {
-            if (run.Entries.Any(e => e.Owned && e.State == SessionAppState.LeftOpen))
+            if (run.Audio.HasPendingChanges)
+            {
+                run.State = SessionRunState.NeedsAttention;
+                run.Message = "Session cleanup needs attention.";
+            }
+            else if (run.Entries.Any(e => e.Owned && e.State == SessionAppState.LeftOpen))
             {
                 run.State = SessionRunState.NeedsAttention;
                 run.Message = "Some apps stayed open. Check them for unsaved work. Sessions will finish when they close, or you can leave them open.";
@@ -270,22 +292,43 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
     }
 
     /// <summary>Explicitly release cleanup ownership without stopping any remaining apps.</summary>
-    public void LeaveAppsOpen()
+    public Task LeaveAppsOpenAsync()
     {
         Run? run;
+        Task task;
         lock (_sync)
         {
             run = _run;
-            if (run is null) return;
+            if (run is null) return Task.CompletedTask;
             if (run.State is SessionRunState.Starting or SessionRunState.Stopping)
                 throw new InvalidOperationException("Wait for the current Session operation to finish.");
-            foreach (var entry in run.Entries.Where(e => e.Owned && e.State != SessionAppState.Closed))
+            run.State = SessionRunState.Stopping;
+            task = run.EndTask = LeaveCoreAsync(run);
+        }
+        Publish(run);
+        return task;
+    }
+
+    private async Task LeaveCoreAsync(Run run)
+    {
+        var restored = await run.Audio.RestoreAsync().ConfigureAwait(false);
+        lock (_sync)
+        {
+            if (!restored)
             {
-                entry.State = SessionAppState.LeftOpen;
-                entry.Message = "Left open by your choice";
-                entry.Owned = false;
+                run.State = SessionRunState.NeedsAttention;
+                run.Message = "Audio cleanup needs attention. Apps were left open.";
             }
-            Finish(run, SessionRunState.Completed, "Session ended. Remaining apps were left open by your choice.");
+            else
+            {
+                foreach (var entry in run.Entries.Where(e => e.Owned && e.State != SessionAppState.Closed))
+                {
+                    entry.State = SessionAppState.LeftOpen;
+                    entry.Message = "Left open by your choice";
+                    entry.Owned = false;
+                }
+                Finish(run, SessionRunState.Completed, "Session ended. Remaining apps were left open by your choice.");
+            }
         }
         Publish(run);
     }
@@ -319,7 +362,7 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
                     }
                 }
                 if (!changed) return Task.CompletedTask;
-                if (!run.Entries.Any(e => e.Owned && e.State == SessionAppState.LeftOpen))
+                if (!run.Audio.HasPendingChanges && !run.Entries.Any(e => e.Owned && e.State == SessionAppState.LeftOpen))
                     Finish(run, run.Failed ? SessionRunState.Failed : SessionRunState.Completed,
                         "Session ended. The remaining apps closed; already-open and untracked apps were left alone.");
             }
@@ -379,14 +422,17 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
             if (!ReferenceEquals(_latestRun, run)) return;
             _snapshot = new SessionRunSnapshot(run.Definition.Id, run.Definition.Name, run.State,
                 run.Entries.Select(e => new SessionAppOutcome(e.App.Id, e.App.Name, e.State, e.Owned, e.Message,
-                    e.App.ExecutablePath, e.App.AllowForceQuit)).ToArray(), run.Message,
+                    e.App.ExecutablePath, e.App.AllowForceQuit)).ToArray(),
+                string.Join(" ", new[] { run.Message, run.StartError, run.Audio.Message }.Where(message => !string.IsNullOrEmpty(message))),
                 run.Id, run.StartupSucceeded);
         }
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
-    private sealed class Run(SessionDefinition definition)
+    private sealed class Run(SessionDefinition definition, IAudioDeviceService? audioDevices)
     {
+        public SessionAudio Audio { get; } = new(audioDevices);
+        public string? StartError;
         public SessionDefinition Definition { get; } = definition;
         public Guid Id { get; } = Guid.NewGuid();
         public Entry[] Entries { get; } = definition.Apps.Select(app => new Entry(app)).ToArray();
