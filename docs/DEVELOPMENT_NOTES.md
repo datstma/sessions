@@ -2,7 +2,16 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — advanced startup and UI feedback checkpoint 2026-09-09
+## Resume next session — 0.2.0 release preparation 2026-09-09
+
+The user requested a new release after checkpoint `851e476` was committed and pushed.
+Version 0.2.0 is the next feature preview, with notes in
+[release-notes/0.2.0.md](release-notes/0.2.0.md). Publication is authorized. Build the
+exact new tag using the existing manual workflow, verify its downloaded assets and
+installer in an isolated Sandbox, and publish with the documented preview limits.
+Keep the 0.1.0 tag/assets intact. README download links are updated after publication.
+
+## Previous checkpoint — advanced startup and UI feedback 2026-09-09
 
 The user requested “update documentation and commit/push”. This source checkpoint
 includes accessibility/scaling, advanced startup, contextual options headings, and
