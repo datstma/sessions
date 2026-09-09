@@ -798,5 +798,8 @@ and microphone behavior, and physical disconnect/reconnect. No audio was played 
 recorded during automated checks. The Windows default setter is undocumented;
 crash restoration, per-app routing, volume and effects are outside this slice.
 Library v4 preserves audio settings and is unreadable by published 0.2.3 and earlier.
-SESS-031 global Settings remains a separate proposal. Source version is 0.3.0;
-this feature has not been released yet.
+SESS-031 global Settings remains a separate proposal. Published in 0.3.0 Preview
+from v0.3.0/9bc12cb. Workflow 34414859067 passed clean solution/MSI builds and
+74 Core + 153 App tests (27 opt-in native skips). Downloaded hashes, all 174 tagged
+source entries, WiX source/license and MSI ProductVersion 0.3.0 verify. Repeated
+Sandbox lifecycle tests were omitted under the user's instruction and disclosed.

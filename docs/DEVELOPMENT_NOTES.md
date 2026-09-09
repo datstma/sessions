@@ -2,7 +2,22 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.3.0 release preparation 2026-09-10
+## Resume next session — 0.3.0 published 2026-09-10
+
+Sessions 0.3.0 Preview is public:
+https://github.com/datstma/sessions/releases/tag/v0.3.0.
+Immutable tag v0.3.0 points to 9bc12cbc2b3e6bb3801f33e471914fce1e75f974.
+Workflow 34414859067 passed clean solution/MSI builds, 74 Core and 153 App tests
+(27 opt-in native skips). Downloaded hashes, all 174 tagged source archive entries,
+WiX source/license and MSI ProductVersion 0.3.0 verify. Evidence scripts/downloads
+are in ignored artifacts/release-verification-0.3.0. No Sandbox lifecycle rerun.
+The user confirmed audio works; SESS-032 is Done. README describes audio and links
+to 0.3.0; screenshots remain accurately labeled 0.2.2. Library v4 cannot be read by
+0.2.3 or earlier. Publication notes are a follow-up documentation commit; do not move
+the release tag or replace binaries. No remaining release action is required.
+SESS-031 Settings remains a proposal; do not automatically implement another item.
+
+## Previous checkpoint — 0.3.0 release preparation 2026-09-10
 
 The user confirmed Session audio works, then explicitly requested a full release
 build, README update, commit/push and publication. SESS-032 is user-confirmed and

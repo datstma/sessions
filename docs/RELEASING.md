@@ -109,6 +109,13 @@ from the newer fixture. Fresh MSI operations took approximately two minutes befo
 proceeding; test timeouts were increased to five minutes. The cause of that delay
 has not been established, and no installation-speed claim is made.
 
+For 0.3.0, workflow 34414859067 passed clean tagged solution/MSI builds and 74 Core
++ 153 App tests (27 opt-in native skips). Downloaded hashes, all 174 source entries,
+WiX source/license and MSI ProductVersion 0.3.0 verify. The maintainer confirmed
+Session audio works and requested publication on 2026-09-10. Repeated Sandbox
+lifecycle checks were omitted under the earlier instruction and disclosed in the
+release notes. Library v4 compatibility is explicitly documented.
+
 ## Create a GitHub draft release
 
 1. Update the version and add `docs/release-notes/<version>.md`. Review dependency
