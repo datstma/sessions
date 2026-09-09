@@ -97,6 +97,12 @@ clean tagged solution/MSI builds and 54 Core + 125 App tests (25 opt-in native s
 Downloaded checksums, source entries and MSI ProductVersion were verified. The
 0.2.2 release notes disclose that lifecycle checks were not repeated for its MSI.
 
+For 0.2.3, workflow 34410480722 passed clean tagged solution/MSI builds and
+54 Core + 141 App tests (25 opt-in native skips). All downloaded hashes, 169 source
+archive entries and MSI ProductVersion verify. Repeated Sandbox lifecycle checks
+were omitted following the maintainer's earlier request; release notes disclose
+this limit. Publication was explicitly requested on 2026-09-10.
+
 The 2026-09-09 offline Sandbox checks preserved the library byte-for-byte, verified
 one per-user registration after upgrading, and verified removal of a file absent
 from the newer fixture. Fresh MSI operations took approximately two minutes before

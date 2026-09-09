@@ -26,7 +26,7 @@ and approved by the user (SESS-024), with OS-following themes and compact suppor
 Public-facing branding polish and obsolete-asset cleanup shipped in 0.2.1 under
 SESS-025. Safer closing (SESS-026), saved-app icons (SESS-027) and draft-close
 protection (SESS-006) are user-confirmed and published in 0.2.2 Preview. Invalid-field guidance
-(SESS-011) is implemented and validated in source. Installed-release checks and Actions maintenance
+(SESS-011) is user-confirmed and published in 0.2.3 Preview. Installed-release checks and Actions maintenance
 remain SESS-021/022. Broader native checks stay under SESS-001, including UAC
 cancellation and the narrower Playnite-specific confirmation in SESS-017; do not
 treat the earlier overall stopping-flow confirmation as proof of unsaved-document safety.
@@ -209,8 +209,11 @@ Native screen-reader and physical-monitor checks remain SESS-010.
 On 2026-09-10 the user requested a version bump, release build, commit and push.
 Version 0.2.3 builds a local MSI with clean solution/MSI builds, 54 Core + 141 App
 tests passing (25 opt-in skips), verified MSI version/checksum and release notes.
-Installer lifecycle checks were not repeated. GitHub publication is a separate step;
-the published download remains 0.2.2.
+Installer lifecycle checks were not repeated. The user then explicitly requested
+publication: 0.2.3 Preview is public from v0.2.3/a2e9781. Workflow 34410480722 passes
+clean solution/MSI builds and all 195 regular tests (25 native skips). Downloaded
+hashes, all 169 source entries and MSI version verify. Release notes disclose the
+unrepeated lifecycle checks; public download links now point to 0.2.3.
 
 
 ## SESS-012 — Show running apps and bring their windows forward

@@ -35,7 +35,7 @@
 
 <p align="center"><em>Your apps, their order, and what's running—all in one place.</em></p>
 
-**Sessions 0.2.2 adds safer closing, app icons and protection for Session edits.**
+**Sessions 0.2.3 adds clear field guidance and a Review fields action when editing.**
 [Download the Windows preview](#downloads) to try it with your own apps.
 
 | Make it yours | Start together | End with clarity |
@@ -110,21 +110,20 @@ If an app cannot be stopped or safely tracked, Sessions explains the problem and
 
 ## Downloads
 
-**Sessions 0.2.2 is a development preview.** Download the
-[Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.2.2/Sessions-0.2.2-win-x64.msi)
-from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.2.2).
+**Sessions 0.2.3 is a development preview.** Download the
+[Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.2.3/Sessions-0.2.3-win-x64.msi)
+from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.2.3).
 The installer includes .NET and installs for your Windows user, with a Start menu
 shortcut. Installer and application binaries are unsigned.
 
-[What's new in 0.2.2](docs/release-notes/0.2.2.md): safer app closing, executable
-icons in the app list, and Keep editing / Discard / Save when you close with a
-changed Session draft.
+[What's new in 0.2.3](docs/release-notes/0.2.3.md): nearby explanations for invalid
+editor fields and a Review fields action that opens and focuses the setting to fix.
 
 Close Sessions before installing, updating, or uninstalling. Updates and uninstall
 preserve your saved Sessions. To update, download and run a newer MSI; there is no
 automatic updater. The release page includes checksums, source, and validation limits.
 
-**Library compatibility:** saving in 0.2.2 uses v3, which 0.2.1 and earlier cannot
+**Library compatibility:** saving in 0.2.2 and 0.2.3 uses v3, which 0.2.1 and earlier cannot
 open. Loading an older library alone does not rewrite it. Keep a copy of
 `%LOCALAPPDATA%\Sessions\sessions.json` before saving if you need to return to an
 older release.

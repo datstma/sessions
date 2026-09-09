@@ -2,7 +2,30 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.2.3 release build 2026-09-10
+## Resume next session — 0.2.3 Preview published 2026-09-10
+
+The user followed the local build/commit request with an explicit request to publish
+the release. [Sessions 0.2.3 Preview](https://github.com/datstma/sessions/releases/tag/v0.2.3)
+is now public, from immutable tag v0.2.3/commit a2e9781. SESS-011 implementation and
+version preparation were committed/pushed as 6eeac25; a2e9781 finalizes release notes.
+Workflow 34410480722 passed clean solution/MSI builds, 54 Core + 141 App tests
+(25 opt-in native skips), packaging and draft creation. All three downloaded asset
+hashes verify; all 169 Sessions source ZIP entries match the tag byte-for-byte;
+read-only MSI inspection confirms ProductVersion 0.2.3. Verification artifacts/log
+are under ignored artifacts/release-0.2.3-verification. Release assets include the
+MSI, Sessions/WiX source ZIPs and SHA256SUMS.txt.
+
+No repeated Sandbox lifecycle run was performed, following the maintainer's earlier
+request to avoid repeated installer checks after successful install/uninstall use.
+Release notes disclose this; native accessibility, ordinary-user and installed
+real-app/UAC checks remain SESS-010/021. No user apps or library were test fixtures.
+README/gallery download links now point to 0.2.3; existing screenshots remain
+accurately labelled 0.2.2. Published tag/assets remain immutable. The publication
+follow-up records the outcome and updated release-page validation in main.
+
+The user is finished for the evening. Stop here; do not start another backlog item.
+
+## Previous checkpoint — 0.2.3 release build 2026-09-10
 
 The user selected SESS-011 from the remaining backlog and confirms it "works like
 a charm!" after their trial. Implemented, validated and user-confirmed in the working

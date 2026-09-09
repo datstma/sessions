@@ -2,7 +2,7 @@
 
 These screenshots show **Sessions 0.2.2**, including executable icons in the app
 list and the updated safer-closing confirmation. You can
-[download the Windows preview](https://github.com/datstma/sessions/releases/tag/v0.2.2).
+[download the Windows preview](https://github.com/datstma/sessions/releases/tag/v0.2.3).
 Sessions follows your system's light or dark appearance.
 
 ## Your apps, ready together
