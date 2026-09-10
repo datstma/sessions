@@ -36,7 +36,7 @@
 <p align="center"><em>Your apps, their order, and what's running—all in one place.</em></p>
 
 **Sessions 0.5.0 adds Steam plugin support and a Close action beside running apps.**
-[Download the Windows preview](#downloads) to try it with your own apps.
+[Download the Windows alpha](#downloads) to try it with your own apps.
 
 | Make it yours | Start together | End with clarity |
 | --- | --- | --- |
@@ -124,7 +124,11 @@ If an app cannot be stopped or safely tracked, Sessions explains the problem and
 
 ## Downloads
 
-**Sessions 0.5.0 is a development preview.** Download the
+**Sessions is in Alpha.** The core Session workflow is available for everyday testing.
+Features and saved-data formats may change, and some apps require manual handling.
+Feedback and bug reports are welcome.
+
+Download the Sessions 0.5.0
 [Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.5.0/Sessions-0.5.0-win-x64.msi)
 from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.5.0).
 The installer includes .NET and installs for your Windows user, with a Start menu

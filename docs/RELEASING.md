@@ -15,8 +15,17 @@ library's JSON schema version simply because the application version changes.
 
 Every published build gets a new version and matching Git tag (`v0.1.0`). Never
 move published tags or replace their binaries. MSI compares three numeric fields;
-their maximums are `255.255.65535`. Keep preview status in GitHub's **pre-release**
-flag instead of adding `-beta` suffixes to the MSI version.
+their maximums are `255.255.65535`. The current project stage is **Alpha**; use release
+titles such as **Sessions 0.5.0 Alpha** and keep GitHub's **pre-release** flag enabled.
+Keep numeric tags and MSI versions, without `-alpha` or `-beta` suffixes. Feature
+and fix releases keep the numbering rules above. [PRODUCT.md](PRODUCT.md#project-maturity)
+defines the Alpha, Beta and 1.0 readiness criteria.
+
+The 0.5.0 title and release description were relabelled from Preview to Alpha after
+publication. This metadata-only change preserves its tag, binaries, source archives
+and checksums; historical release descriptions inside its source archive remain as
+published. Earlier releases retain their Preview names. Future prerelease workflow
+drafts use Alpha titles until the project stage is explicitly changed.
 
 ## Build locally
 
@@ -145,8 +154,8 @@ limits. Plugin preferences remain outside installer ownership.
    ```
 
 3. In GitHub, open **Actions → Build release → Run workflow**. Select the default
-   branch for the workflow definition, enter the existing tag, and leave preview
-   status enabled for early releases. The workflow must first exist on the default
+   branch for the workflow definition, enter the existing tag, and leave pre-release
+   status enabled for Alpha releases. The workflow must first exist on the default
    branch to appear as a manually runnable workflow.
 4. GitHub checks out that exact tag and checks its version, builds and tests on
    Windows, packages the MSI, and archives source from the same commit. A separate
@@ -156,7 +165,7 @@ limits. Plugin preferences remain outside installer ownership.
    Existing releases cause failure rather than replacement. Only this final job
    receives repository write permission; builds run with read permission.
 5. Download and test those exact draft assets. Record the checks below, disclose
-   any remaining preview validation limits in the notes, then click **Publish release**.
+   any remaining validation limits in the notes, then click **Publish release**.
 
 Normal pushes and tags do not automatically trigger releases. A draft remains
 unpublished until a maintainer publishes it. Users upgrade by running a newer MSI;

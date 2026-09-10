@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       prerelease:
-        description: Mark this release as a preview
+        description: Mark this as a pre-release (Alpha)
         required: true
         default: true
         type: boolean
@@ -104,7 +104,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          args=(--verify-tag --draft --title "Sessions $RELEASE_TAG" --notes-file release-files/RELEASE-NOTES.md)
+          title="Sessions ${RELEASE_TAG#v}"
+          if [ "$PRERELEASE" = "true" ]; then title+=" Alpha"; fi
+          args=(--verify-tag --draft --title "$title" --notes-file release-files/RELEASE-NOTES.md)
           if [ "$PRERELEASE" = "true" ]; then args+=(--prerelease); fi
           # An existing release is an error; never replace previously uploaded binaries.
           gh release create "$RELEASE_TAG" "${args[@]}" release-files/*.msi release-files/*.zip release-files/SHA256SUMS.txt

@@ -961,3 +961,9 @@ passed clean tagged builds, 119 Core and 224 App tests (31 opt-in native skips).
 Downloaded checksums, all 214 source archive entries, WiX source/license and MSI
 ProductVersion 0.5.0 verify. Release notes retain the documented Steam/native limits
 and omission of repeated Sandbox lifecycle checks. Publication confirmed 2026-09-10.
+
+
+Project-stage follow-up, 2026-09-10: the user approved relabelling current 0.5.0 as
+Alpha and documenting Alpha/Beta/1.0 criteria. This changes release metadata and
+current documentation, preserving published tag/assets and historical Preview
+releases. UI inspection found Preview only in the appearance-preview controls.

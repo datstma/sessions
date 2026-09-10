@@ -15,6 +15,25 @@ flow. Version 0.1.0 is the first unsigned development preview, distributed throu
 [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.1.0).
 See [RELEASING.md](RELEASING.md) for the build and release process and validation limits.
 
+## Project maturity
+
+Sessions is in **Alpha**, beginning with the 0.5.0 release designation. The core
+Session workflow is available for everyday testing. Features and saved-data formats
+may change, and some apps require manual handling. Feedback and bug reports guide
+further development; Alpha does not imply all real-app or native checks have passed.
+
+The intended progression is:
+
+- **Alpha:** usable core workflows with ongoing feature development and compatibility
+  changes disclosed in each release.
+- **Beta:** the agreed 1.0 feature set is complete, with broader real-app testing and
+  reliable upgrades. The complete future backlog is not a Beta requirement.
+- **1.0:** those workflows are dependable, compatibility expectations are clear, and
+  remaining limitations are documented.
+
+These are readiness criteria, not scheduled releases. Version numbering and release
+metadata follow [RELEASING.md](RELEASING.md#versioning).
+
 ## Vision
 
 **Sessions** is an open-source desktop application for creating, launching, managing, and ending reusable computer sessions.

@@ -2,7 +2,28 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.5.0 published 2026-09-10
+## Resume next session — Alpha designation 2026-09-10
+
+The user approved adopting Alpha for the current project and relabelling 0.5.0,
+while retaining numeric tags/MSI versions and GitHub prerelease status. README,
+PRODUCT, RELEASING and current release notes now define the designation and
+Alpha/Beta/1.0 readiness criteria. Future prerelease workflow titles use Alpha.
+Historical releases and the immutable v0.5.0 tag/assets remain unchanged.
+
+UI inspection across src found no project-status Preview label. The two visible
+uses are Settings' Preview heading and its appearance-preview explanation; these
+retain their correct meaning. No UI code or branding tokens changed.
+
+GitHub now reports Sessions 0.5.0 Alpha, published with prerelease=true. Before/after
+release metadata confirms the tag and every asset entry are identical. No installer,
+source archive or checksum was replaced. Full Release solution build passes with
+zero warnings/errors; Core passes 119. UI tests were not repeated because UI code
+is unchanged. Workflow YAML parses, its release Bash script passes syntax validation,
+and all 91 local documentation links/anchors pass. Logs/metadata are under ignored
+artifacts/plugins-review/alpha-*. Commit/push this completed documentation/workflow
+update; no new version, tag or release build is required. Continue from user feedback.
+
+## Previous checkpoint — 0.5.0 published 2026-09-10
 
 The user retried individual Close, reported the correction is better, and explicitly
 requested commit/push/publication. Sessions 0.5.0 Preview is published at
