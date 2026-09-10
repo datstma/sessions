@@ -175,6 +175,35 @@ Session details also offer **Delete Session…**. A confirmation names the Sessi
 
 Start Session captures the saved setup, uses its configured launch mode (in order by default), and leaves matching already-open apps running without taking ownership. Only one Session can be active at a time. Its sidebar marker and a persistent status panel remain visible while browsing another Session; switching selection never starts/ends anything. Editing/deleting the active definition and individual launch controls are unavailable until the run ends. Other saved Sessions can still be edited. Starting waits for an individual launch already in progress to settle.
 
+### Closing an individual app
+
+Each running app card offers **Close…** beside its running status, including Steam
+apps. A confirmation names the app and asks you to save your work. It applies to
+the currently identified copies, including apps opened outside Sessions or before
+the current run. Cancel receives initial focus; Escape cancels and returns focus
+to the originating control. Preparing or cancelling never closes an app.
+
+Confirming asks only those captured copies to close normally. Later copies and other
+apps stay open. This explicit action is independent of **Close when this Session
+ends** and does not use automatic force quit, even when that option is enabled for
+Session cleanup. Apps can show their own save prompts; if an app stays running,
+inline feedback asks you to check its window. You can retry Close after handling it.
+Close acknowledgements use neutral text while waiting for observed exit. Close
+feedback, including a still-running warning, clears when a presence check confirms
+the app stopped. An unknown status does not count as exit; unrelated launch/focus
+errors retain their own feedback.
+
+Closing one app does not end the Session. Closing its tracked main app uses the
+existing end-confirmation flow; supporting apps stay open until you choose End.
+Close is unavailable during startup, stopping, editing, other main-window
+confirmations and an individual launch in progress. While preparing or confirming
+a close, competing main-window actions and window closing are blocked.
+
+Steam closing requires current app-specific process evidence, verified against its
+installation directory and exact Windows identities. It leaves the shared Steam
+client open. If those identities cannot be verified, Sessions explains that you
+need to close the app from its own window or Steam. See [plugin limits](PLUGINS.md).
+
 ### Application Settings
 
 **Settings** opens a separate window from the sidebar footer or the empty-library
@@ -215,9 +244,72 @@ until recovery; an explicit reset preserves any existing file as a uniquely name
 recovery backup before replacing it. If backup or saving fails, the original remains
 and the error stays available. Reset never deletes or changes Session definitions.
 
-Plugin management remains dependent on SESS-029/030. Startup/tray behavior, arbitrary
-font selection, notifications and the other proposed preferences are future work;
-Settings exposes only the implemented appearance choices above.
+Plugin management is described below. Startup/tray behavior, arbitrary font
+selection, notifications and the other proposed preferences remain future work.
+
+### Plugins and Steam
+
+The first plugin slice is bundled with Sessions, with Steam enabled by default.
+**Settings → Plugins** shows each bundled plugin's name, version and enabled state,
+plus its supported settings. **Apply plugins** saves separately from appearance.
+Unapplied choices are discarded when Settings closes. **Reset plugin preferences**
+immediately restores bundled defaults without changing appearance or saved Sessions.
+Failed reads block plugin discovery/launch and Apply until retry or explicit recovery;
+recovery preserves the original file before replacement. Reset is unavailable before
+the first read finishes. Failed writes retain applied settings and draft choices.
+Both Settings and its owner remain open while plugin preferences are being written.
+
+Each Session captures its enabled plugins and settings at Start. Later changes apply
+to subsequent launches and do not invalidate the active run. Missing, disabled or
+incompatible plugins preserve saved entries and explain recovery instead of falling
+back to an executable. All plugin entries are checked before audio changes or app
+launches. Third-party plugin installation, hot loading, a marketplace and automatic
+plugin updates are outside this slice. Hue and Home Assistant remain future work.
+
+In **Add app → Plugins**, Steam lists locally installed apps from its available
+libraries, with names and initial artwork fallbacks. Steam is found automatically;
+its installation folder can be overridden in Settings. Refresh never launches games
+or changes Steam configuration. Unavailable installations cannot be added; already
+saved selections remain editable and recover when their library becomes available.
+Game identity is its Steam app ID, so a move between discovered libraries does not
+require recreating the Session entry. Partial discovery errors keep healthy choices.
+
+Steam entries send a launch request to the installed client without changing its
+saved launch options. Steam handles login, updates and launch-choice dialogs. A
+successful request does not establish readiness or ownership. The app card separately
+shows green **Running** when Steam's local running flag reports the target active,
+including apps opened outside Sessions. This flag does not grant cleanup permission.
+Manual launch acknowledgements use neutral supporting text and disappear once running
+is detected, even after the repeated-click guard expires. Actual launch/focus errors
+remain distinct and use error styling.
+Individual requests are suppressed while Steam reports the app running and otherwise
+have a ten-second repeated-click guard. Each plugin target can appear only once in a
+Session; same-plugin entries serialize in All at once, and In order honors pauses.
+
+Each plugin app has **Close when this Session ends** in its app options, off by
+default. Supporting plugins may ask verified processes newly opened for the Session
+to close. Steam's implementation captures new app-associated processes within the
+installed app directory during a bounded launch window (up to 30 seconds). It leaves
+already-running apps, pre-existing processes, other Steam apps and the shared client
+alone. Missing or ambiguous ownership falls back to manual closing. Capture drains
+even if End is requested during startup. Later independent launches are never adopted.
+Changing the checkbox affects future runs, not an active run's captured choice.
+
+Normal End asks tracked apps to close and retains the existing save-work confirmation,
+Needs attention, Retry End and Leave apps open flows. If a captured app refuses to
+close, the existing separately confirmed Force quit action targets only its retained
+processes. Automatic force quit is not exposed for plugin apps. Individual app
+launches remain independent and never acquire Session cleanup ownership. Window
+readiness, completion focus, administrator launch and main-app lifetime remain
+unavailable for plugin apps. Owned ordinary-app cleanup and audio restoration are
+unchanged. Steam/log failures and delayed starts outside the capture window can still
+require manual management; a running indicator is not evidence that cleanup is available.
+
+Saving in this source build writes library v5. Formats v1–v4 still load without
+rewriting; published 0.4.0 and earlier cannot read v5. Preserve a library copy before
+saving if rollback to a published build is needed. Plugin preferences stay separately
+in `%LOCALAPPDATA%\Sessions\plugins.json`, outside shareable Session definitions.
+See [plugin implementation and validation](PLUGINS.md).
 
 ### Session audio devices
 
@@ -256,10 +348,9 @@ cannot restore devices, and restarting Sessions does not guess prior defaults.
 Comparison protects defaults that differ at cleanup, not an undetectable change away
 and back to the same device; Windows offers no atomic compare-and-set here.
 
-Saving now writes library format v4, preserving the Session audio choices. Formats
-v1–v3 load without rewriting and leave audio unchanged. Published 0.2.3 and earlier
-cannot read v4; preserve a library copy before saving with this source build if an
-older release is still needed. The source application version is 0.3.0.
+Audio choices were introduced in library v4. Formats v1–v3 load without rewriting
+and leave audio unchanged; published 0.2.3 and earlier cannot read v4. Current source
+saves use v5 for plugin compatibility, as described above.
 
 The editor's options headings follow the current draft: **[App name] options** for
 the selected app and **[Session name] advanced startup options** for the Session.
@@ -296,11 +387,11 @@ Changing sidebar selection does not change its target. Missing windows or Window
 declining foreground activation produce feedback without failing the Session. Manual
 single-app launches do not apply Session timing or completion focus settings.
 
-The updated app reads version-1 and version-2 libraries with automatic force quit
-disabled for every app. Existing startup settings are preserved. Saving writes
-version 3 so older builds reject the library instead of silently applying their
-force-quit policy; loading alone does not rewrite the library. Published 0.2.1 and
-earlier builds cannot read version-3 files.
+The app reads version-1 and version-2 libraries with automatic force quit disabled
+for every app. Existing startup settings are preserved. Version 3 introduced the
+compatibility boundary so older builds reject the library instead of silently
+applying their force-quit policy; loading alone does not rewrite the library.
+Published 0.2.1 and earlier builds cannot read version-3 files. Current saves use v5.
 
 For a user-bound Session, End is explicit. For a tracked main app, closing its captured process (all captured instances if already open in several processes) opens an end-confirmation request. Other apps keep running until the user confirms. Cancelling keeps the Session active and switches this run to manual ending, without repeatedly prompting about the already-exited main app. A supporting app closing does not end the run. Empty Sessions can be saved and edited, but cannot be started from the app. Their detail view hides Start Session and startup hints, keeps Edit Session available, and asks the user to add apps. The start command also rejects empty Sessions. A verified self-restart into one child with the same executable path stays part of the run, including an elevation restart. Exiting the original process does not end a main-app Session while that replacement remains alive. General launcher handoffs, ambiguous multiple children, and inaccessible identities still require manual management; Sessions never adopts a new app just because its name/path matches.
 

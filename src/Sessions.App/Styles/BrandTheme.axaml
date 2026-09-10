@@ -228,6 +228,7 @@
   <Thickness x:Key="Inset4x0x0x0">4,0,0,0</Thickness>
   <Thickness x:Key="Inset12x28">12,28</Thickness>
   <Thickness x:Key="Inset28x14x28x18">28,14,28,18</Thickness>
+  <Thickness x:Key="Inset28x8">28,8</Thickness>
   <Thickness x:Key="Inset28x18">28,18</Thickness>
   <Thickness x:Key="Inset12x0">12,0</Thickness>
   <CornerRadius x:Key="Round11">11</CornerRadius>

@@ -12,6 +12,7 @@ namespace Sessions.App.Views;
 public partial class MainWindow : Window
 {
     public PreferencesService? Preferences { get; init; }
+    public PluginService? Plugins { get; init; }
     private SettingsWindow? _settingsWindow;
     private WindowAppearance? _appearance;
     private Control? _settingsReturnFocus;
@@ -26,7 +27,7 @@ public partial class MainWindow : Window
             return;
         }
         _settingsReturnFocus = sender as Control;
-        _settingsWindow = new SettingsWindow(Preferences);
+        _settingsWindow = new SettingsWindow(Preferences, Plugins);
         _settingsWindow.Closed += (_, _) =>
         {
             _settingsWindow = null;
@@ -72,7 +73,7 @@ public partial class MainWindow : Window
         Closing += (_, e) =>
         {
             // Do not abandon a preferences write while closing the owner and its Settings window.
-            if (Preferences?.IsBusy == true) { e.Cancel = true; return; }
+            if (Preferences?.IsBusy == true || Plugins?.IsBusy == true) { e.Cancel = true; return; }
             if (DataContext is MainViewModel model)
             {
                 if (!model.IsCloseConfirmation && !model.IsDraftCloseConfirmation)
@@ -129,6 +130,9 @@ public partial class MainWindow : Window
     private bool _endWasOpen;
     private bool _closeWasOpen;
     private bool _forceWasOpen;
+    private bool _appCloseWasOpen;
+    private Control? _appCloseReturnFocus;
+    private void CloseAppRequested(object? sender, Avalonia.Interactivity.RoutedEventArgs e) => _appCloseReturnFocus = sender as Control;
     private bool _draftWasOpen;
     private Control? _forceReturnFocus;
     private void ForceQuitRequested(object? sender, Avalonia.Interactivity.RoutedEventArgs e) => _forceReturnFocus = sender as Control;
@@ -153,6 +157,21 @@ public partial class MainWindow : Window
                 if (draftModel.IsDraftCloseConfirmation) KeepEditingButton.Focus();
                 else if (draftModel.IsEditing && draftModel.IsMainContentEnabled &&
                     _closeReturnFocus is { IsEffectivelyVisible: true, IsEffectivelyEnabled: true } previous) previous.Focus();
+            });
+        }
+        if (e.PropertyName == nameof(MainViewModel.IsAppCloseConfirmation) && sender is MainViewModel appCloseModel && _appCloseWasOpen != appCloseModel.IsAppCloseConfirmation)
+        {
+            _appCloseWasOpen = appCloseModel.IsAppCloseConfirmation;
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (appCloseModel.IsAppCloseConfirmation) CancelCloseAppButton.Focus();
+                else if (appCloseModel.IsMainContentEnabled)
+                {
+                    if (_appCloseReturnFocus is { IsEffectivelyVisible: true, IsEffectivelyEnabled: true }) _appCloseReturnFocus.Focus();
+                    else if (appCloseModel.HasActiveRun) EndSessionButton.Focus();
+                    else NewSessionButton.Focus();
+                    _appCloseReturnFocus = null;
+                }
             });
         }
         if (e.PropertyName == nameof(MainViewModel.IsForceQuitConfirmation) && sender is MainViewModel forceModel && _forceWasOpen != forceModel.IsForceQuitConfirmation)

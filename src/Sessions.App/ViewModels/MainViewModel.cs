@@ -21,12 +21,13 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     private readonly SessionRunner? runner;
     private readonly IStartupFocusService? startupFocus;
     private readonly IAudioDeviceService? audioDevices;
+    private readonly ISessionPluginHost? plugins;
     private CancellationTokenSource _startupFocusCancellation = new();
     private Guid? _focusRunId;
     private bool _disposed;
 
     public MainViewModel(ISessionStore store, IAppPresenceService? presenceService = null,
-        IIndividualAppLauncher? appLauncher = null, SessionRunner? runner = null, IStartupFocusService? startupFocus = null, IAudioDeviceService? audioDevices = null)
+        IIndividualAppLauncher? appLauncher = null, SessionRunner? runner = null, IStartupFocusService? startupFocus = null, IAudioDeviceService? audioDevices = null, ISessionPluginHost? plugins = null, IIndividualAppCloser? appCloser = null)
     {
         this.store = store;
         this.presenceService = presenceService;
@@ -34,6 +35,8 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         this.runner = runner;
         this.startupFocus = startupFocus;
         this.audioDevices = audioDevices;
+        this.plugins = plugins;
+        _appCloser = appCloser;
         if (runner is not null) runner.Changed += RuntimeChanged;
     }
 
@@ -151,7 +154,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     public bool SelectedIsActive => HasActiveRun && SelectedSession?.Definition.Id == Runtime?.SessionId;
     public bool ShowStart => !SelectedIsActive;
     public bool ShowActiveNavigation => HasActiveRun && !SelectedIsActive;
-    public bool IsMainContentEnabled => !IsConfirmingDelete && !IsCloseConfirmation && !IsEndConfirmation && !IsForceQuitConfirmation && !IsDraftCloseConfirmation;
+    public bool IsMainContentEnabled => !IsConfirmingDelete && !IsCloseConfirmation && !IsEndConfirmation && !IsForceQuitConfirmation && !IsDraftCloseConfirmation && !IsAppCloseConfirmation && !IsAppCloseBusy;
     public string RuntimeTitle => Runtime is null ? "" : $"{Runtime.Name} · {Runtime.State switch
     {
         SessionRunState.Starting => "Starting…", SessionRunState.Running => "Active",
@@ -276,7 +279,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
 
     public bool RequestWindowClose()
     {
-        if (IsEndConfirmation || IsForceQuitConfirmation) return false;
+        if (IsEndConfirmation || IsForceQuitConfirmation || IsAppCloseConfirmation || IsAppCloseBusy) return false;
         if (IsBusy)
         {
             if (_savingEditor) _closeAfterSave = true;
@@ -355,13 +358,14 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     }
     private SessionViewModel CreateSessionViewModel(SessionDefinition definition)
     {
-        var session = new SessionViewModel(definition, presenceService, appLauncher);
+        var session = new SessionViewModel(definition, presenceService, appLauncher, plugins);
         foreach (var row in session.Apps) row.PropertyChanged += AppRowChanged;
         return session;
     }
     private void AppRowChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(SessionAppRow.IsStarting)) Refresh();
+        if (e.PropertyName == nameof(SessionAppRow.Presence)) RequestCloseAppCommand.NotifyCanExecuteChanged();
     }
     partial void OnIsCloseConfirmationChanged(bool value) => Refresh();
     partial void OnPendingEndSessionIdChanged(Guid? value) => Refresh();
@@ -369,6 +373,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        if (!IsAppCloseBusy) _preparedAppClose?.Dispose();
         _focusRunId = null;
         _startupFocusCancellation.Cancel();
         _startupFocusCancellation.Dispose();
@@ -384,17 +389,18 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     {
         // Re-evaluate elapsed manual-start grace periods even when an empty Session is selected.
         RefreshLaunchAvailability();
-        if (presenceService is null || _refreshingPresence || !ShowDetails || IsConfirmingDelete ||
+        if ((presenceService is null && plugins is null) || _refreshingPresence || !ShowDetails || IsConfirmingDelete ||
             SelectedSession is not { HasApps: true } session) return;
         _refreshingPresence = true;
         var version = _presenceVersion;
         try
         {
-            var snapshot = await presenceService.GetPresenceAsync(
-                session.Apps.Select(app => app.ExecutablePath).ToArray(), cancellationToken);
+            var snapshot = presenceService is null ? new System.Collections.Generic.Dictionary<string, AppPresence>() : await presenceService.GetPresenceAsync(
+                session.Apps.Where(app => !app.IsPlugin).Select(app => app.ExecutablePath).ToArray(), cancellationToken);
             if (cancellationToken.IsCancellationRequested || version != _presenceVersion) return;
-            foreach (var app in session.Apps)
+            foreach (var app in session.Apps.Where(app => !app.IsPlugin))
                 app.ApplyPresence(snapshot.TryGetValue(app.ExecutablePath, out var presence) ? presence : AppPresence.Unknown);
+            await Task.WhenAll(session.Apps.Where(app => app.IsPlugin).Select(app => app.RefreshPluginPresenceAsync(cancellationToken)));
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
         catch (Exception exception) when (SessionAppRow.IsObservationError(exception))
@@ -411,6 +417,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
 
     private void RefreshLaunchAvailability()
     {
+        RequestCloseAppCommand.NotifyCanExecuteChanged();
         StartSessionCommand.NotifyCanExecuteChanged();
         EditSessionCommand.NotifyCanExecuteChanged();
         RequestDeleteSessionCommand.NotifyCanExecuteChanged();
@@ -627,9 +634,13 @@ public partial class MainViewModel : ViewModelBase, IDisposable
                      nameof(ShowActiveNavigation), nameof(RuntimeTitle), nameof(EndLabel), nameof(StartHint), nameof(AppInteractionHint), nameof(IsMainContentEnabled),
                      nameof(IsEndConfirmation), nameof(EndConfirmationTitle), nameof(AppsToStop), nameof(AppsToKeep), nameof(HasAppsToKeep), nameof(HasAppsToStop),
                      nameof(IsForceQuitConfirmation), nameof(ForceQuitTitle), nameof(ForceQuitDescription), nameof(AutomaticForceQuitWarning), nameof(HasAutomaticForceQuit),
-                     nameof(DraftCloseTitle), nameof(DraftCloseMessage), nameof(DraftNeedsCorrection) })
+                     nameof(DraftCloseTitle), nameof(DraftCloseMessage), nameof(DraftNeedsCorrection),
+                     nameof(IsAppCloseConfirmation), nameof(AppCloseTitle), nameof(AppCloseDescription), nameof(AppCloseButtonLabel) })
             OnPropertyChanged(property);
         StartSessionCommand.NotifyCanExecuteChanged();
+        RequestCloseAppCommand.NotifyCanExecuteChanged();
+        ConfirmCloseAppCommand.NotifyCanExecuteChanged();
+        CancelCloseAppCommand.NotifyCanExecuteChanged();
         ViewActiveSessionCommand.NotifyCanExecuteChanged();
         EndSessionCommand.NotifyCanExecuteChanged();
         ConfirmEndSessionCommand.NotifyCanExecuteChanged();

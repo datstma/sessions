@@ -50,6 +50,43 @@
                     </Border>
                 </ThemeVariantScope>
                 <TextBlock Text="Reset preferences restores System theme and 100% sizing immediately. Your saved Sessions are kept. Closing this window discards unapplied choices." Classes="muted" TextWrapping="Wrap" />
+                <Border Classes="surface" Padding="{StaticResource Inset20}" IsVisible="{Binding HasPlugins}">
+                    <StackPanel DataContext="{Binding Plugins}" x:DataType="vm:PluginSettingsViewModel" Spacing="{StaticResource Measure12}">
+                        <TextBlock Text="Plugins" Classes="section" />
+                        <TextBlock Text="Bundled integrations for your Sessions. Changes apply to your next launch; an active Session keeps its current plugin settings." Classes="muted" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding Service.ErrorMessage}" Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                        <Button Content="Try loading plugins again" Command="{Binding RetryLoadCommand}" IsVisible="{Binding Service.HasLoadError}" />
+                        <ItemsControl ItemsSource="{Binding Plugins}" IsEnabled="{Binding CanChange}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:PluginPreferenceViewModel">
+                                    <StackPanel Spacing="{StaticResource Measure8}" Margin="{StaticResource Inset0x0x0x8}">
+                                        <TextBlock Text="{Binding Name}" FontWeight="{StaticResource WeightStrong}" />
+                                        <TextBlock Text="{Binding Version}" Classes="muted" />
+                                        <CheckBox Content="{Binding EnabledLabel}" IsChecked="{Binding Enabled}" AutomationProperties.Name="{Binding EnabledLabel}" />
+                                        <TextBlock Text="{Binding Status}" Classes="muted" TextWrapping="Wrap" />
+                                        <ItemsControl ItemsSource="{Binding Fields}" IsEnabled="{Binding CanEditFields}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:PluginSettingViewModel">
+                                                    <StackPanel Spacing="{StaticResource Measure6}">
+                                                        <TextBlock Text="{Binding Label}" TextWrapping="Wrap" />
+                                                        <TextBox Text="{Binding Value}" AutomationProperties.Name="{Binding Label}" AutomationProperties.HelpText="{Binding Help}" />
+                                                        <TextBlock Text="{Binding Help}" Classes="muted" TextWrapping="Wrap" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="Apply plugins saves these choices separately from appearance. Reset plugin preferences restores bundled defaults immediately and keeps your Sessions. Third-party plugin installation is not available in this version." Classes="muted" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding Status}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                        <WrapPanel>
+                            <Button Content="Apply plugins" Classes="primary" Command="{Binding ApplyCommand}" Margin="{StaticResource Inset0x0x8x8}" />
+                            <Button Content="Reset plugin preferences" Command="{Binding ResetCommand}" Margin="{StaticResource Inset0x0x8x8}" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </ScrollViewer>
         <Border Grid.Row="1" Background="{DynamicResource PanelBrush}" Padding="{StaticResource Inset16}">
@@ -57,7 +94,7 @@
                 <TextBlock Text="{Binding Status}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
                 <WrapPanel Orientation="Horizontal">
                     <Button x:Name="ResetButton" Content="Reset preferences" Command="{Binding ResetCommand}" Margin="{StaticResource Inset0x0x8x8}" />
-                    <Button x:Name="CloseButton" Content="Close" Click="CloseClicked" IsEnabled="{Binding CanChange}" Margin="{StaticResource Inset0x0x8x8}" />
+                    <Button x:Name="CloseButton" Content="Close" Click="CloseClicked" IsEnabled="{Binding CanClose}" Margin="{StaticResource Inset0x0x8x8}" />
                     <Button x:Name="ApplyButton" Content="Apply preferences" Classes="primary" Command="{Binding ApplyCommand}" Margin="{StaticResource Inset0x0x8x8}" />
                 </WrapPanel>
             </StackPanel>

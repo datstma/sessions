@@ -35,7 +35,7 @@
 
 <p align="center"><em>Your apps, their order, and what's running—all in one place.</em></p>
 
-**Sessions 0.4.0 adds Settings for theme, interface size and text size.**
+**Sessions 0.5.0 adds Steam plugin support and a Close action beside running apps.**
 [Download the Windows preview](#downloads) to try it with your own apps.
 
 | Make it yours | Start together | End with clarity |
@@ -124,20 +124,20 @@ If an app cannot be stopped or safely tracked, Sessions explains the problem and
 
 ## Downloads
 
-**Sessions 0.4.0 is a development preview.** Download the
-[Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.4.0/Sessions-0.4.0-win-x64.msi)
-from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.4.0).
+**Sessions 0.5.0 is a development preview.** Download the
+[Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.5.0/Sessions-0.5.0-win-x64.msi)
+from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.5.0).
 The installer includes .NET and installs for your Windows user, with a Start menu
 shortcut. Installer and application binaries are unsigned.
 
-[What's new in 0.4.0](docs/release-notes/0.4.0.md): appearance preferences with
-preview, local persistence and reset, plus compact-layout improvements.
+[What's new in 0.5.0](docs/release-notes/0.5.0.md): bundled Steam discovery, launching,
+running status and optional closing, plus individual app Close controls.
 
 Close Sessions before installing, updating, or uninstalling. Updates and uninstall
 preserve your saved Sessions and appearance preferences. To update, download and run a newer MSI; there is no
 automatic updater. The release page includes checksums, source, and validation limits.
 
-**Library compatibility:** saving in 0.3.0 and 0.4.0 uses v4, which 0.2.3 and earlier cannot
+**Library compatibility:** saving in 0.5.0 uses v5, which 0.4.0 and earlier cannot
 open. Loading an older library alone does not rewrite it. Keep a copy of
 `%LOCALAPPDATA%\Sessions\sessions.json` before saving if you need to return to an
 older release.
@@ -156,6 +156,14 @@ See [Building and releasing Sessions](docs/RELEASING.md) for versioning and pack
 - Audio choices change Windows defaults, not per-app routing or volume. Restoration requires a normal Session end or close; a crash or forced termination cannot restore devices.
 
 ## Build from source
+
+**Included in 0.5.0:** bundled plugin support, starting with Steam. Open
+Settings → Plugins, then use Add app → Plugins to select installed Steam games.
+Steam apps show running status and offer opt-in closing in each app’s options;
+already-running apps and the shared Steam client stay open during Session cleanup.
+Use **Close…** beside a running app to close it individually after confirmation,
+including apps opened outside Sessions. [Plugin guide and limits](docs/PLUGINS.md).
+Third-party plugin loading, Hue and Home Assistant remain future work.
 
 Use Windows with **.NET SDK 10.0.400**, pinned in [global.json](global.json).
 Rider is optional; the command line is enough.

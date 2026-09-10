@@ -29,12 +29,25 @@ public sealed record SessionDefinition(
             throw new ArgumentException("Choose a valid startup mode and a pause between 0 and 300 seconds.");
 
         var appIds = new HashSet<Guid>();
+        var pluginTargets = new HashSet<(string, string)>();
         foreach (var app in Apps)
         {
             if (app is null || app.Id == Guid.Empty || !appIds.Add(app.Id) ||
-                string.IsNullOrWhiteSpace(app.Name) || string.IsNullOrWhiteSpace(app.ExecutablePath) ||
+                string.IsNullOrWhiteSpace(app.Name) || app.ExecutablePath is null ||
+                (app.Plugin is null && string.IsNullOrWhiteSpace(app.ExecutablePath)) ||
                 app.Arguments is null || app.WorkingDirectory is null)
                 throw new ArgumentException("Every app needs a unique identity, a name, and an executable path.");
+            if (app.Plugin is { } plugin)
+            {
+                plugin.Validate();
+                if (!pluginTargets.Add((plugin.PluginId, plugin.TargetId)))
+                    throw new ArgumentException("Add each plugin app only once to a Session.");
+                if (app.ExecutablePath.Length != 0 || app.Arguments.Length != 0 || app.WorkingDirectory.Length != 0 ||
+                    app.RunAsAdministrator || app.AllowForceQuit || app.Readiness != AppReadiness.LaunchCompleted)
+                    throw new ArgumentException("Plugin apps use launch requests only; executable, readiness and cleanup options do not apply.");
+                if (MainAppId == app.Id || FocusAppId == app.Id)
+                    throw new ArgumentException("Plugin apps cannot provide process lifetime or window focus. Choose an ordinary app or end manually.");
+            }
             if (!Enum.IsDefined(app.Readiness) || app.ReadinessTimeoutSeconds is < 1 or > 600 ||
                 app.PauseAfterSeconds is < 0 or > 300)
                 throw new ArgumentException("App startup waits need a timeout from 1 to 600 seconds and a pause from 0 to 300 seconds.");
@@ -59,4 +72,5 @@ public sealed record StartProcessAction(
     AppReadiness Readiness = AppReadiness.LaunchCompleted,
     int ReadinessTimeoutSeconds = 30,
     int? PauseAfterSeconds = null,
-    bool AllowForceQuit = false);
+    bool AllowForceQuit = false,
+    PluginAppReference? Plugin = null);

@@ -2,6 +2,8 @@
   <Folder Name="/src/">
     <Project Path="src/Sessions.App/Sessions.App.csproj" />
     <Project Path="src/Sessions.Core/Sessions.Core.csproj" />
+    <Project Path="src/Sessions.Plugins/Sessions.Plugins.csproj" />
+    <Project Path="src/Sessions.Plugins.Steam/Sessions.Plugins.Steam.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Sessions.App.Tests/Sessions.App.Tests.csproj" />

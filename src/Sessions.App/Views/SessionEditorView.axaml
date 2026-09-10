@@ -51,7 +51,7 @@
                             <TextBlock Text="{Binding Order}" Classes="muted" VerticalAlignment="Center" />
                             <StackPanel Grid.Column="1" Spacing="{StaticResource Measure3}">
                                 <TextBlock Text="{Binding DisplayName}" FontWeight="{StaticResource WeightStrong}" TextTrimming="CharacterEllipsis" />
-                                <TextBlock Text="{Binding ExecutablePath}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding LaunchSource}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextTrimming="CharacterEllipsis" />
                                 <TextBlock Text="{Binding ValidationHint}" IsVisible="{Binding ValidationHint, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" Classes="fieldError" />
                             </StackPanel>
                         </Grid>
@@ -72,6 +72,12 @@
                 <StackPanel DataContext="{Binding SelectedApp}" x:DataType="vm:AppEditorViewModel" Spacing="{StaticResource Measure12}">
                     <StackPanel Spacing="{StaticResource Measure6}"><TextBlock Text="Display name" /><TextBox Text="{Binding Name}" MaxLength="120" AutomationProperties.Name="App display name" AutomationProperties.HelpText="{Binding NameError}" />
                     <TextBlock Text="{Binding NameError}" IsVisible="{Binding NameError, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" Classes="fieldError" /></StackPanel>
+                    <TextBlock Text="The plugin reports running status when available. Window focus and main-app lifetime are unavailable." IsVisible="{Binding IsPlugin}" Classes="muted" TextWrapping="Wrap" />
+                    <StackPanel IsVisible="{Binding IsPlugin}" Spacing="{StaticResource Measure6}">
+                        <CheckBox x:Name="ClosePluginOnEnd" IsChecked="{Binding CloseOnEnd}" AutomationProperties.Name="Close when this Session ends"><TextBlock Text="Close when this Session ends" TextWrapping="Wrap" /></CheckBox>
+                        <TextBlock Text="Off by default. Supported plugins ask verified apps opened by this Session to close. Already-running apps and the shared Steam client stay open. If tracking is unavailable, close the app manually." Classes="muted" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <StackPanel IsVisible="{Binding !IsPlugin}" Spacing="{StaticResource Measure12}">
                     <StackPanel Spacing="{StaticResource Measure6}"><TextBlock Text="Executable" /><TextBox Text="{Binding ExecutablePath}" AutomationProperties.Name="App executable path" AutomationProperties.HelpText="{Binding PathError}" />
                     <TextBlock Text="{Binding PathError}" IsVisible="{Binding PathError, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" Classes="fieldError" /></StackPanel>
                     <TextBlock Text="You can save a path on a disconnected drive. Sessions checks availability when you launch the app." Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
@@ -96,6 +102,7 @@
                     <TextBlock Text="{Binding TimeoutError}" IsVisible="{Binding TimeoutError, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" Classes="fieldError" />
                         <TextBlock Text="Starts after Windows returns the launch request. A timeout stops startup and asks before cleaning up opened apps."
                                    Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
+                    </StackPanel>
                     </StackPanel>
                     <CheckBox Content="Override the pause after this app" IsChecked="{Binding OverridePause}" />
                     <NumericUpDown Value="{Binding PauseAfterSeconds}" IsVisible="{Binding ShowPauseEditor}" Minimum="0" Maximum="300" Increment="1" FormatString="0"
@@ -147,7 +154,7 @@
                 <ComboBox ItemsSource="{Binding StartupFocusChoices}" SelectedIndex="{Binding StartupFocusIndex}" HorizontalAlignment="Stretch"
                           AutomationProperties.Name="Focus after startup" AutomationProperties.HelpText="{Binding StartupFocusError}" />
                     <TextBlock Text="{Binding StartupFocusError}" IsVisible="{Binding StartupFocusError, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" Classes="fieldError" />
-                <ComboBox ItemsSource="{Binding Apps}" SelectedItem="{Binding FocusApp}" IsVisible="{Binding NeedsFocusApp}" HorizontalAlignment="Stretch"
+                <ComboBox ItemsSource="{Binding ProcessApps}" SelectedItem="{Binding FocusApp}" IsVisible="{Binding NeedsFocusApp}" HorizontalAlignment="Stretch"
                           PlaceholderText="Choose an app" AutomationProperties.Name="App to focus after startup" AutomationProperties.HelpText="{Binding FocusAppError}">
                     <ComboBox.Styles>
                         <Style Selector="ComboBoxItem" x:DataType="vm:AppEditorViewModel">
@@ -165,7 +172,7 @@
             <TextBlock Text="When does it end?" Classes="section" />
             <TextBlock Text="By default, your Session stays active until you press End Session." Classes="muted" TextWrapping="Wrap" />
             <CheckBox Content="Ask to end when an app closes" IsChecked="{Binding EndWithApp}" />
-            <ComboBox ItemsSource="{Binding Apps}" SelectedItem="{Binding MainApp}" IsVisible="{Binding EndWithApp}"
+            <ComboBox ItemsSource="{Binding ProcessApps}" SelectedItem="{Binding MainApp}" IsVisible="{Binding EndWithApp}"
                       PlaceholderText="Choose an app" HorizontalAlignment="Stretch" AutomationProperties.Name="App that ends the Session" AutomationProperties.HelpText="{Binding MainAppError}">
                 <ComboBox.Styles>
                     <Style Selector="ComboBoxItem" x:DataType="vm:AppEditorViewModel">

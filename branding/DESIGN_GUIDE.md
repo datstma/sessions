@@ -72,7 +72,12 @@ custom animation. Future animation must respect reduced-motion preferences.
   actions. One card per app: 44px tile with a 30px executable icon (initial fallback), name, role, order/path and status.
   Full-width layouts place actions/status to the right; compact layouts move them
   below. Preserve status click behaviour and the distinction between already-open
-  and Session-owned apps. End-condition and ownership explainer cards sit below.
+  and Session-owned apps. Running rows add a red **Close…** action beside the green
+  status, using the same 44px minimum height and centered alignment, wrapping with
+  it at compact widths. End-condition and ownership explainer
+  cards sit below. Individual Close uses the existing modal surfaces, scrollable
+  save-work explanation and fixed Cancel / Close app footer. Cancel receives initial
+  focus, Escape cancels and focus returns to the row. Reuse existing tokens.
 - **Running:** green-tinted banner with real run status and a red End action; active
   avatar gets a green ring. Recovery and focus messages remain available. Do not add
   fake counters, history or timers. All state also has a text label.
@@ -100,6 +105,12 @@ custom animation. Future animation must respect reduced-motion preferences.
   scrollable checkbox choices with icons/initials, selected-row tint and explicit Add.
   Preserve selections across filtering/source switches, browse, source errors and
   unavailable-entry explanations. Keep the existing 520×460 minimum.
+  Plugin support adds a wrapping Plugins source pill and explanations of
+  optional closing. The canonical `Inset28x8` source-footer spacing keeps a complete
+  selectable row visible at the minimum size with enlarged text; exports are generated.
+  Settings adds a matching Plugins surface with name/version, enable choices,
+  supported settings and separate Apply plugins / Reset plugin preferences controls.
+  Reuse existing fonts, colors and control styles. Appearance reset remains separate.
 - **End confirmation:** 640px dialog within the available window, clear save-work copy
   and a conditional warning naming apps opted into automatic force quit. Two inset lists: Asked to close (owned apps) / Stays open
   (already-running apps). Cancel retains initial focus and Escape behaviour. Red

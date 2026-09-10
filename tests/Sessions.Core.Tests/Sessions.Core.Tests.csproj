@@ -20,6 +20,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Sessions.Core\Sessions.Core.csproj" />
+    <ProjectReference Include="..\..\src\Sessions.Plugins\Sessions.Plugins.csproj" />
+    <ProjectReference Include="..\..\src\Sessions.Plugins.Steam\Sessions.Plugins.Steam.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,7 +2,199 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — SESS-022 validated 2026-09-10
+## Resume next session — 0.5.0 release preparation 2026-09-10
+
+The user tried the latest individual-close alignment/status correction, reported
+it is better, and explicitly requested release publication, commit and push. Preparing
+0.5.0 Preview for bundled plugins/Steam and individual Close (SESS-029/030/035).
+Release notes disclose v5 library compatibility, Steam correlation limits, unsigned
+binaries and the existing instruction to omit repeated Sandbox lifecycle checks.
+No new third-party dependencies were introduced: the two plugin projects reference
+Sessions projects only. The latest development validation passes 119 Core and 224
+App tests (31 opt-in native skips). Local Build-Installer.ps1 now passes full tests,
+self-contained publishing, notices and WiX validation with zero warnings/errors;
+log: artifacts/plugins-review/release-0.5.0-build.log. README, plugin guide, version
+and release notes are updated; SESS-029/030/035 are accepted for the preview with
+specific limits retained. Commit/tag/push and tagged workflow are next; exact draft
+assets must be verified before the already-authorized publication.
+
+## Previous checkpoint — close feedback and alignment corrected 2026-09-10
+
+User trial: individual Close partly worked, but it was taller than Running and the
+status text did not follow later app state. App row status/launch/Close controls now
+share the existing 44px minimum, and Close has centered alignment. No new tokens.
+Close results formerly reused launch/focus fields: success could disappear while
+still running and refusal messages persisted after exit. SessionAppRow now owns
+separate CloseMessage/IsCloseError feedback. Successful requests show neutral waiting
+text, failures/refusals use red, and observed NotRunning clears close feedback.
+Unknown status preserves it; unrelated launch/focus errors remain independent.
+
+Validation: full `dotnet build Sessions.slnx -c Release` passes with zero warnings or
+errors. Full Core passes 119; full App passes 224 (31 opt-in native skips), both using
+`-c Release --no-build`. Twenty focused ManualCloseInteractionTests pass, including
+eight new ordinary/plugin delayed-exit cases in both themes. Existing layout cases
+now assert equal height/top for status and Close across 1440×900/640×480 and
+125/150/200% headless rendering. Captures reviewed; logs/images are under ignored
+artifacts/plugins-review/close-feedback-* and manual-close-*. Documentation links,
+backlog IDs and whitespace were checked. Native process checks were not repeated:
+process adapters, fixed target identities and normal-close behavior did not change.
+No real Steam apps were launched or closed by these tests.
+
+Next: user retries the updated build's aligned controls and automatic close-feedback
+updates. SESS-035 remains awaiting feedback; broader native Steam/save-prompt and
+physical accessibility limits remain. Work is local/uncommitted with no new commit,
+push, version bump or release requested. Continue from user feedback.
+
+## Previous checkpoint — individual app Close ready for trial 2026-09-10
+
+The user confirmed the plugin launch-feedback fix works, then requested a Close
+option beside running apps. SESS-035 implements **Close…** for ordinary and Steam
+app cards, a named-app save-work confirmation, Cancel initial focus/Escape, and
+focus return. Explicit closing can target apps opened outside Sessions, independently
+of automatic cleanup ownership or the plugin CloseOnEnd preference. It uses normal
+close only, never automatic force quit. Other apps and the Session continue; closing
+a tracked main app uses the existing end prompt.
+
+A fixed request retains exact currently verified process handles before confirmation;
+Cancel disposes without closing and later copies cannot be adopted. Ordinary targets
+match full path/current login. Steam targets match current log records, manifest
+installation directory and Windows creation identities; it never targets the shared
+client. Steam manual discovery reads only the last 1 MiB of its log, so old/missing or
+unverifiable records may require closing from the app/Steam. PRODUCT and ARCHITECTURE
+hold the current policy. Existing branding tokens cover wrapping row controls and
+both-theme confirmation; no new tokens were needed for this slice.
+
+Validation with artifacts/dotnet: `dotnet build Sessions.slnx -c Release` passes with
+zero warnings/errors. `dotnet test tests/Sessions.Core.Tests/Sessions.Core.Tests.csproj
+-c Release --no-build` passes 119; the corresponding Sessions.App.Tests command passes
+216 (31 opt-in native skips). With `SESSIONS_RUN_RUNTIME_SMOKE=1`, the App test filter
+`FullyQualifiedName~NativeManualCloseTests` passes both cases: actual captured existing
+helper closure, later-copy/other-path protection and Cancel preservation for ordinary
+and synthetic Steam paths. No real Steam apps were launched/closed. Both-theme
+1440×900/640×480 and 125/150/200% headless captures were reviewed. Logs and images are
+under ignored artifacts/plugins-review/manual-close-*. Local links/anchors, stable
+backlog IDs and diff whitespace are checked after documentation updates.
+
+Next: user tries **Close…** in the updated build, including 3DMark opened individually.
+Real Steam closure, app save prompts and physical accessibility remain unverified;
+SESS-035 and the broader SESS-029/030 slice await feedback. Work remains local and
+uncommitted; no new commit, push, version bump or release was requested. Do not
+start another backlog item automatically. Published 0.4.0 still cannot read v5.
+
+## Previous checkpoint — plugin launch feedback corrected 2026-09-10
+
+User feedback: plugin behavior works well overall, but clicking Launch via plugin
+left a red “waiting for Steam’s running status” message after the card turned green.
+This confirms running detection in the user's trial; it does not independently
+confirm every optional-close edge case.
+
+Cause: successful launch acknowledgements reused the error-styled FocusMessage and
+presence refresh never cleared that message. SessionAppRow now stores informational
+LaunchMessage separately. It clears upon observed running independently of IsStarting,
+so delayed detection after the ten-second grace period also removes it. Actual
+launch/focus failures retain their error field/styling. MainWindow renders informational
+feedback with the existing TextMutedBrush token; no branding tokens were added.
+
+Validation: full Release solution build passes without warnings/errors. Eighteen
+focused plugin interaction cases pass, including four new both-theme 1440×900/640×480
+cases that check neutral text, pending/expired grace periods, running detection,
+hiding stale feedback and preserving actual red error messages. Captures before/after
+running were reviewed under artifacts/plugins-review/plugin-launch-*.png. Full Core passes 114 tests; full App passes 204 (29 opt-in native skips). All 94 local
+links/anchors, 34 stable backlog IDs and diff whitespace checks pass. Logs are
+feedback-build/focused/core/app.log in the same ignored directory. No Steam apps were launched/closed by these tests.
+
+SESS-029/030 remain awaiting further user feedback. The feature is still local with
+no new commit, push, version bump or release requested. Continue from user feedback;
+do not automatically start another backlog item.
+
+## Previous checkpoint — Steam running state and opt-in close 2026-09-10
+
+User feedback: 3DMark, an app launched through Steam (223850), opens correctly but
+Sessions did not show it running. The user also authorized optional Steam-app shutdown.
+Implemented the follow-up on the existing uncommitted plugin work: provider presence
+updates green Running status; each plugin app has Close when this Session ends, off
+by default. The checkbox is captured per run and participates in draft/save/reopen.
+Ordinary launches, audio and existing cleanup confirmation rules are preserved.
+
+Read-only inspection observed 3DMark's local Steam Running flag and its app-specific
+PID additions/removals in gameprocess_log.txt, including 3DMark.exe and its Java UI.
+No real Steam app was launched/closed by the agent. Steam 1.1.0 bundled metadata now
+advertises SupportsClose. The API adds optional presence and Open acquisition with
+launch-only defaults; catalog and Core both enforce CloseOnEnd before retaining
+cleanup ownership. Library remains v5; existing entries omit the flag and stay off.
+
+Steam opt-in acquisition requires a known-clear running flag, a pre-launch PID
+baseline, no observed existing process inside the app directory, matching new Steam
+log additions and retained Windows identity/path/login/creation checks. It captures
+for at least five seconds until a window is seen, at most 30 seconds, draining an
+issued launch even when End is requested. Returned process identities are fixed;
+no later self-restart/descendant adoption occurs. Shared Steam, pre-existing apps,
+outside-directory helpers and unverifiable/late launches remain independent. Normal
+WM_CLOSE is used first; separately confirmed Force quit remains available for owned
+apps that stay open. Running status never confers ownership. The local log/registry
+formats are undocumented compatibility boundaries, not public Valve lifecycle APIs.
+
+Validation: full Release build passes with zero warnings/errors; Core passes 114.
+Focused plugin App tests pass 22, including keyboard cleanup opt-in, draft detection,
+presence transitions and disabled-provider recovery. Native SteamClientTests pass
+3/3 with SESSIONS_RUN_RUNTIME_SMOKE=1 and SESSIONS_READ_STEAM=1: an isolated synthetic
+log and hidden helpers verify new-process closure and existing-process survival;
+read-only installed Steam discovery/registry observation succeeds. Full App regression passes 200 tests (29 opt-in native skips). Documentation links,
+backlog IDs and diff whitespace are checked. Captures in both themes include
+the new checkbox at 1440×900/640×480 and 125/150/200% headless scaling. Logs/captures
+are under ignored artifacts/plugins-review/tracking-* and plugins-*.png.
+
+Next: user retries updated Sessions with 3DMark initially closed, enables its close
+option in app options, saves, starts a fresh run and confirms running state/End
+behavior. A pre-existing 3DMark should stay open. Real 3DMark closure and prompt/native
+accessibility cases remain unverified; SESS-029/030 stay Awaiting feedback. This work
+is local; no new commit, version bump, push or release was requested. Published 0.4.0
+still cannot read v5 libraries. Earlier launch-only limitations below are historical.
+
+## Previous checkpoint — bundled Steam plugin ready for trial 2026-09-10
+
+The user requested plugin support after SESS-022 was integrated into main. Implemented
+SESS-029/030 with bundled plugins first and Steam as the first consumer. An
+optional scope question offered bundled-first versus third-party loading; no answer
+had arrived when the bundled-first assumption was stated. Third-party loading,
+marketplace, Hue and Home Assistant are not part of this implementation slice.
+
+Current local code adds a neutral launch-only plugin boundary, explicit bundled
+catalog registration, per-run configuration capture, separate plugins.json storage
+and Settings controls, a Plugins picker source, and Steam manifest discovery with
+an installation-folder override. Steam activation does not infer a game process,
+readiness, focus or cleanup ownership. Plugin availability is checked before audio
+or ordinary launches. Unknown plugin/configuration entries are retained. Saving
+writes library v5; 0.4.0 and earlier cannot read it. No real library has been used
+as a fixture and no Steam game has been launched by the agent.
+
+Final validation uses artifacts/dotnet: `dotnet build Sessions.slnx -c Release`
+passes with zero warnings/errors; full Core tests pass 98/98 and full App tests pass
+198 (28 opt-in native skips), both with `-c Release --no-build`. Focused plugin
+preferences/UI cases pass 20/20. An opt-in `SteamClientTests` run with
+`SESSIONS_READ_STEAM=1` passes 2/2: Steam 10.96.30.42 yielded 35 available apps and
+one unavailable-library warning; one target validated without activation. Full App
+regression also passes the no-launch adapter argument check. Real game activation,
+already-running games, login/update/options prompts and native accessibility remain
+unverified. See [plugin guide](PLUGINS.md#validation-and-remaining-trial).
+
+Both themes at 1440×900 and 640×480, plus 125/150/200% headless scaling and enlarged
+interface/text settings, pass. Picker minimum 520×460 fits a full plugin row after
+adding canonical Inset28x8 for its footer and regenerating theme exports. Captures
+were reviewed for settings, picker, Session detail and editor. Existing executable,
+audio and appearance regressions pass. Tests cover unreadable preference recovery,
+failed/serialized writes, close guards, captured settings, unknown data preservation,
+missing/disabled/incompatible providers and ownership/cancellation/failure behavior.
+Code review also corrected quoted-brace metadata parsing and prevented plugin reset
+before the initial preference read. Evidence is under ignored artifacts/plugins-review
+(final-build.log, final-core.log, final-app.log, native-steam.log and PNGs).
+
+SESS-029/030 are Awaiting feedback: next is the user's chosen-game trial, not another
+backlog item. No arbitrary game was launched. Changes are local on main, with no
+version bump, commit, push or release requested for this feature. The published
+release stays 0.4.0; keep a pre-v5 library backup if returning to it is needed.
+
+## Previous checkpoint — SESS-022 validated 2026-09-10
 
 The user selected SESS-022 after backlog review. The release workflow now uses
 checkout v7, setup-dotnet v6, upload-artifact v7 and download-artifact v8. Official

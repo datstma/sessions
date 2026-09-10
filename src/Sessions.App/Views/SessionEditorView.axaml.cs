@@ -101,7 +101,8 @@ public partial class SessionEditorView : UserControl
             return;
         try
         {
-            using var model = new AppPickerViewModel(owner.RunningAppSource, editor.Apps.Select(app => app.ExecutablePath), owner.StartMenuAppSource);
+            using var model = new AppPickerViewModel(owner.RunningAppSource, editor.Apps.Where(app => app.Plugin is null).Select(app => app.ExecutablePath),
+                owner.StartMenuAppSource, owner.Plugins, editor.Apps.Where(app => app.Plugin is not null).Select(app => app.Plugin!));
             var picker = new AppPickerWindow { DataContext = model, Preferences = (owner as MainWindow)?.Preferences };
             var apps = await picker.ShowDialog<IReadOnlyList<DiscoveredApp>?>(owner);
             if (apps is not null && ReferenceEquals(DataContext, editor)) editor.AddPickedApps(apps);

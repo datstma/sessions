@@ -92,7 +92,7 @@ This section describes first-milestone behaviour and boundaries, explicitly iden
 
 The central domain object is a `Session`. Its conceptual structure follows the product's [Before / Main / While Running / After model](PRODUCT.md#what-a-session-contains): ordered preparation actions, an optional main activity, runtime observation and state, and cleanup actions.
 
-The implemented saved model is `SessionDefinition`: identity, name, description, an ordered list of `StartProcessAction` values, and an optional `MainAppId` referencing an app in that list. Each app has an identity, display name, executable path, arguments, working directory, and an optional RunAsAdministrator flag defaulting to false. AllowForceQuit defaults to false and permits automatic force quit only when explicitly enabled. Legacy forceClose fields are ignored, and v1/v2 libraries always load with AllowForceQuit false; loading never rewrites them. Saving writes v3 so older builds reject this policy instead of silently forcing every app. Core validation rejects missing required values, duplicate app identities, and dangling main-app references. A null main-app identity means a user-bound Session, including a Session with no configured apps. Runtime snapshots and retained process references live in the runner and are never persisted in saved definitions.
+The implemented saved model is `SessionDefinition`: identity, name, description, an ordered list of `StartProcessAction` values, and an optional `MainAppId` referencing an app in that list. Each app has an identity, display name, executable path, arguments, working directory, and an optional RunAsAdministrator flag defaulting to false. AllowForceQuit defaults to false and permits automatic force quit only when explicitly enabled. Legacy forceClose fields are ignored, and v1/v2 libraries always load with AllowForceQuit false; loading never rewrites them. Library v3 introduced this policy boundary so older builds reject it instead of silently forcing every app; current source writes v5, described under Persistence below. Core validation rejects missing required values, duplicate app identities, and dangling main-app references. A null main-app identity means a user-bound Session, including a Session with no configured apps. Runtime snapshots and retained process references live in the runner and are never persisted in saved definitions.
 
 The editor copies a definition into a draft and replaces the saved definition only after persistence succeeds. App reordering preserves identities, so moving the main app does not change the lifetime setting. Removing the main app requires an explicit replacement or switching back to user-bound lifetime before saving. Executable and working-directory validation occurs in the Windows adapter when an app must be launched.
 
@@ -175,6 +175,39 @@ Each focus request resolves a fresh matching window and rechecks its process ide
 `SessionAppRow` presents pending launch state and inline errors. It shows Starting until presence is observed or the grace period expires, never treating `Process.Start` success as continuing runtime presence. On a stale Not running click, an already-windowed app is focused; a background app is reported without a second launch. Failed/unknown presence blocks launching. Duplicate suppression is local to the current app instance, not a cross-process atomic check against every external launch.
 
 Manual launches create no Session run or ownership records. Apps opened this way remain independent when editing/deleting a definition or closing Sessions. A later Session run regards them as pre-existing. Individual launch controls are disabled throughout the library while any Session is active/starting/stopping or awaiting cleanup; focus remains available. Starting a Session waits for an in-flight individual app launch to settle. No cleanup or lifetime semantics may be inferred from this manual launcher. The opt-in native launch test runs Windows Script Host in background mode with a temporary receipt script, verifies arguments/working directory, and lets it exit naturally; ordinary tests use injected starters. `tests/Sessions.LaunchProbe` compiles the production launch adapter into a windowless helper without Avalonia. Two additional native tests launch it with IDE-like output pipes, close or terminate only that parent, then verify the child has no inherited output/error pipes and can continue working. The original adapter failed both tests with error 232; shell activation passes. This does not promise survival when an external tool explicitly terminates the entire process tree or a containing job.
+
+### Individual app closing
+
+`IIndividualAppCloser` prepares an `IPreparedAppClose` before the named-app
+confirmation. Preparation retains a fixed set of identities without closing them;
+cancellation disposes the handles. Core's `PreparedAppClose` is a single-use normal
+close request over that snapshot, with a three-second timeout per process and
+`allowForceQuit: false`. It attempts the remaining targets after a failure. The
+ViewModel runs confirmed closing off the UI thread, reports refusals/errors inline
+and refreshes the runner and presence afterward. `SessionAppRow` keeps close feedback
+separate from launch acknowledgements and focus errors. Successful requests show a
+neutral waiting message; refusals/errors retain error styling. A fresh NotRunning
+observation clears only close feedback, even after delayed exit; unknown presence
+cannot resolve it. Views only manage commands/focus.
+
+`WindowsIndividualAppCloser` matches ordinary apps by normalized full executable
+path and current Windows login session, retaining verified `WindowsProcessIdentity`
+handles. It excludes Sessions itself. `WindowsTrackedApp` instances disable restart
+adoption; apps opened later cannot enter the request. Explicit manual confirmation
+allows existing apps to be targeted without assigning automatic Session ownership.
+The runner keeps its existing supporting/main-app exit semantics; this action does
+not call End or change saved cleanup preferences.
+
+Plugin `PrepareCloseAsync` captures current preferences and delegates preparation,
+independently of CloseOnEnd. Its default is unsupported. Steam first requires known
+running state, then `WindowsSteamManualClose` reads at most the final 1 MiB of
+`gameprocess_log.txt`. The parser reconciles app/PID additions and removals. Live
+handles must match the current login, manifest installation directory and creation
+time relative to the log event. Captured targets close in reverse addition order.
+The shared client, paths outside that directory and later copies are excluded.
+Missing, stale, truncated or unverifiable evidence refuses preparation; no fallback
+scans and closes all processes in a directory. This manual path does not require the
+pre-launch baseline used to establish automatic Session ownership.
 
 ### Accessibility and available space
 
@@ -320,7 +353,7 @@ New launches preserve desktop shell activation and the Discord output-pipe fix. 
 
 WindowsTrackedApp follows only verified same-executable self-restarts of owned launches. When the current process exits, a Toolhelp snapshot supplies direct-child candidates. A replacement must have the same full path/login session and a creation time within the retained parent's creation/exit interval. Exactly one candidate can transfer tracking; ancestor handles remain retained. Multiple candidates or unverifiable same-name child identities produce a manual-management error rather than guessed ownership. Once final exit is confirmed, later independent launches are never adopted. The chain is bounded to 16 processes. This supports SRS-style restart/elevation, including a handoff before the first monitor tick; it is not general launcher, descendant-tree, browser-worker, service, or broker tracking. See [PROCESSENTRY32](https://learn.microsoft.com/en-us/windows/win32/api/tlhelp32/ns-tlhelp32-processentry32w) and [GetProcessTimes](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesstimes). RunAsAdministrator can avoid self-elevation by starting the configured app elevated directly.
 
-End visits owned apps in reverse configuration order. WindowsProcessCleanup posts WM_CLOSE only to exact-process application windows: titled, carrying WS_SYSMENU, and not WS_EX_TOOLWINDOW. Eligible main windows may be hidden (tray apps). Untitled, system-menu-less and tool/helper windows are excluded; broadcasting WM_CLOSE to internal infrastructure can destroy it without shutting down its application. Window enumeration errors are surfaced. Cleanup then waits up to three seconds for the retained process handle to signal exit, not for a window/tray icon to disappear. A still-running app is preserved unless its captured AllowForceQuit setting is true or the user explicitly confirmed ForceQuitAppAsync for that app and RunId. ITrackedProcess.RequestCloseAsync receives this permission from Core; the Windows adapter and elevated helper propagate it unchanged. Termination opens a handle with explicit terminate/query/synchronize access, revalidates creation time, path and login session against the retained identity, and uses TerminateProcess on that handle. No process-name kill or entire-tree termination exists. Already-open apps never reach cleanup, regardless of their settings. The UI obtains save-work confirmation before any cleanup. WM_CLOSE lets each app handle its own unsaved-work prompt. No temp-file, process-name or dialog heuristic authorizes termination. The End/close dialogs name automatic-force apps and warn about potential loss; one-off force quit has a separate named-app confirmation.
+End visits owned apps in reverse configuration order. WindowsProcessCleanup posts WM_CLOSE only to exact-process application windows: titled, carrying WS_SYSMENU, and not WS_EX_TOOLWINDOW. Eligible main windows may be hidden (tray apps). Untitled, system-menu-less and tool/helper windows are excluded; broadcasting WM_CLOSE to internal infrastructure can destroy it without shutting down its application. Window enumeration errors are surfaced. Cleanup then waits up to three seconds for the retained process handle to signal exit, not for a window/tray icon to disappear. A still-running app is preserved unless its captured AllowForceQuit setting is true or the user explicitly confirmed ForceQuitAppAsync for that app and RunId. ITrackedProcess.RequestCloseAsync receives this permission from Core; the Windows adapter and elevated helper propagate it unchanged. Termination opens a handle with explicit terminate/query/synchronize access, revalidates creation time, path and login session against the retained identity, and uses TerminateProcess on that handle. No process-name kill or entire-tree termination exists. Already-open apps never reach automatic Session cleanup, regardless of their settings. The separately confirmed individual Close action can target them explicitly. The UI obtains save-work confirmation before any cleanup. WM_CLOSE lets each app handle its own unsaved-work prompt. No temp-file, process-name or dialog heuristic authorizes termination. The End/close dialogs name automatic-force apps and warn about potential loss; one-off force quit has a separate named-app confirmation.
 
 UIPI/access denial on an elevated app invokes a one-shot helper using the same Sessions.App executable with the runas verb. Program routes this mode before Avalonia, the single-instance mutex and library loading. Arguments carry only the exact PID, creation FILETIME, executable path, login session, captured close policy and bounded timeout. The helper requires the same Windows login session and revalidates identity before acting; it cannot recursively elevate. It closes just that target and exits with a result. Windows UAC remains in control; cancellation/error keeps ownership for Retry End. No persistent privileged service, elevation bypass, shell command string, or writable command file is used. The UI app remains asInvoker. See Microsoft's [PostMessage/UIPI restrictions](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-postmessagew) and [separate elevated operations guidance](https://learn.microsoft.com/en-us/windows/win32/secbp/running-with-administrator-privileges).
 
@@ -366,11 +399,90 @@ tracks the application's OS-following actual theme even under a window override.
 No Windows text-size factor is manually reapplied. Headless rendering/scaling tests
 are not evidence of physical-monitor, native screen-reader or OS text-size behavior.
 
+### Bundled plugins
+
+`Sessions.Plugins` defines `IApplicationPlugin`, metadata, string-valued local
+settings and a catalog with explicit bundled registration. `Sessions.Plugins.Steam`
+is the first separate implementation assembly. Both are independent of Avalonia;
+App composition supplies the Windows Steam adapter and the local preference store.
+Core contains only the portable `PluginAppReference` and captured launch boundary.
+
+The existing `StartProcessAction` record gains an optional plugin target to preserve
+ordinary executable callers and their stored shape without a broad action refactor.
+A plugin entry has an empty executable path and no ordinary executable options.
+Its reference carries plugin ID, target ID, configuration version and optional opaque
+JSON, plus an explicit CloseOnEnd flag (default false). Structural validation and saving do not require the plugin to be installed;
+unknown positive versions and opaque data survive unrelated edits. Legacy envelopes
+cannot introduce plugin targets. Runtime resolution never treats one as an executable.
+
+`ISessionPluginHost.Capture` captures configuration once per run.
+`ISessionPluginLaunches` validates targets, reports optional provider presence and
+opens plugin apps. Default implementations remain launch-only; a SupportsClose
+capability permits ProcessAcquisition results with retained lifetimes. Catalog and
+Core both restrict ownership to a captured CloseOnEnd opt-in. Capability checks run
+in preflight. Presence alone can never grant ownership or window focus.
+Before audio or executable startup, Core validates all plugin targets. Plugin calls
+join the existing startup cancellation/drain/failure policy. Issued launches must
+settle before End completes. Same-plugin launches serialize in All at once; a
+duplicate plugin/target pair is rejected before startup. Only ordinary apps can
+provide main lifetime, readiness or completion focus.
+
+Catalog API version 1 accepts compatible explicitly registered bundles. No folder
+scanning, assembly loading, plugin downloads, hot reload or sandbox is implemented.
+Bundled code runs in process with Sessions' user privileges and is trusted like the
+application; exceptions can be reported, but this is not isolation from crashes or
+malicious code. Plugins are stateless service instances receiving captured settings,
+without background initialization or cleanup hooks. Third-party loading/trust and
+other action kinds require a future contract decision rather than bypassing the current contract.
+
+`PluginService` owns version-1 `%LOCALAPPDATA%\Sessions\plugins.json`, independently
+of the library and appearance store. Missing files use bundled defaults without
+writing; failed initial reads block plugin operations. Apply/reset/load serialize;
+reset cannot precede an attempted read, and failed-load recovery backs up original
+bytes before atomic replacement. Unknown plugin IDs, settings versions and keys are
+retained. Settings has an independent plugin draft and Apply/reset controls; closing
+either window cannot abandon a write. Active captured configurations remain valid
+after preferences change. No plugin-specific account or credential data is included
+in the shareable library by the Steam slice.
+
+Steam uses bounded text VDF/ACF parsing and stable numeric app IDs, with registry
+installation discovery isolated in `WindowsSteamClient`. The adapter sends only a
+numeric `steam://run/<appid>` argument to that installation's `steam.exe` using
+desktop shell activation. Its returned client handle is disposed and never tracked
+as a game. The separate presence path reads the local current-user
+`Software\Valve\Steam\Apps\<appid>` Running flag. This undocumented client signal
+is presentation only; missing/unreadable values give unknown status.
+
+For opted-in Session launches, WindowsSteamLaunchObservation captures a process-ID
+baseline and retains a cursor at the end of gameprocess_log.txt before activation.
+A known-clear Running flag is required; an existing process inside the app directory
+also blocks acquisition. SteamLaunchTracker reads only subsequent matching AppID
+addition records, ignores command lines, excludes baseline PIDs and verifies full
+process path inside the manifest install directory, login session, retained creation
+time after the request and within the log timestamp's bounded tolerance. Handles
+retain identity across PID reuse. Capture waits at least five seconds and for a
+tracked window, with a 30-second maximum even for a cancelled issued launch. Up to
+1 MiB of appended log text is accepted; truncation/read/verification failures keep
+any already retained ownership and otherwise fall back to manual closing. Rotation
+keeps the original file handle and may cause manual fallback.
+
+The result is a fixed set of WindowsTrackedApp handles with later self-restart
+adoption disabled. Cleanup uses existing exact-identity WM_CLOSE, timeout and explicit
+force-quit handling; no Steam-wide command, process-name kill, arbitrary descendant
+adoption or game install-directory-wide termination is used. Late-starting processes,
+processes outside the game directory, unverified helpers and later launches remain
+independent. This local Steam-log correlation is a bounded compatibility heuristic,
+not a public Valve lifecycle API or proof of causality against simultaneous external
+launches; uncertainty never expands cleanup targets.
+
+Local discovery never activates Steam or writes its files. See
+[PLUGINS.md](PLUGINS.md) for supported settings, source references and validation limits.
+
 ### Persistence
 
 Use simple local JSON persistence initially. Prefer readable, portable configuration that supports the [future product uses](PRODUCT.md#local-first-and-open-source-philosophy) of export, import, sharing, and source control.
 
-Do not introduce a database until there is a demonstrated need. The JSON envelope has a `version` and an ordered `sessions` array. The reader accepts versions 1, 2, 3 and 4; the writer uses version 4 and readable string enums for startup settings. Missing settings in version-1 definitions retain ordered launching, zero pause, launch-completed readiness, a 30-second readiness timeout, no per-app override, and unchanged focus. Loading never rewrites the file. Versions 1 and 2 load with AllowForceQuit false even if unknown fields request otherwise. Version 3 prevents published 0.2.1 and earlier builds from silently ignoring the safer cleanup policy; version 2 previously protected startup settings. Version 4 adds Session audio identities/names; formats 1–3 leave audio unchanged, and published 0.2.3 and earlier reject v4. Only configuration is persisted; runtime state, audio restoration records and RunId are excluded. Saves validate first, write a uniquely named temporary file beside the destination, then replace the destination after the complete write. Missing files start an empty library; malformed, invalid, or unsupported files produce errors and remain untouched. The UI blocks library writes after a failed initial load until a retry succeeds. The store has one application writer: `Program.Main` acquires `SingleInstanceGuard` before Avalonia composition/library access. A Global named mutex, keyed by a hash of the local app-data profile path, prevents competing instances (including the same profile in another Windows login session). A second launch signals a named event and exits without reading/writing the library; the owner requests restoration/activation of its window. The mutex is released on normal exit and recovered if abandoned after a crash. This guards application instances, not arbitrary external editors of the JSON file.
+Do not introduce a database until there is a demonstrated need. The JSON envelope has a `version` and an ordered `sessions` array. The reader accepts versions 1–5; the writer uses version 5 and readable string enums for startup settings. Missing settings in version-1 definitions retain ordered launching, zero pause, launch-completed readiness, a 30-second readiness timeout, no per-app override, and unchanged focus. Loading never rewrites the file. Versions 1 and 2 load with AllowForceQuit false even if unknown fields request otherwise. Version 3 prevents published 0.2.1 and earlier builds from silently ignoring the safer cleanup policy; version 2 previously protected startup settings. Version 4 adds Session audio identities/names; formats 1–3 leave audio unchanged, and published 0.2.3 and earlier reject v4. Version 5 adds plugin references; older envelopes reject plugin entries, and published 0.4.0 and earlier reject v5 rather than silently dropping them. Only configuration is persisted; runtime state, captured plugin preferences, audio restoration records and RunId are excluded. Saves validate first, write a uniquely named temporary file beside the destination, then replace the destination after the complete write. Missing files start an empty library; malformed, invalid, or unsupported files produce errors and remain untouched. The UI blocks library writes after a failed initial load until a retry succeeds. The store has one application writer: `Program.Main` acquires `SingleInstanceGuard` before Avalonia composition/library access. A Global named mutex, keyed by a hash of the local app-data profile path, prevents competing instances (including the same profile in another Windows login session). A second launch signals a named event and exits without reading/writing the library; the owner requests restoration/activation of its window. The mutex is released on normal exit and recovered if abandoned after a crash. This guards application instances, not arbitrary external editors of the JSON file.
 
 The App test project uses Avalonia's headless platform with Skia for rendering and xUnit v3, as required by Avalonia 12's headless runner. Core tests retain xUnit v2. Run `dotnet test tests/Sessions.App.Tests/Sessions.App.Tests.csproj` in addition to Core tests when changing UI behaviour. Setting `SESSIONS_SCREENSHOT_DIR` to an output directory saves review PNGs from the headless tests; they do not open desktop windows or use the real Session library.
 

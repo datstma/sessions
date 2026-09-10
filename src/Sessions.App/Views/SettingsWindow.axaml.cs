@@ -17,10 +17,10 @@ public partial class SettingsWindow : Window
 
     public SettingsWindow() : this(new PreferencesService()) { }
 
-    public SettingsWindow(PreferencesService preferences)
+    public SettingsWindow(PreferencesService preferences, PluginService? plugins = null)
     {
         InitializeComponent();
-        _model = new SettingsViewModel(preferences);
+        _model = new SettingsViewModel(preferences, plugins);
         DataContext = _model;
         _appearance = new WindowAppearance(this, null, preferences);
         _model.PropertyChanged += ModelChanged;
@@ -35,7 +35,7 @@ public partial class SettingsWindow : Window
             }
             ThemeChoice.Focus();
         };
-        Closing += (_, e) => { if (preferences.IsBusy) e.Cancel = true; };
+        Closing += (_, e) => { if (preferences.IsBusy || plugins?.IsBusy == true) e.Cancel = true; };
         KeyDown += (_, e) =>
         {
             if (e.Key == Key.Escape && !ThemeChoice.IsDropDownOpen && !InterfaceChoice.IsDropDownOpen && !TextChoice.IsDropDownOpen)

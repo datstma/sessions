@@ -11,16 +11,17 @@ public sealed class JsonSessionStoreTests : IDisposable
     [InlineData(2)]
     [InlineData(3)]
     [InlineData(4)]
+    [InlineData(5)]
     public async Task AudioChoicesRoundTripAndOlderFormatsLeaveAudioUnchanged(int version)
     {
         var definition = new SessionDefinition(Guid.NewGuid(), "Flight", "", [],
             OutputAudioDevice: new("stable-output-id", "Headphones"), InputAudioDevice: new("stable-input-id", "Microphone"));
         await Store.SaveAsync([definition]);
-        var contents = (await File.ReadAllTextAsync(FilePath)).Replace("\"version\": 4", $"\"version\": {version}");
+        var contents = (await File.ReadAllTextAsync(FilePath)).Replace("\"version\": 5", $"\"version\": {version}");
         await File.WriteAllTextAsync(FilePath, contents);
         var loaded = Assert.Single(await Store.LoadAsync());
-        Assert.Equal(version == 4 ? definition.OutputAudioDevice : null, loaded.OutputAudioDevice);
-        Assert.Equal(version == 4 ? definition.InputAudioDevice : null, loaded.InputAudioDevice);
+        Assert.Equal(version >= 4 ? definition.OutputAudioDevice : null, loaded.OutputAudioDevice);
+        Assert.Equal(version >= 4 ? definition.InputAudioDevice : null, loaded.InputAudioDevice);
         Assert.Equal(contents, await File.ReadAllTextAsync(FilePath));
     }
 
@@ -84,7 +85,7 @@ public sealed class JsonSessionStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task AdvancedStartupAndForcePermissionRoundTripInVersionFourWithReadableEnums()
+    public async Task AdvancedStartupAndForcePermissionRoundTripInVersionFiveWithReadableEnums()
     {
         var app = new StartProcessAction(Guid.NewGuid(), "Editor", @"C:\Editor.exe", Readiness: AppReadiness.WindowAppeared,
             ReadinessTimeoutSeconds: 90, PauseAfterSeconds: 0, AllowForceQuit: true);
@@ -95,7 +96,7 @@ public sealed class JsonSessionStoreTests : IDisposable
         Assert.Equal(definition with { Apps = loaded.Apps }, loaded);
         Assert.Equal(app, Assert.Single(loaded.Apps));
         var contents = await File.ReadAllTextAsync(FilePath);
-        Assert.Contains("\"version\": 4", contents);
+        Assert.Contains("\"version\": 5", contents);
         Assert.Contains("\"launchMode\": \"Together\"", contents);
         Assert.Contains("\"readiness\": \"WindowAppeared\"", contents);
     }
@@ -107,13 +108,13 @@ public sealed class JsonSessionStoreTests : IDisposable
     {
         var app = new StartProcessAction(Guid.NewGuid(), "Editor", @"C:\Editor.exe", AllowForceQuit: true);
         await Store.SaveAsync([new(Guid.NewGuid(), "Work", "", [app])]);
-        var contents = (await File.ReadAllTextAsync(FilePath)).Replace("\"version\": 4", $"\"version\": {version}");
+        var contents = (await File.ReadAllTextAsync(FilePath)).Replace("\"version\": 5", $"\"version\": {version}");
         await File.WriteAllTextAsync(FilePath, contents);
         var loaded = await Store.LoadAsync();
         Assert.False(Assert.Single(Assert.Single(loaded).Apps).AllowForceQuit);
         Assert.Equal(contents, await File.ReadAllTextAsync(FilePath));
         await Store.SaveAsync(loaded);
-        Assert.Contains("\"version\": 4", await File.ReadAllTextAsync(FilePath));
+        Assert.Contains("\"version\": 5", await File.ReadAllTextAsync(FilePath));
     }
 
     [Theory]

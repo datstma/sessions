@@ -70,15 +70,16 @@ public partial class SessionEditorViewModel : ViewModelBase
         LaunchModeIndex, PauseBetweenAppsSeconds, StartupFocusIndex, FocusApp?.Id, OutputAudio?.Choice, InputAudio?.Choice);
     private static AppDraft CaptureApp(AppEditorViewModel app) => new(app.Id, app.Name, app.ExecutablePath,
         app.Arguments, app.WorkingDirectory, app.RunAsAdministrator, app.AllowForceQuit,
-        app.ReadinessIndex, app.ReadinessTimeoutSeconds, app.OverridePause, app.PauseAfterSeconds);
+        app.ReadinessIndex, app.ReadinessTimeoutSeconds, app.OverridePause, app.PauseAfterSeconds, app.CloseOnEnd);
     private sealed record DraftSettings(string Name, string Description, bool EndWithApp, Guid? MainAppId,
         int LaunchMode, decimal? Pause, int StartupFocus, Guid? FocusAppId, AudioDeviceChoice? Output, AudioDeviceChoice? Input);
     private sealed record AppDraft(Guid Id, string Name, string Path, string Arguments, string Directory,
-        bool Administrator, bool ForceQuit, int Readiness, decimal? Timeout, bool OverridePause, decimal? Pause);
+        bool Administrator, bool ForceQuit, int Readiness, decimal? Timeout, bool OverridePause, decimal? Pause, bool CloseOnEnd);
     public bool IsNew { get; }
     public string Title => IsNew ? "Create a Session" : "Edit Session";
     public string SaveLabel => IsNew ? "Create Session" : "Save changes";
     public ObservableCollection<AppEditorViewModel> Apps { get; } = [];
+    public IReadOnlyList<AppEditorViewModel> ProcessApps => Apps.Where(app => !app.IsPlugin).ToArray();
 
     [ObservableProperty] private string _name = "";
     [ObservableProperty] private string _description = "";
@@ -99,8 +100,8 @@ public partial class SessionEditorViewModel : ViewModelBase
     public string? LaunchModeError => LaunchModeIndex is 0 or 1 ? null : "Choose a launch mode.";
     public string? PauseError => ValidSeconds(PauseBetweenAppsSeconds, 0, 300) ? null : "Enter a whole number from 0 to 300 seconds.";
     public string? StartupFocusError => StartupFocusIndex is >= 0 and <= 2 ? null : "Choose what happens when startup finishes.";
-    public string? FocusAppError => NeedsFocusApp && (FocusApp is null || !Apps.Contains(FocusApp)) ? "Choose an app to focus after startup." : null;
-    public string? MainAppError => EndWithApp && (MainApp is null || !Apps.Contains(MainApp)) ? "Choose which app should end this Session, or turn off this option." : null;
+    public string? FocusAppError => NeedsFocusApp && (FocusApp is null || !Apps.Contains(FocusApp) || FocusApp.IsPlugin) ? "Choose an ordinary app to focus after startup." : null;
+    public string? MainAppError => EndWithApp && (MainApp is null || !Apps.Contains(MainApp) || MainApp.IsPlugin) ? "Choose which ordinary app should end this Session, or turn off this option." : null;
     public bool ShowSessionPause => IsOrdered || PauseError is not null;
     public EditorValidationIssue? FirstValidationIssue { get; private set; }
     internal static bool ValidSeconds(decimal? value, int minimum, int maximum) => value is { } seconds &&
@@ -153,10 +154,18 @@ public partial class SessionEditorViewModel : ViewModelBase
 
     public void AddPickedApps(System.Collections.Generic.IEnumerable<DiscoveredApp> apps)
     {
-        var paths = Apps.Select(app => AppPickerViewModel.NormalizePath(app.ExecutablePath))
+        var paths = Apps.Where(app => app.Plugin is null).Select(app => AppPickerViewModel.NormalizePath(app.ExecutablePath))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var plugins = Apps.Where(app => app.Plugin is not null).Select(app => (app.Plugin!.PluginId, app.Plugin.TargetId)).ToHashSet();
         foreach (var app in apps)
         {
+            if (app.UnavailableReason is null && app.Plugin is { } plugin && plugins.Add((plugin.PluginId, plugin.TargetId)))
+            {
+                var added = new AppEditorViewModel(new StartProcessAction(Guid.NewGuid(), app.Name, "", Plugin: plugin.Capture()));
+                Apps.Add(added);
+                SelectedApp = added;
+                continue;
+            }
             if (app.UnavailableReason is null && app.ExecutablePath is { } path &&
                 paths.Add(AppPickerViewModel.NormalizePath(path)))
             {
@@ -218,6 +227,7 @@ public partial class SessionEditorViewModel : ViewModelBase
             foreach (AppEditorViewModel app in e.NewItems) app.PropertyChanged += AppChanged;
         for (var index = 0; index < Apps.Count; index++) Apps[index].Order = index + 1;
         OnPropertyChanged(nameof(HasApps));
+        OnPropertyChanged(nameof(ProcessApps));
         NotifyValidation();
         NotifyAppCommands();
     }
@@ -291,6 +301,10 @@ public partial class SessionEditorViewModel : ViewModelBase
 public partial class AppEditorViewModel : ViewModelBase
 {
     public Guid Id { get; }
+    public PluginAppReference? Plugin { get; }
+    public bool IsPlugin => Plugin is not null;
+    public string LaunchSource => IsPlugin ? "Plugin app · " + (CloseOnEnd ? "close with Session when tracked" : "close manually") : ExecutablePath;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(LaunchSource))] private bool _closeOnEnd;
     [ObservableProperty] private int _order;
     [ObservableProperty] private string _name;
     [ObservableProperty] private string _executablePath;
@@ -307,7 +321,7 @@ public partial class AppEditorViewModel : ViewModelBase
     public bool ShowPauseEditor => OverridePause || PauseError is not null;
     public string DisplayName => string.IsNullOrWhiteSpace(Name) ? "Unnamed app" : Name.Trim();
     public string? NameError => string.IsNullOrWhiteSpace(Name) ? "Enter an app display name." : null;
-    public string? PathError => string.IsNullOrWhiteSpace(ExecutablePath) ? "Enter an executable path." : null;
+    public string? PathError => !IsPlugin && string.IsNullOrWhiteSpace(ExecutablePath) ? "Enter an executable path." : null;
     public string? ReadinessError => ReadinessIndex is >= 0 and <= 2 ? null : "Choose a startup condition.";
     public string? TimeoutError => SessionEditorViewModel.ValidSeconds(ReadinessTimeoutSeconds, 1, 600) ? null : "Enter a whole number from 1 to 600 seconds.";
     public string? PauseError => SessionEditorViewModel.ValidSeconds(PauseAfterSeconds, 0, 300) ? null : "Enter a whole number from 0 to 300 seconds.";
@@ -319,7 +333,7 @@ public partial class AppEditorViewModel : ViewModelBase
         PauseError is { } pause ? new(EditorField.AppPause, $"Pause after this app: {pause}", this) : null;
     public string? ValidationHint => FirstValidationIssue is { } issue ? $"{issue.Message} Review app options." : null;
     partial void OnReadinessIndexChanged(int value) => NotifyFieldValidation();
-    partial void OnExecutablePathChanged(string value) => NotifyFieldValidation();
+    partial void OnExecutablePathChanged(string value) { NotifyFieldValidation(); OnPropertyChanged(nameof(LaunchSource)); }
     partial void OnReadinessTimeoutSecondsChanged(decimal? value) => NotifyFieldValidation();
     partial void OnPauseAfterSecondsChanged(decimal? value) => NotifyFieldValidation();
     partial void OnOverridePauseChanged(bool value) => NotifyFieldValidation();
@@ -338,6 +352,8 @@ public partial class AppEditorViewModel : ViewModelBase
     public AppEditorViewModel(StartProcessAction app)
     {
         Id = app.Id;
+        Plugin = app.Plugin?.Capture();
+        _closeOnEnd = Plugin?.CloseOnEnd ?? false;
         _name = app.Name;
         _executablePath = app.ExecutablePath;
         _arguments = app.Arguments;
@@ -351,5 +367,5 @@ public partial class AppEditorViewModel : ViewModelBase
     }
 
     public StartProcessAction BuildAction() => new(Id, Name.Trim(), ExecutablePath.Trim(), Arguments, WorkingDirectory.Trim(), RunAsAdministrator,
-        (AppReadiness)ReadinessIndex, (int)ReadinessTimeoutSeconds!.Value, OverridePause ? (int)PauseAfterSeconds!.Value : null, AllowForceQuit);
+        (AppReadiness)ReadinessIndex, (int)ReadinessTimeoutSeconds!.Value, OverridePause ? (int)PauseAfterSeconds!.Value : null, AllowForceQuit, Plugin is null ? null : Plugin with { CloseOnEnd = CloseOnEnd });
 }

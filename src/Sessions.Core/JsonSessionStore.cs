@@ -20,9 +20,11 @@ public sealed class JsonSessionStore(string filePath) : ISessionStore
             await using var stream = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read,
                 4096, FileOptions.Asynchronous);
             var library = await JsonSerializer.DeserializeAsync<Library>(stream, Options, cancellationToken);
-            if (library is null || library.Version is not (1 or 2 or 3 or 4) || library.Sessions is null)
+            if (library is null || library.Version is not (1 or 2 or 3 or 4 or 5) || library.Sessions is null)
                 throw new InvalidDataException("This Session library has an unsupported format.");
             Validate(library.Sessions);
+            if (library.Version < 5 && library.Sessions.Any(session => session.Apps.Any(app => app.Plugin is not null)))
+                throw new InvalidDataException("Plugin apps require library format 5.");
             // Old forceClose flags and unknown fields in older formats must not opt apps into force quit.
             return library.Sessions.Select(session => session with
             {
@@ -54,8 +56,8 @@ public sealed class JsonSessionStore(string filePath) : ISessionStore
             await using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write,
                              FileShare.None, 4096, FileOptions.Asynchronous))
             {
-                // Older builds must reject audio-enabled libraries rather than silently ignoring device choices.
-                await JsonSerializer.SerializeAsync(stream, new Library(4, sessions), Options, cancellationToken);
+                // Older builds must reject plugin libraries rather than treating their targets as executable paths.
+                await JsonSerializer.SerializeAsync(stream, new Library(5, sessions), Options, cancellationToken);
                 await stream.FlushAsync(cancellationToken);
             }
             cancellationToken.ThrowIfCancellationRequested();

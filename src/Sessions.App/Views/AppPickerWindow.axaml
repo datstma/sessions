@@ -7,11 +7,12 @@
     <Grid RowDefinitions="Auto,Auto,*,Auto,Auto">
         <StackPanel Margin="{StaticResource Inset28x24x28x20}" Spacing="{StaticResource Measure8}">
             <TextBlock Text="Add apps" FontSize="{DynamicResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" />
-            <TextBlock Text="Your selections are kept while you search or switch sources." Classes="muted" TextWrapping="Wrap" />
-            <StackPanel Orientation="Horizontal" Spacing="{StaticResource Measure22}" Margin="{StaticResource Inset0x8x0x0}" IsVisible="{Binding HasStartMenuSource}">
-                <RadioButton x:Name="StartMenuSourceButton" Classes="source" GroupName="AppSources" Content="Start menu" IsChecked="{Binding ShowStartMenu}" />
+            <TextBlock Text="Your selections stay when you switch sources." Classes="muted" TextWrapping="Wrap" />
+            <WrapPanel Orientation="Horizontal" Margin="{StaticResource Inset0x8x0x0}">
+                <RadioButton x:Name="StartMenuSourceButton" Classes="source" GroupName="AppSources" Content="Start menu" IsChecked="{Binding ShowStartMenu}" IsVisible="{Binding HasStartMenuSource}" Margin="{StaticResource Inset0x0x16x0}" />
                 <RadioButton x:Name="RunningSourceButton" Classes="source" GroupName="AppSources" Content="Running apps" IsChecked="{Binding ShowRunningApps}" />
-            </StackPanel>
+                <RadioButton x:Name="PluginSourceButton" Classes="source" GroupName="AppSources" Content="Plugins" IsChecked="{Binding ShowPlugins}" IsVisible="{Binding HasPluginSource}" Margin="{StaticResource Inset16x0x0x0}" />
+            </WrapPanel>
         </StackPanel>
         <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="{StaticResource Inset28x0x28x16}">
             <TextBox x:Name="AppSearch" Text="{Binding SearchText}" PlaceholderText="Search apps" AutomationProperties.Name="Search apps" />
@@ -48,7 +49,7 @@
             </StackPanel>
             <TextBlock IsVisible="{Binding IsEmpty}" Text="{Binding EmptyMessage}" TextWrapping="Wrap" Classes="muted" Margin="{StaticResource Inset12x28}" VerticalAlignment="Center" />
         </Grid>
-        <StackPanel Grid.Row="3" Margin="{StaticResource Inset28x14x28x18}" Spacing="{StaticResource Measure10}">
+        <StackPanel Grid.Row="3" Margin="{StaticResource Inset28x8}" Spacing="{StaticResource Measure10}">
             <TextBlock Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" AutomationProperties.LiveSetting="Polite" Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" />
             <TextBlock Text="{Binding SourceDescription}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
         </StackPanel>

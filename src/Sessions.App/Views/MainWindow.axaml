@@ -180,7 +180,8 @@
                                                             <TextBlock Text="{Binding Role}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" /><TextBlock Text="{Binding PathSummary}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ExecutablePath}" />
                                                             <TextBlock Text="{Binding RunMessage}" IsVisible="{Binding HasRunMessage}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
                                                         </StackPanel>
-                                                        <Button Classes="runningStatus appStatus" Command="{Binding FocusCommand}" MinHeight="{StaticResource Measure40}" IsVisible="{Binding HasWindow}"
+                                                        <WrapPanel Classes="appStatus" VerticalAlignment="Center">
+                                                        <Button Classes="runningStatus" Margin="{StaticResource Inset0x0x8x8}" Command="{Binding FocusCommand}" MinHeight="{StaticResource Measure44}" IsVisible="{Binding HasWindow}"
                                                                 Padding="{StaticResource Inset10x8}" VerticalAlignment="Center" FontSize="{DynamicResource FontMicroSize}"
                                                                 ToolTip.Tip="{Binding StatusHint}" AutomationProperties.Name="{Binding StatusHint}">
                                                             <StackPanel Orientation="Horizontal" Spacing="{StaticResource Measure8}">
@@ -189,7 +190,7 @@
                                                                 <TextBlock Text="{Binding StatusLabel}" VerticalAlignment="Center" />
                                                             </StackPanel>
                                                         </Button>
-                                                        <Button Classes="quiet appStatus" Command="{Binding LaunchCommand}" MinHeight="{StaticResource Measure40}" IsVisible="{Binding HasLaunchAction}"
+                                                        <Button Classes="quiet" Margin="{StaticResource Inset0x0x8x8}" Command="{Binding LaunchCommand}" MinHeight="{StaticResource Measure44}" IsVisible="{Binding HasLaunchAction}"
                                                                 Padding="{StaticResource Inset10x8}" VerticalAlignment="Center" FontSize="{DynamicResource FontMicroSize}"
                                                                 ToolTip.Tip="{Binding StatusHint}" AutomationProperties.Name="{Binding StatusHint}">
                                                             <StackPanel Orientation="Horizontal" Spacing="{StaticResource Measure8}">
@@ -197,7 +198,7 @@
                                                                 <TextBlock Text="{Binding StatusLabel}" VerticalAlignment="Center" />
                                                             </StackPanel>
                                                         </Button>
-                                                        <Border Classes="appStatus" IsVisible="{Binding HasPassiveStatus}" Padding="{StaticResource Inset10x8}" MinHeight="{StaticResource Measure40}"
+                                                        <Border Margin="{StaticResource Inset0x0x8x8}" IsVisible="{Binding HasPassiveStatus}" Padding="{StaticResource Inset10x8}" MinHeight="{StaticResource Measure44}"
                                                                 VerticalAlignment="Center" ToolTip.Tip="{Binding StatusHint}" AutomationProperties.Name="{Binding StatusHint}">
                                                             <StackPanel Orientation="Horizontal" Spacing="{StaticResource Measure8}" VerticalAlignment="Center">
                                                                 <Ellipse Width="{StaticResource Measure8}" Height="{StaticResource Measure8}" Fill="{DynamicResource RunningBrush}" IsVisible="{Binding IsRunning}" />
@@ -205,9 +206,23 @@
                                                                 <TextBlock Text="{Binding StatusLabel}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" VerticalAlignment="Center" />
                                                             </StackPanel>
                                                         </Border>
-                                                        <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding FocusMessage}" AutomationProperties.LiveSetting="Polite"
+                                                        <Button x:Name="CloseAppButton" Content="Close…" Classes="danger" IsVisible="{Binding IsRunning}"
+                                                                Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).RequestCloseAppCommand}" CommandParameter="{Binding}"
+                                                                Click="CloseAppRequested" AutomationProperties.Name="{Binding CloseHint}" ToolTip.Tip="{Binding CloseHint}"
+                                                                VerticalAlignment="Center" MinHeight="{StaticResource Measure44}" Padding="{StaticResource Inset10x8}" FontSize="{DynamicResource FontMicroSize}"
+                                                                Margin="{StaticResource Inset0x0x8x8}" />
+                                                        </WrapPanel>
+                                                        <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2">
+                                                        <TextBlock x:Name="LaunchFeedback" Text="{Binding LaunchMessage}" AutomationProperties.LiveSetting="Polite"
+                                                                   IsVisible="{Binding HasLaunchMessage}" Classes="muted"
+                                                                   TextWrapping="Wrap" FontSize="{DynamicResource FontMicroSize}" Margin="{StaticResource Inset0x8x0x0}" />
+                                                        <TextBlock x:Name="CloseFeedback" Text="{Binding CloseMessage}" AutomationProperties.LiveSetting="Polite"
+                                                                   IsVisible="{Binding HasCloseMessage}" Classes="muted closeFeedback" Classes.error="{Binding IsCloseError}"
+                                                                   TextWrapping="Wrap" FontSize="{DynamicResource FontMicroSize}" Margin="{StaticResource Inset0x8x0x0}" />
+                                                        <TextBlock x:Name="AppErrorFeedback" Text="{Binding FocusMessage}" AutomationProperties.LiveSetting="Polite"
                                                                    IsVisible="{Binding HasFocusMessage}" Foreground="{DynamicResource SessionError}"
                                                                    TextWrapping="Wrap" FontSize="{DynamicResource FontMicroSize}" Margin="{StaticResource Inset0x8x0x0}" />
+                                                        </StackPanel>
                                                     </Grid></Border>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
@@ -328,6 +343,25 @@
                 <Button Content="End Session and close" Command="{Binding EndAndCloseCommand}" Classes="danger" />
                 <Button Content="Leave apps open and close" Command="{Binding LeaveAppsAndCloseCommand}" Classes="quiet" />
             </StackPanel>
+            </Grid>
+        </Border>
+    </Border>
+    <Border IsVisible="{Binding IsAppCloseConfirmation}" Background="{DynamicResource OverlayBrush}">
+        <Border Classes="surface modal" MaxWidth="{StaticResource Measure500}" MaxHeight="{StaticResource Measure520}" Margin="{StaticResource Inset32}" Padding="{StaticResource Inset28}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                KeyboardNavigation.TabNavigation="Cycle" AutomationProperties.Name="{Binding AppCloseTitle}">
+            <Border.KeyBindings><KeyBinding Gesture="Escape" Command="{Binding CancelCloseAppCommand}" /></Border.KeyBindings>
+            <Grid RowDefinitions="*,Auto">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Spacing="{StaticResource Measure16}">
+                        <TextBlock Text="{Binding AppCloseTitle}" FontSize="{DynamicResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding AppCloseDescription}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding AppCloseSessionHint}" Classes="muted" TextWrapping="Wrap" />
+                    </StackPanel>
+                </ScrollViewer>
+                <WrapPanel Grid.Row="1" HorizontalAlignment="Right" Margin="{StaticResource Inset0x22x0x0}">
+                    <Button x:Name="CancelCloseAppButton" Content="Cancel" Classes="quiet" IsDefault="True" Command="{Binding CancelCloseAppCommand}" Margin="{StaticResource Inset0x0x10x8}" />
+                    <Button x:Name="ConfirmCloseAppButton" Content="{Binding AppCloseButtonLabel}" Classes="danger" Command="{Binding ConfirmCloseAppCommand}" Margin="{StaticResource Inset0x0x0x8}" />
+                </WrapPanel>
             </Grid>
         </Border>
     </Border>

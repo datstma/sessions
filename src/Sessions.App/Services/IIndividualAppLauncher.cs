@@ -5,7 +5,7 @@ using Sessions.Core;
 
 namespace Sessions.App.Services;
 
-public sealed record AppLaunchResult(AppPresence Presence, DateTimeOffset? PendingUntil = null);
+public sealed record AppLaunchResult(AppPresence Presence, DateTimeOffset? PendingUntil = null, string? Message = null);
 
 // A manual launch does not create a Session run or confer cleanup ownership.
 public interface IIndividualAppLauncher

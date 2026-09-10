@@ -687,61 +687,77 @@ implementation in the current turn. No product behavior or architecture has chan
 
 ## SESS-029 — Add plugin support, with Steam as the first plugin
 
-**P2 · Proposed · User-requested future capability · 2026-09-10**
-Source: the user wants Sessions to support plugins, with Steam as the first plugin
-so games can be launched as part of a Session. They explicitly clarified that this
-belongs in the backlog and must not be solved or implemented now.
+**P2 · Done (bundled slice) · Validated and accepted for 0.5.0 Preview · 2026-09-10**
+Source: the user initially requested backlog-only plugin support, with Steam first,
+then selected implementation after SESS-022 on 2026-09-10. Proceeded with a stated
+bundled-first assumption after an optional third-party-loading question received
+no answer. Steam is the first consumer; Hue (SESS-033) and Home Assistant (SESS-034)
+remain later work. A marketplace and automatic plugin updates are outside scope.
 
-Future scope: define a small plugin contract and lifecycle that can support Steam
-first and additional integrations later. Work out plugin discovery/loading,
-compatibility/versioning, enable/disable behavior, failure handling and persistence
-of plugin-owned settings. Decide how bundled and third-party plugins are supported,
-including the trust boundary, before choosing an implementation. Preserve saved
-Session entries and explain unavailable capabilities when a plugin is missing,
-disabled or incompatible. A plugin marketplace and automatic plugin updates are
-not part of this request.
+Implemented: a portable plugin contract with launch-only defaults, optional presence
+and verified opt-in cleanup, explicit bundled registration,
+API/settings compatibility checks, per-run settings capture and isolated discovery
+failures. Settings lists versions, enable/disable and supported fields, with separate
+Apply/reset/retry and atomic local storage. Unknown plugin references and settings
+survive saving. Missing/disabled/incompatible plugins fail preflight before audio
+or ordinary app launches. Cleanup ownership requires the saved per-app opt-in and
+verified lifetimes; provider presence alone grants none. Executable
+Sessions retain their existing behavior. The library reads v1–v5 and now writes v5;
+published 0.4.0 and earlier reject v5. See [product behavior](PRODUCT.md#plugins-and-steam),
+[contract and trust boundary](ARCHITECTURE.md#bundled-plugins) and [plugin guide](PLUGINS.md).
 
-Steam is the first concrete consumer (SESS-030); use its needs to keep the extension
-boundary focused. Philips Hue (SESS-033) and Home Assistant (SESS-034) are additional
-requested plugins for later work; Steam remains first. Relate future utility integrations to SESS-028 where useful,
-without assuming each utility needs its own plugin. Preserve Sessions' general
-purpose, local-first behavior, platform-neutral Core and existing process ownership
-and cleanup guarantees. Keep today's executable-based Sessions compatible.
+The supported lifecycle is stateless, trusted, in-process bundled services. There
+is no third-party loader, background initialization, hot reload or plugin sandbox.
+Additional action kinds and external loading need a later contract decision.
 
-Done when: the plugin contract and supported lifecycle are specified, a working
-Steam plugin demonstrates the extension boundary, and compatibility, unavailable
-plugins and failures have meaningful tests and user-facing documentation. Update
-PRODUCT/ARCHITECTURE when the implementation direction is agreed. No plugin design
-or implementation has been selected or started under this item.
+Validation: the expanded implementation has a clean full Release build, 114 Core
+passing tests, 200 App tests (29 opt-in native skips) and a native isolated cleanup
+test. Visual evidence is in DEVELOPMENT_NOTES.
+The user confirmed 3DMark launching; running detection and optional closure were
+added from their feedback. The user subsequently tested the expanded behavior and
+requested publication of 0.5.0; specific cleanup edge cases remain unverified.
+Third-party loading remains future work.
 
 ## SESS-030 — Steam plugin: launch games as part of a Session
 
-**P2 · Proposed · First plugin; depends on SESS-029 · 2026-09-10**
-Source: the user's requested first plugin is Steam, allowing users to launch Steam
-games from within a Session. This is backlog-only work for now.
+**P2 · Done (first Steam slice) · Validated and accepted for 0.5.0 Preview · 2026-09-10**
+Source: the user requested Steam first, allowing Steam games alongside ordinary
+Session apps, and selected plugin implementation on 2026-09-10.
 
-Intended outcome: users can add a Steam game to a Session alongside utility apps,
-save that selection and launch it through Steam when the Session starts. Assess
-local game discovery/picking, stable Steam game identity, display names/icons,
-multiple library locations and any supported launch options during future design.
-Determine behavior for Steam being unavailable, games being uninstalled or moved,
-login/update/launch prompts, duplicate requests and games already running. Prefer
-using the installed Steam client without adding a Sessions account requirement.
+Implemented: **Add app → Plugins** discovers local Steam app manifests across
+libraries, retaining numeric IDs and display names. Steam's installation is found
+from the current-user registry or an explicit Settings folder. Discovery reads
+local files without login, downloads or modifying Steam. Missing drives, incomplete
+installs and malformed metadata have recovery messages. Icons use the existing
+initial fallback. No custom launch arguments or Steam preference changes are made.
 
-Explicitly define how Steam game launches participate in ordering, readiness,
-Session lifetime and End Session. A Steam launch request is not proof that a game
-is running or that Sessions owns its process. Do not use the Steam client lifetime
-as the game lifetime, close the shared client to stop one game, or infer ownership
-from a process name. Document any launch-only/manual-End limitations unless reliable
-game tracking and safe cleanup are established. Preserve pre-existing games and
-apps, existing safer-closing behavior, and user-entered Steam launch preferences.
+The Windows adapter requests `steam://run/<appid>` through the installed client.
+Startup ordering/pauses and failure policies apply; duplicate targets are rejected
+and same-plugin launches serialize. Provider-reported running state updates the app
+card and suppresses duplicate individual requests. The user confirmed 3DMark launches
+on 2026-09-10, reported the missing running indicator and requested optional closure.
 
-Done when: adding, saving, reopening and launching a Steam game through the plugin
-works alongside ordinary Session apps; failures and missing/disabled plugins have
-clear recovery behavior; supported lifetime/cleanup semantics and validation limits
-are documented and tested. Research launch/discovery interfaces and exact syntax
-when this work is selected. No launch method, discovery mechanism, SDK dependency
-or game-tracking implementation is chosen by this backlog entry.
+Implemented follow-up: per-app **Close when this Session ends**, default off, plus
+Steam registry presence. Opted-in startup uses a baseline and bounded matching Steam
+log events with exact Windows identities; already-open apps, the shared Steam client
+and unknown ownership stay independent. Normal close and existing confirmed recovery/
+force-quit flows apply to retained identities only. Late/external launchers can still
+require manual management. Main-app lifetime, focus and readiness remain unavailable.
+
+Validation: fixture tests cover local discovery and activation, log parsing,
+pre-existing/old/outside-path/other-session/reused identities, cancellation and
+observation failure, persisted consent and Core consent enforcement. Native tests
+using synthetic logs/hidden helpers prove exact new-process closure and pre-existing
+process survival. Read-only Steam 10.96.30.42 discovery found 35 available apps and
+reported one unavailable library; the real 3DMark Running flag was observed. The agent
+did not launch or close real Steam apps. See [limits and remaining real-app retry](PLUGINS.md#validation-and-remaining-trial).
+The user reported that the expanded behavior works well overall, then identified a
+stale red launch acknowledgement despite successful green running detection. Fixed:
+manual launch acknowledgements use neutral styling and clear on detected running,
+including after the grace period expires; actual failures remain distinct. Both-theme
+compact/full-size regression coverage is recorded in DEVELOPMENT_NOTES. Specific
+real-app cleanup edge cases remain unconfirmed. The user confirmed the launch-feedback
+fix works on 2026-09-10. Individual app closing is tracked separately in SESS-035.
 
 ## SESS-031 — Settings entry point and application preferences
 
@@ -764,8 +780,8 @@ the file untouched. Explicit reset backs up an existing unreadable/unsupported f
 before replacing it. Failed saves retain applied appearance and draft choices;
 reset never changes the Session library. In-flight operations prevent window close.
 
-Plugin preferences remain dependent on SESS-029/030 and are not exposed before the
-plugin lifecycle exists. Startup/tray/window memory, notifications, About/support,
+Plugin preferences were subsequently implemented under SESS-029/030; their validation
+and remaining Steam trial are tracked there. Startup/tray/window memory, notifications, About/support,
 arbitrary font-family selection and diagnostic export remain discussion candidates,
 not implemented scope. Native Narrator, physical DPI/monitor changes and Windows
 text-size trials remain SESS-010. The user confirmed Settings "works like a charm"
@@ -791,7 +807,7 @@ checksums, all 184 tagged source entries, WiX source/license and MSI ProductVers
 existing instruction and disclosed in the release notes. Publication was explicitly
 requested on 2026-09-10; the release also records the Playnite confirmation in SESS-017.
 
-Future settings guidance retained from the original proposal:
+Settings guidance retained from the original proposal (plugin controls now implemented under SESS-029/030):
 
 - Plugins: show installed/bundled plugins, status, version, enable/disable and each
   plugin's own settings when supported. Depends on SESS-029/030; do not display
@@ -892,3 +908,49 @@ Done when: the agreed Session actions can be selected, saved/reloaded and execut
 through the plugin, with clear missing-plugin/connection recovery and tested,
 documented start/end semantics against a Home Assistant instance. No API, SDK,
 entity scope or automatic restoration policy is selected yet.
+
+## SESS-035 — Close an individual running app
+
+**P2 · Done · Validated and accepted for 0.5.0 Preview · 2026-09-10**
+Source: after confirming the plugin status-text fix, the user requested an intuitive
+Close option beside each running app.
+
+Implemented: **Close…** beside ordinary and Steam running statuses opens a named-app
+save-work confirmation with Cancel initially focused and Escape cancellation.
+Confirmed normal closing targets the captured existing copies, including apps opened
+outside Sessions, independently of close-on-End preferences. Later copies and other
+apps remain open. No automatic force quit is used. Startup/stopping, competing
+confirmations and in-flight launches retain guards; the Session continues, with the
+existing main-app exit prompt when applicable. Unverifiable Steam identities explain
+that the app needs closing from its own window/Steam. See
+[product behavior](PRODUCT.md#closing-an-individual-app) and
+[identity boundaries](ARCHITECTURE.md#individual-app-closing).
+
+Validation: clean full Release build; 119 Core and 216 App tests pass (31 opt-in native
+skips). Five new Core cases cover fixed identities, cancellation, refusal/failure and
+Steam active-log parsing. Twelve UI cases cover confirmation/keyboard/focus, guards,
+active main/supporting apps and both themes at 1440×900/640×480 with 125/150/200%
+headless scaling. Two separately enabled native helper cases verify actual normal
+closure of existing apps while preserving later copies and other executable paths,
+including synthetic Steam correlation. Cancel closes nothing. No real Steam app was
+launched/closed by the agent. Real 3DMark closing, save prompts and physical desktop
+accessibility remain for user trial. No release/commit/push requested for this slice.
+
+
+Follow-up user trial: closing partly worked, but Close was taller than Running and
+close feedback remained stale as app state changed. Fixed the row controls to share
+the existing 44px minimum and centered alignment. Separate close feedback now clears
+on observed NotRunning; successful requests wait in neutral text, refusals remain
+red until resolved, and unknown status does not falsely count as exit. Unrelated
+launch/focus errors remain separate. Eight new both-theme ordinary/plugin cases
+exercise delayed exit and subsequent restart; existing layout cases now assert equal
+control height/top at compact/reference sizes and 125/150/200% scaling. Full Release
+build is clean; 119 Core and 224 App tests pass (31 opt-in native skips). No process
+adapter or ownership changes; native close checks were not repeated. Awaiting the
+user's retry of this feedback/alignment correction.
+
+
+Release authorization: the user retried the correction, reported it is better, and
+requested commit/push/publication on 2026-09-10. SESS-029/030/035 form the 0.5.0
+Preview slice. This is positive overall feedback, with specific real-app cleanup
+and native accessibility limits retained in the release notes.

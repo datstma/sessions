@@ -27,6 +27,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Sessions.Core\Sessions.Core.csproj" />
+    <ProjectReference Include="..\Sessions.Plugins\Sessions.Plugins.csproj" />
+    <ProjectReference Include="..\Sessions.Plugins.Steam\Sessions.Plugins.Steam.csproj" />
     <None Include="..\..\LICENSE" Link="LICENSE" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <None Include="..\..\branding\fonts\OFL.txt" Link="licenses\Manrope-OFL.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>

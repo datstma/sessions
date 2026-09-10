@@ -1,7 +1,8 @@
 namespace Sessions.Core;
 
 /// <summary>One active run, configurable startup, lifetime observation, and ownership-safe cleanup.</summary>
-public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeout = null, IAudioDeviceService? audioDevices = null)
+public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeout = null, IAudioDeviceService? audioDevices = null,
+    ISessionPluginHost? plugins = null)
 {
     private readonly object _sync = new();
     private Run? _run;
@@ -17,7 +18,8 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
         lock (_sync)
         {
             if (_run is not null) throw new InvalidOperationException("End the active Session before starting another.");
-            run = new Run(definition with { Apps = definition.Apps.ToArray() }, audioDevices);
+            run = new Run(definition with { Apps = definition.Apps.Select(app => app with { Plugin = app.Plugin?.Capture() }).ToArray() },
+                audioDevices, definition.Apps.Any(app => app.Plugin is not null) ? plugins?.Capture() : null);
             _run = run;
             _latestRun = run;
         }
@@ -30,13 +32,20 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
     {
         try
         {
+            // Resolve every plugin before changing audio or launching any ordinary app.
+            foreach (var app in run.Definition.Apps.Where(app => app.Plugin is not null))
+            {
+                if (run.Plugins is null) throw new InvalidOperationException($"The plugin for {app.Name} is unavailable. Open Settings to check plugins.");
+                await run.Plugins.ValidateAsync(app.Plugin!, run.StartCancellation.Token).ConfigureAwait(false);
+            }
             await run.Audio.ApplyAsync(run.Definition, run.StartCancellation.Token).ConfigureAwait(false);
             run.StartCancellation.Token.ThrowIfCancellationRequested();
             if (run.Definition.LaunchMode == SessionLaunchMode.Together)
             {
                 // Same-executable rows cannot race the host's existing-process check.
                 // Each group keeps definition order; independent executables overlap.
-                var groups = run.Entries.GroupBy(e => StartupPathKey(e.App.ExecutablePath),
+                var groups = run.Entries.GroupBy(e => e.App.Plugin is { } plugin
+                        ? "plugin:" + plugin.PluginId : StartupPathKey(e.App.ExecutablePath),
                     StringComparer.OrdinalIgnoreCase).ToArray();
                 await Task.WhenAll(groups.Select(async group =>
                 {
@@ -101,14 +110,16 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
         string? acquiredMessage = null;
         try
         {
-            if (previousAtSamePath is { Processes.Count: 0 })
+            if (entry.App.Plugin is null && previousAtSamePath is { Processes.Count: 0 })
                 throw new InvalidOperationException("An earlier launch of this executable was untracked. Its repeated entry was not launched.");
-            var acquisition = await host.OpenAsync(entry.App, run.StartCancellation.Token).ConfigureAwait(false);
+            var acquisition = entry.App.Plugin is { } plugin
+                ? await run.Plugins!.OpenAsync(plugin, run.StartCancellation.Token).ConfigureAwait(false)
+                : await host.OpenAsync(entry.App, run.StartCancellation.Token).ConfigureAwait(false);
             // Always retain a completed acquisition, even if cancellation/failure occurred while Windows was opening it.
             lock (_sync)
             {
                 entry.Processes = acquisition.Processes;
-                entry.Owned = acquisition.Owned;
+                entry.Owned = acquisition.Owned && (entry.App.Plugin is null || entry.App.Plugin.CloseOnEnd);
                 acquiredMessage = acquisition.Message;
                 entry.Message = acquiredMessage;
             }
@@ -429,8 +440,9 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
-    private sealed class Run(SessionDefinition definition, IAudioDeviceService? audioDevices)
+    private sealed class Run(SessionDefinition definition, IAudioDeviceService? audioDevices, ISessionPluginLaunches? plugins)
     {
+        public ISessionPluginLaunches? Plugins { get; } = plugins;
         public SessionAudio Audio { get; } = new(audioDevices);
         public string? StartError;
         public SessionDefinition Definition { get; } = definition;

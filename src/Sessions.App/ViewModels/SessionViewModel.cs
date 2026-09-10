@@ -7,7 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace Sessions.App.ViewModels;
 
 public sealed partial class SessionViewModel(SessionDefinition definition, IAppPresenceService? presenceService = null,
-    IIndividualAppLauncher? appLauncher = null) : ViewModelBase
+    IIndividualAppLauncher? appLauncher = null, ISessionPluginHost? plugins = null) : ViewModelBase
 {
     [ObservableProperty] private bool _isActive;
     public SessionDefinition Definition { get; } = definition;
@@ -31,7 +31,7 @@ public sealed partial class SessionViewModel(SessionDefinition definition, IAppP
         });
     public IReadOnlyList<SessionAppRow> Apps { get; } = definition.Apps
         .Select((app, index) => new SessionAppRow(index + 1, app.Name, app.ExecutablePath,
-            app.Id == definition.MainAppId ? "Ends with this app" : "Open app", presenceService, appLauncher, app)).ToArray();
+            app.Id == definition.MainAppId ? "Ends with this app" : "Open app", presenceService, appLauncher, app, plugins)).ToArray();
     public string EndSummary => Definition.MainAppId is { } id
         ? $"Ask to end when {Definition.Apps.First(app => app.Id == id).Name} closes"
         : "When you confirm End Session";

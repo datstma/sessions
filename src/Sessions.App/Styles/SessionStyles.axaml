@@ -38,6 +38,7 @@
     <Style Selector="Button:focus-visible /template/ ContentPresenter">
         <Setter Property="BorderBrush" Value="{DynamicResource BrandForegroundBrush}" /><Setter Property="BorderThickness" Value="{StaticResource Inset2}" />
     </Style>
+    <Style Selector="TextBlock.closeFeedback.error"><Setter Property="Foreground" Value="{DynamicResource SessionError}" /></Style>
     <Style Selector="Button.runningStatus">
         <Setter Property="Background" Value="{DynamicResource RunningSoftBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource RunningBrush}" /><Setter Property="Foreground" Value="{DynamicResource RunningBrush}" />
     </Style>
@@ -89,14 +90,14 @@
     <Style Selector="StackPanel.runtimeActions"><Setter Property="DockPanel.Dock" Value="Right" /><Setter Property="Margin" Value="{StaticResource Inset16x0x0x0}" /></Style>
     <Style Selector="UniformGrid.explainers"><Setter Property="Columns" Value="2" /></Style>
     <Style Selector="UniformGrid.steps"><Setter Property="Columns" Value="3" /></Style>
-    <Style Selector="Button.appStatus, Border.appStatus"><Setter Property="Grid.Column" Value="2" /></Style>
+    <Style Selector="Button.appStatus, Border.appStatus, WrapPanel.appStatus"><Setter Property="Grid.Column" Value="2" /></Style>
     <Style Selector="Window.compact Border.sidebar"><Setter Property="Width" Value="{StaticResource Measure184}" /></Style>
     <Style Selector="Window.compact StackPanel.detailContent"><Setter Property="Margin" Value="{StaticResource Inset16x20}" /></Style>
     <Style Selector="Window.compact views|SessionEditorView.editorContent"><Setter Property="Margin" Value="{StaticResource Inset12x20}" /></Style>
     <Style Selector="Window.compact Border.editorFooter"><Setter Property="Padding" Value="{StaticResource Inset16x12}" /></Style>
     <Style Selector="Window.compact StackPanel.heroActions"><Setter Property="DockPanel.Dock" Value="Bottom" /><Setter Property="Margin" Value="{StaticResource Inset0x16x0x0}" /></Style>
     <Style Selector="Window.compact UniformGrid.explainers"><Setter Property="Columns" Value="1" /></Style>
-    <Style Selector="Window.compact Button.appStatus, Window.compact Border.appStatus">
+    <Style Selector="Window.compact Button.appStatus, Window.compact Border.appStatus, Window.compact WrapPanel.appStatus">
         <Setter Property="Grid.Row" Value="1" /><Setter Property="Grid.Column" Value="1" /><Setter Property="Grid.ColumnSpan" Value="2" /><Setter Property="HorizontalAlignment" Value="Left" /><Setter Property="Margin" Value="{StaticResource Inset0x8x0x0}" />
     </Style>
     <Style Selector="CheckBox.appChoice"><Setter Property="CornerRadius" Value="{StaticResource Round12}" /><Setter Property="Margin" Value="{StaticResource Inset0x0x0x8}" /></Style>
