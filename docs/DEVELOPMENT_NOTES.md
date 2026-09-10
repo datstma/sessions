@@ -2,7 +2,33 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.4.0 release preparation 2026-09-10
+## Resume next session — 0.4.0 published 2026-09-10
+
+[Sessions 0.4.0 Preview](https://github.com/datstma/sessions/releases/tag/v0.4.0)
+is public. Immutable tag v0.4.0 points to
+ea9f7b993d3823a2b5e6c90dab3a4e394e544732 (Settings and release preparation).
+Workflow 34475353569 passed clean solution/MSI builds, 74 Core and 177 App tests
+(27 opt-in native skips). All downloaded checksums, all 184 tagged source archive
+entries, WiX source/license and MSI ProductVersion 0.4.0 verify. Publication retains
+the same asset IDs and hashes checked in the draft. Evidence scripts, downloads and
+workflow log are under ignored artifacts/release-verification-0.4.0.
+
+The user confirmed Settings and Playnite force quit; SESS-031's appearance slice
+and SESS-017 are Done. README/gallery links point to 0.4.0; existing screenshots
+remain accurately labelled 0.2.2. Library format stays v4; preferences are separate.
+The earlier Rider binding-local typing fix is included; remaining Rider diagnostics
+are not claimed resolved. Plugin preferences and other Settings candidates remain
+future work. Native accessibility/display, ordinary-user and installed real-app/UAC
+limits remain SESS-010/021. Repeated Sandbox lifecycle checks were omitted under the
+user's earlier instruction and disclosed. The known Actions runtime notice remains
+SESS-022; it did not block this release.
+
+This publication follow-up records verification in main and the release-page notes.
+Do not move v0.4.0 or replace its assets. No remaining release action or automatic
+next backlog implementation is required. The user explicitly authorized the release,
+commit and push. This follow-up records the completed release on main.
+
+## Previous checkpoint — 0.4.0 release preparation 2026-09-10
 
 The user confirmed Settings and Playnite force quit, then explicitly requested a
 version bump, release, publication, commit and push. Shared app/MSI version is now

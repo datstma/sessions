@@ -755,8 +755,16 @@ unapplied-choice discard and editor/run/close guards. Both themes at 1440×900 a
 640×480, plus 125/150/200% headless rendering, pass. Captures reviewed under ignored
 artifacts/settings-review include enlarged text/interface, preview, editor footers
 and compact active-run controls. Visual review found a clipped New Session label at
-125% text; the button label now wraps and a regression checks it. No user library,
-real app launches, OS preference changes, version bump or release are part of this work.
+125% text; the button label now wraps and a regression checks it. Automated checks
+used isolated fixtures without accessing the user library, launching real apps or
+changing OS preferences.
+
+Published in 0.4.0 Preview from v0.4.0/ea9f7b9. Workflow 34475353569 passed clean
+solution/MSI builds and 74 Core + 177 App tests (27 opt-in native skips). Downloaded
+checksums, all 184 tagged source entries, WiX source/license and MSI ProductVersion
+0.4.0 verify. Repeated Sandbox lifecycle checks were omitted under the maintainer's
+existing instruction and disclosed in the release notes. Publication was explicitly
+requested on 2026-09-10; the release also records the Playnite confirmation in SESS-017.
 
 Future settings guidance retained from the original proposal:
 

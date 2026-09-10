@@ -116,6 +116,15 @@ Session audio works and requested publication on 2026-09-10. Repeated Sandbox
 lifecycle checks were omitted under the earlier instruction and disclosed in the
 release notes. Library v4 compatibility is explicitly documented.
 
+For 0.4.0, workflow 34475353569 passed clean tagged solution/MSI builds and 74 Core
++ 177 App tests (27 opt-in native skips). Downloaded checksums, all 184 source entries,
+WiX source/license and MSI ProductVersion 0.4.0 verify. The maintainer confirmed
+Settings and Playnite force quit and explicitly requested publication on 2026-09-10.
+Repeated Sandbox lifecycle checks were omitted under the existing instruction and
+disclosed. The library stays v4; appearance preferences are stored separately and
+outside installer ownership. Native accessibility/display and installed real-app/UAC
+limits remain as documented in the release notes.
+
 ## Create a GitHub draft release
 
 1. Update the version and add `docs/release-notes/<version>.md`. Review dependency
