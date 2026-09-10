@@ -125,6 +125,14 @@ disclosed. The library stays v4; appearance preferences are stored separately an
 outside installer ownership. Native accessibility/display and installed real-app/UAC
 limits remain as documented in the release notes.
 
+For 0.5.0, workflow 34516646243 passed clean tagged solution/MSI builds and 119 Core
++ 224 App tests (31 opt-in native skips). Downloaded checksums, all 214 source entries,
+WiX source/license and MSI ProductVersion 0.5.0 verify. Publication was explicitly
+requested on 2026-09-10 after the plugin/individual Close trial. Repeated Sandbox
+lifecycle checks were omitted under the existing instruction and disclosed. Release
+notes document library v5 compatibility, Steam tracking limits and native validation
+limits. Plugin preferences remain outside installer ownership.
+
 ## Create a GitHub draft release
 
 1. Update the version and add `docs/release-notes/<version>.md`. Review dependency

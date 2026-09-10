@@ -2,21 +2,33 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.5.0 release preparation 2026-09-10
+## Resume next session — 0.5.0 published 2026-09-10
 
-The user tried the latest individual-close alignment/status correction, reported
-it is better, and explicitly requested release publication, commit and push. Preparing
-0.5.0 Preview for bundled plugins/Steam and individual Close (SESS-029/030/035).
-Release notes disclose v5 library compatibility, Steam correlation limits, unsigned
-binaries and the existing instruction to omit repeated Sandbox lifecycle checks.
-No new third-party dependencies were introduced: the two plugin projects reference
-Sessions projects only. The latest development validation passes 119 Core and 224
-App tests (31 opt-in native skips). Local Build-Installer.ps1 now passes full tests,
-self-contained publishing, notices and WiX validation with zero warnings/errors;
-log: artifacts/plugins-review/release-0.5.0-build.log. README, plugin guide, version
-and release notes are updated; SESS-029/030/035 are accepted for the preview with
-specific limits retained. Commit/tag/push and tagged workflow are next; exact draft
-assets must be verified before the already-authorized publication.
+The user retried individual Close, reported the correction is better, and explicitly
+requested commit/push/publication. Sessions 0.5.0 Preview is published at
+https://github.com/datstma/sessions/releases/tag/v0.5.0 from immutable tag v0.5.0,
+commit fecc5b0c527f520dbe43960dd0000da8ac4552ae. This includes bundled plugins/Steam
+(SESS-029/030), optional tracked close-on-End, and individual Close (SESS-035), with
+aligned controls and feedback that clears as presence changes.
+
+Local Build-Installer.ps1 and tagged workflow 34516646243 pass clean solution/MSI
+builds, 119 Core and 224 App tests (31 opt-in native skips). Downloaded hashes verify;
+all 214 source archive entries match the tag; WiX source/license and MSI ProductVersion
+0.5.0 verify. Logs/assets are under ignored artifacts/release-verification-0.5.0;
+local packaging log is artifacts/plugins-review/release-0.5.0-build.log. Final GitHub
+release metadata confirms published preview status. Verification notes were added
+after the immutable release commit, without replacing any tag or binary.
+
+Library saves use v5; 0.4.0 and earlier cannot read it. Plugin preferences are stored
+separately. Release notes retain Steam correlation limits, specific unverified
+save-prompt/cleanup cases, physical accessibility/display and installed real-app/UAC
+limits. Repeated Sandbox lifecycle checks were omitted under the maintainer's existing
+instruction and disclosed. No real Steam apps were launched/closed by automated
+checks. No third-party package dependencies were added by the plugin projects.
+
+SESS-029/030/035 are accepted for this preview. Continue from new user feedback;
+do not automatically begin another backlog item. Third-party loading, Hue and Home
+Assistant remain future work.
 
 ## Previous checkpoint — close feedback and alignment corrected 2026-09-10
 

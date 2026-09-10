@@ -954,3 +954,10 @@ Release authorization: the user retried the correction, reported it is better, a
 requested commit/push/publication on 2026-09-10. SESS-029/030/035 form the 0.5.0
 Preview slice. This is positive overall feedback, with specific real-app cleanup
 and native accessibility limits retained in the release notes.
+
+
+Published SESS-029/030/035 in 0.5.0 Preview from v0.5.0/fecc5b0. Workflow 34516646243
+passed clean tagged builds, 119 Core and 224 App tests (31 opt-in native skips).
+Downloaded checksums, all 214 source archive entries, WiX source/license and MSI
+ProductVersion 0.5.0 verify. Release notes retain the documented Steam/native limits
+and omission of repeated Sandbox lifecycle checks. Publication confirmed 2026-09-10.
