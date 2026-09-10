@@ -32,9 +32,11 @@ remain. Download-artifact v8 emits a separate non-blocking DEP0005 `Buffer()`
 deprecation; this is recorded rather than suppressed or described as a build warning.
 No new release/draft or installation trial was needed for this maintenance check.
 
-SESS-022 is Done. Changes are committed on the separate validation branch for
-review; main and published tags/releases were not updated. The follow-up commit
-only records validation results. Do not rerun packaging for those prose changes.
+SESS-022 is Done. The user approved the result and explicitly requested commit and
+push on 2026-09-10. Main now includes the two validated-branch commits, 45e28aa and
+e8e3a1c, by fast-forward; this handoff update records the integration. PR #1 contains
+the reviewed changes. Published tags/releases remain unchanged. The follow-up
+commits only record validation and integration; do not rerun packaging for prose.
 Evidence is under ignored artifacts/actions-review: local-build.log, hosted-run.log,
 hosted-run.json, action manifests and before/after release/tag snapshots. The hosted
 log records exact resolved SHAs for all four action majors. No application version,
