@@ -28,8 +28,9 @@ SESS-025. Safer closing (SESS-026), saved-app icons (SESS-027) and draft-close
 protection (SESS-006) are user-confirmed and published in 0.2.2 Preview. Invalid-field guidance
 (SESS-011) is user-confirmed and published in 0.2.3 Preview. Installed-release checks and Actions maintenance
 remain SESS-021/022. Broader native checks stay under SESS-001, including UAC
-cancellation and the narrower Playnite-specific confirmation in SESS-017; do not
-treat the earlier overall stopping-flow confirmation as proof of unsaved-document safety.
+cancellation. The user confirmed Playnite force quit under SESS-017 on 2026-09-10;
+this does not establish graceful-only closing or unsaved-document safety. Settings
+appearance preferences (SESS-031) are also implemented, validated and user-confirmed.
 
 ## SESS-001 — Review the first native UI with the user
 
@@ -271,14 +272,20 @@ User subsequently confirmed: “SRS start and stop, check!” This confirms the 
 
 ## SESS-017 — Avoid partial shutdown from closing internal app windows
 
-**P1 · Awaiting feedback · Cleanup fix implemented; Playnite trial pending · 2026-09-08**  
+**P1 · Done · Cleanup fix validated; Playnite force quit user-confirmed · 2026-09-10**
 Source: user reports Playnite Desktop's tray icon disappears but the process remains in a broken state after End, with and without Force quit; Task Manager's End process finishes it.
 
 Code inspection found that the previous hidden-window support broadcast WM_CLOSE to every top-level window, including internal helper windows. A native fixture reproduced the resulting damaged-but-running state and failed against the previous implementation. The fix limits normal-close targets to titled application windows with a system menu, excluding tool/internal windows, while allowing eligible hidden main windows. Process exit is still determined using the retained handle. Force-close fallback still terminates only the verified owned process; no new process-tree or name-based cleanup was added.
 
 Regression evidence covers the internal-window failure, normal close of a hidden main window, and an app whose UI disappears while its process remains alive (NeedsAttention without force; actual exit with force). The agent did not launch/stop installed Playnite. A read-only snapshot of the current saved Playnite entry showed ForceClose=false; this does not establish the setting used in the user's earlier force-enabled trial. The runtime error/outcome was requested to distinguish that report if it persists. SRS successful start/stop is recorded under SESS-016.
 
-Validation: zero build warnings/errors and 89 checks pass (19 Core, 51 regular App, 19 native); all 41 local documentation links resolve. Finish this item when the user confirms the rebuilt version closes Playnite properly, or record any remaining per-app runtime error for further diagnosis.
+Validation: zero build warnings/errors and 89 checks pass (19 Core, 51 regular App, 19 native); all 41 local documentation links resolve.
+
+User confirmation (2026-09-10): after trying Settings, the user also tested closing
+Playnite and reported that force quit "works just great". This closes the pending
+Playnite force-quit trial. The report does not identify automatic per-app force quit
+versus the targeted Force quit action, or independently confirm graceful-only closing,
+unsaved-document safety or UAC behavior. No remaining Playnite error was reported.
 
 
 ## SESS-018 — Make full stopping the default with save-work confirmation
@@ -713,37 +720,52 @@ or game-tracking implementation is chosen by this backlog entry.
 
 ## SESS-031 — Settings entry point and application preferences
 
-**P2 · Proposed · User-requested suggestions and backlog entry · 2026-09-10**
-Source: the user requested a Settings button for preferences such as color theme,
-plugins, UI scaling and font sizes, and asked for suggestions to record in the
-backlog. This is a proposal, not an implementation request.
+**P2 · Done (appearance slice) · Implemented, validated and user-confirmed · 2026-09-10**
+Source: the user requested theme/plugin/scaling preference suggestions, then selected
+SESS-031 for implementation on 2026-09-10.
 
-Suggested entry point: a consistently reachable Settings button near the bottom of
-the sidebar, with an accessible name and keyboard access. Keep it reachable from the
-empty-library screen too. Decide between an in-app page and a separate window when
-this item is selected; preserve unsaved Session drafts and active-run controls when
-opening or closing Settings.
+Implemented slice: a Settings button in the sidebar and empty-library header opens
+one separate, modeless window. It preserves Session drafts and active-run controls
+with existing editor/close guards. System/Light/Dark, interface size 100/110/125/150%
+and text size 100/110/125% have an isolated preview, explicit Apply, local persistence
+and reset. Enlargement fits the available main/picker viewport; Settings keeps
+standard interface spacing so reset remains reachable. All typography derives from
+branding tokens. See [Settings behavior](PRODUCT.md#application-settings) and
+[preferences architecture](ARCHITECTURE.md#application-preferences-and-appearance).
 
-Suggested first slice:
+The separate preferences file uses validated, versioned JSON and temporary-file
+replacement. Load errors leave the app usable with a recovery warning; retry leaves
+the file untouched. Explicit reset backs up an existing unreadable/unsupported file
+before replacing it. Failed saves retain applied appearance and draft choices;
+reset never changes the Session library. In-flight operations prevent window close.
 
-- Appearance: System / Light / Dark theme, with System remaining the default.
-  Theme overrides are future behavior; the current app still follows the OS.
-- Accessibility: overall interface scale relative to Windows DPI, plus a separate
-  text-size preference so larger text need not enlarge every control. Keep Manrope
-  and the existing fallback initially; arbitrary font-family selection can be
-  discussed later. Establish tested ranges and interaction with Windows text size
-  to avoid accidental double scaling. Include a preview and an accessible reset.
+Plugin preferences remain dependent on SESS-029/030 and are not exposed before the
+plugin lifecycle exists. Startup/tray/window memory, notifications, About/support,
+arbitrary font-family selection and diagnostic export remain discussion candidates,
+not implemented scope. Native Narrator, physical DPI/monitor changes and Windows
+text-size trials remain SESS-010. The user confirmed Settings "works like a charm"
+on 2026-09-10. This confirms the implemented appearance slice; it does not establish
+specific native accessibility/monitor configurations or complete the future candidates.
+
+Validation: clean full Release build with zero warnings/errors; 74 Core tests and
+177 App tests pass (27 opt-in native cases skipped). Twenty-four new cases cover
+persistence/reload, malformed/unsupported/denied reads, backup/reset, atomic-save
+failure, serialization/retry, keyboard choices/focus, live System-theme preview,
+unapplied-choice discard and editor/run/close guards. Both themes at 1440×900 and
+640×480, plus 125/150/200% headless rendering, pass. Captures reviewed under ignored
+artifacts/settings-review include enlarged text/interface, preview, editor footers
+and compact active-run controls. Visual review found a clipped New Session label at
+125% text; the button label now wraps and a regression checks it. No user library,
+real app launches, OS preference changes, version bump or release are part of this work.
+
+Future settings guidance retained from the original proposal:
+
 - Plugins: show installed/bundled plugins, status, version, enable/disable and each
   plugin's own settings when supported. Depends on SESS-029/030; do not display
   nonfunctional plugin switches before the plugin lifecycle exists. Explain restart
   requirements and handle changes during active runs without losing ownership or
   invalidating the captured run. Game/profile choices for a particular Session
   stay with that Session rather than becoming global plugin defaults accidentally.
-- Preferences persistence: save locally per user, separately from Session
-  definitions; restore on restart and provide Reset preferences that leaves saved
-  Sessions intact. Define safe recovery for invalid or unreadable preferences.
-
-Additional candidates for later discussion, not automatically part of the first slice:
 
 - General: remember the last selected Session and window size/position. Optionally
   start Sessions with Windows or start it minimized; launching Sessions must not
@@ -754,20 +776,6 @@ Additional candidates for later discussion, not automatically part of the first 
 - About and support: version, license, release notes and an action to open the local
   data folder. Consider a user-reviewed diagnostic export separately if useful;
   avoid automatically sending paths, Session contents or logs anywhere.
-
-Keep the first Settings screen small and expose only implemented preferences.
-Appearance changes must use branding tokens, preserve semantic action colors,
-keyboard/focus access and readable contrast, and remain usable in light/dark and
-compact layouts. Provide a way back to usable defaults even after enlarging the UI.
-Keep process ownership, force-quit permissions and Session startup behavior outside
-unrelated appearance/global settings. Coordinate native accessibility/scaling review
-with SESS-010 and future plugin preferences with SESS-029/030.
-
-Done when: an agreed first slice has a discoverable Settings entry point, durable
-local preferences, working reset/recovery, and tested interactions with OS theme,
-DPI/text size, compact layouts, unsaved drafts and active runs. Update PRODUCT,
-ARCHITECTURE and branding guidance alongside implementation. This item does not
-change those current specifications or authorize a settings implementation now.
 
 ## SESS-032 — Choose audio output and input devices per Session
 
@@ -799,7 +807,7 @@ and microphone behavior, and physical disconnect/reconnect. No audio was played 
 recorded during automated checks. The Windows default setter is undocumented;
 crash restoration, per-app routing, volume and effects are outside this slice.
 Library v4 preserves audio settings and is unreadable by published 0.2.3 and earlier.
-SESS-031 global Settings remains a separate proposal. Published in 0.3.0 Preview
+Global appearance preferences are tracked separately in SESS-031. Published in 0.3.0 Preview
 from v0.3.0/9bc12cb. Workflow 34414859067 passed clean solution/MSI builds and
 74 Core + 153 App tests (27 opt-in native skips). Downloaded hashes, all 174 tagged
 source entries, WiX source/license and MSI ProductVersion 0.3.0 verify. Repeated

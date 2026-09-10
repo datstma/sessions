@@ -2,7 +2,118 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — Hue and Home Assistant backlog 2026-09-10
+## Resume next session — 0.4.0 release preparation 2026-09-10
+
+The user confirmed Settings and Playnite force quit, then explicitly requested a
+version bump, release, publication, commit and push. Shared app/MSI version is now
+0.4.0, following the minor-version rule for new features. Release notes and README
+cover Settings, preview/apply/reset, size limits and local preferences. Existing
+screenshots remain accurately labelled 0.2.2. Session library schema stays v4.
+The release includes the earlier binding-local MainViewModel typing adjustment;
+remaining Rider diagnostics have not been independently cleared.
+
+The full local Build-Installer.ps1 run passed clean solution/MSI builds, 74 Core and
+177 App tests (27 opt-in native skips), self-contained Windows x64 publish, dependency
+notices and WiX validation. App metadata reports 0.4.0.0 / 0.4.0. Staging is under
+artifacts/installer/951f52c2927849078542bb38574c1d9c; the local MSI is under
+artifacts/releases/0.4.0. This pre-commit local package embeds the previous HEAD;
+the published MSI will come from clean tagged CI. No dependency changes. Documentation
+links, stable backlog IDs and diff whitespace checks pass.
+
+Tagged CI and exact-asset verification are the remaining publication steps.
+Retain preview/unsigned status. Repeated Sandbox lifecycle checks
+remain omitted under the user's existing instruction and are disclosed in the notes.
+Do not install over the user's application, use their Session library as a fixture,
+move published tags or replace published binaries. Latest public release is 0.3.0
+until the new release is actually published. No other backlog item is authorized.
+
+## Previous checkpoint — Settings and Playnite confirmed 2026-09-10
+
+The user confirms Settings "works like a charm" and reports testing Playnite closing:
+force quit "works just great". SESS-031 is Done for the implemented appearance slice;
+SESS-017 is Done with the previously pending Playnite force-quit trial now confirmed.
+The Playnite report does not distinguish automatic per-app force quit from the targeted
+action, or verify graceful-only closing, unsaved-document safety or UAC behavior.
+Native accessibility, Windows text-size and physical-monitor trials remain SESS-010;
+plugin settings and other Settings candidates remain future work.
+
+This follow-up only records user feedback and backlog status. Existing validation
+below remains applicable: clean Release build, 74 Core + 177 App tests passing,
+27 opt-in native skips. Documentation links, IDs and diff whitespace were checked;
+no runtime changes or repeat native trials. Changes remain local, including the
+Settings implementation and earlier Rider binding fix. No version bump, commit,
+push or release requested. Latest public release remains 0.3.0. Stop here unless
+the user requests further work.
+
+## Previous checkpoint — SESS-031 Settings implementation 2026-09-10
+
+The user selected SESS-031. Implemented a separate modeless Settings window reachable
+from the sidebar and empty-library header, with System/Light/Dark, interface scale
+100/110/125/150%, text scale 100/110/125%, an isolated preview, Apply and immediate
+Reset preferences. PRODUCT/ARCHITECTURE and branding define the behavior. Plugin
+settings wait for SESS-029/030; other proposed preferences remain future discussion.
+
+Appearance configuration is separate from Sessions in preferences.json. Missing
+files use defaults without writing; invalid/unreadable files show recovery guidance.
+Apply cannot overwrite a failed load; explicit Reset preserves original bytes in a
+unique recovery backup. Failed saves keep current appearance and selected choices.
+Closing windows cannot abandon a preference operation. Main-window Session draft,
+active-run, process ownership and audio behavior are unchanged. Settings returns
+focus on close and only one Settings window opens per main window.
+
+Sizing uses dynamic brand typography and main/picker layout transforms atop OS DPI.
+Interface enlargement is capped to retain the existing minimum logical viewport;
+at minimum size it is 100%, while separate text enlargement still applies. Settings
+keeps standard spacing so reset stays reachable. System preview follows OS theme
+changes independently of an applied Light/Dark override. No manual second Windows
+text-size multiplier. Native screen-reader, monitor/DPI and OS text-size trials remain
+SESS-010; automated checks use isolated libraries/services and no real user apps.
+
+Validation with the local artifacts/dotnet SDK and DOTNET_ROOT/PATH configured:
+`dotnet build Sessions.slnx -c Release` passes with zero warnings/errors;
+Core tests pass 74/74 and App tests pass 177 (27 opt-in native skips), using
+`dotnet test <project> -c Release --no-build`. The 24 added cases cover persistence,
+recovery, save failure/serialization, keyboard choices and focus, live System theme
+preview, unapplied-choice discard, Session draft/run/close preservation and layouts.
+Both themes at 1440×900 and 640×480 plus 125/150/200% headless rendering pass.
+Captures under ignored artifacts/settings-review were visually reviewed. At maximum
+text size, compact New Session copy initially clipped; it now wraps and has a
+regression check. First-run explicit line heights now scale with canonical typography.
+
+Initial tests exposed missing InvalidDataException handling in preference recovery;
+malformed/unsupported/invalid-value cases now pass. Existing End is disabled while
+editing a Session; Settings preserves that guard and leaves End enabled otherwise.
+The build required broader access for NuGet signature lookup and Avalonia build-service
+files; automatic approval allowed those build operations. No test suppression or new
+dependency was introduced. Relative documentation links, backlog IDs and diff
+whitespace checks pass. SESS-031 is Awaiting feedback for the user's trial; native
+screen-reader, OS text-size and physical-monitor checks remain explicitly unverified.
+
+The earlier local Rider binding adjustment in MainWindow.axaml is preserved. No
+version bump, commit, push, installer or release requested. Latest public release
+remains 0.3.0. Do not start another backlog item automatically.
+
+## Previous checkpoint — Rider binding diagnostic 2026-09-10
+
+The user reported Rider showing 114 errors in 24 files. Debug and Release initially
+built with zero warnings/errors, and Rider logs showed a suitable pinned SDK and
+initialized source generators. The user identified SelectedSession in MainWindow.axaml
+and confirmed the unresolved-property diagnostic discussed for SessionViewModel.
+Added binding-local DataType={x:Type vm:MainViewModel} to that DataContext binding;
+the panel's x:DataType remains SessionViewModel for its contents. This is explicit
+source typing, with no product/layout change or suppression of inspections.
+Reference: [Avalonia compiled bindings](https://docs.avaloniaui.net/docs/data-binding/compiled-bindings).
+
+Release build passes with zero warnings/errors, 74 Core tests and 153 App tests
+(27 opt-in native skips), including existing theme/compact interaction coverage.
+The changed Debug build reached a copy failure because two Avalonia designer hosts
+held Sessions.App.dll (PIDs 27296 and 8384 at inspection); neither was terminated.
+Rider underline clearance awaits user confirmation. The remaining reported diagnostics
+have not been inspected and must not all be labeled false positives from this example.
+Changes are local; no commit, version bump or release requested for this adjustment.
+Latest public release is 0.3.0. The plugin backlog additions below were pushed as e1368c8.
+
+## Previous checkpoint — Hue and Home Assistant backlog 2026-09-10
 
 The user requested Philips Hue and Home Assistant support in the plugin backlog,
 then explicitly requested commit and push. Added SESS-033 (Hue) and SESS-034

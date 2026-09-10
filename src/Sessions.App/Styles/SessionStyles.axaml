@@ -1,15 +1,15 @@
 <Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:views="using:Sessions.App.Views">
     <Style Selector="Window">
         <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
-        <Setter Property="FontSize" Value="{StaticResource FontBodySize}" />
+        <Setter Property="FontSize" Value="{DynamicResource FontBodySize}" />
         <Setter Property="FontWeight" Value="{StaticResource WeightBody}" />
         <Setter Property="Background" Value="{DynamicResource AppBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
     <Style Selector="TextBlock"><Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" /></Style>
     <Style Selector="TextBlock.muted"><Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" /></Style>
-    <Style Selector="TextBlock.eyebrow"><Setter Property="FontSize" Value="{StaticResource FontMicroSize}" /><Setter Property="FontWeight" Value="{StaticResource WeightHeading}" /><Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" /></Style>
-    <Style Selector="TextBlock.section"><Setter Property="FontSize" Value="{StaticResource FontSubtitleSize}" /><Setter Property="FontWeight" Value="{StaticResource WeightHeading}" /></Style>
+    <Style Selector="TextBlock.eyebrow"><Setter Property="FontSize" Value="{DynamicResource FontMicroSize}" /><Setter Property="FontWeight" Value="{StaticResource WeightHeading}" /><Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" /></Style>
+    <Style Selector="TextBlock.section"><Setter Property="FontSize" Value="{DynamicResource FontSubtitleSize}" /><Setter Property="FontWeight" Value="{StaticResource WeightHeading}" /></Style>
     <Style Selector="Button">
         <Setter Property="MinHeight" Value="{StaticResource Measure44}" /><Setter Property="Padding" Value="{StaticResource Inset16x10}" />
         <Setter Property="CornerRadius" Value="{StaticResource Round11}" /><Setter Property="FontWeight" Value="{StaticResource WeightHeading}" />

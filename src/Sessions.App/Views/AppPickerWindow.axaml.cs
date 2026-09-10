@@ -4,16 +4,20 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Sessions.App.ViewModels;
+using Sessions.App.Services;
 
 namespace Sessions.App.Views;
 
 public partial class AppPickerWindow : Window
 {
+    public PreferencesService? Preferences { get; init; }
+    private WindowAppearance? _appearance;
     public AppPickerWindow()
     {
         InitializeComponent();
         Opened += async (_, _) =>
         {
+            if (Preferences is not null) _appearance = new WindowAppearance(this, AppearanceRoot, Preferences);
             if (Screens.ScreenFromWindow(this) is { } screen)
             {
                 Width = Math.Min(Width, Math.Max(MinWidth, screen.WorkingArea.Width / screen.Scaling - 32));
@@ -22,7 +26,11 @@ public partial class AppPickerWindow : Window
             AppSearch.Focus();
             if (DataContext is AppPickerViewModel model) await model.RefreshCommand.ExecuteAsync(null);
         };
-        Closed += (_, _) => (DataContext as AppPickerViewModel)?.Dispose();
+        Closed += (_, _) =>
+        {
+            _appearance?.Dispose();
+            (DataContext as AppPickerViewModel)?.Dispose();
+        };
     }
 
     private void CancelClicked(object? sender, RoutedEventArgs e) => Close();

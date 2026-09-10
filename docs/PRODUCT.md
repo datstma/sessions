@@ -90,7 +90,7 @@ The chosen UI direction is a named Session sidebar beside a detail view. Session
 
 When there are no Sessions, the main view offers **Create your first Session** with a short explanation. The sidebar appears once a Session has been created. Creation asks for a name, apps to open in order, and when the Session ends. Description, arguments, and working directory are optional and progressively disclosed. The default lifetime is user-bound; users may instead choose an app whose exit asks for confirmation to end the Session. A Session can be created without apps and configured later. Saving a Session never launches it.
 
-The current application implements this navigation, local creation/editing, executable-file selection, app removal and reordering, and both lifetime configurations. It follows the system light/dark theme. Sessions are saved on this computer and loaded at startup. Save failures retain the draft; load failures show a retry action and prevent replacing an unreadable library. Start Session opens configured apps using the saved startup mode and changes to an active run with End Session available. Sample Sessions are used only in tests, not inserted into the user's library.
+The current application implements this navigation, local creation/editing, executable-file selection, app removal and reordering, and both lifetime configurations. It follows the system light/dark theme by default, with appearance preferences available in Settings. Sessions are saved on this computer and loaded at startup. Save failures retain the draft; load failures show a retry action and prevent replacing an unreadable library. Start Session opens configured apps using the saved startup mode and changes to an active run with End Session available. Sample Sessions are used only in tests, not inserted into the user's library.
 
 The editor explains invalid names, executable paths, app choices and startup values
 beside the affected fields. Whitespace-only required inputs are invalid. App rows
@@ -133,12 +133,13 @@ a crash cannot display this protection; draft recovery across crashes is not imp
 
 The visual treatment follows the supplied [branding guide](../branding/DESIGN_GUIDE.md):
 Manrope typography, rounded Session/app cards, indigo primary actions, green running
-states and red destructive actions. Both OS-selected themes use readable text/fill
+states and red destructive actions. Both light and dark themes use readable text/fill
 variants. The sidebar includes the Sessions mark and local-storage reassurance;
 the selected Session has a stronger header and individual app cards. End confirmation
 separates apps this run owns from already-open apps that stay open. The mockups guide
-appearance; history, Recently added, timers, shortcut chips and a theme toggle are
-not part of this refresh. Existing advanced settings and recovery flows remain.
+appearance; history, Recently added, timers and shortcut chips are not part of the
+branding refresh. Appearance preferences are implemented separately below. Existing
+advanced settings and recovery flows remain.
 
 The main window supports a 640×480 logical-pixel minimum and uses a narrower sidebar
 and smaller content margins below 900 logical pixels. Main and picker windows limit
@@ -173,6 +174,50 @@ A successful launch request does not prove the app stayed running. Presence chec
 Session details also offer **Delete Session…**. A confirmation names the Session, explains that its saved setup will be removed permanently, and makes clear that installed apps, files, and running processes are unaffected. Cancel receives initial focus; Enter on Cancel or Escape dismisses the confirmation. Deletion is unavailable while editing or saving, and the rest of the window is disabled during confirmation. Only an explicit Delete Session confirmation saves the reduced library. The displayed Session is removed only after that save succeeds; failure preserves it and offers retry or cancellation. Selection moves to the next Session, or the previous one when deleting the last item; deleting the only Session returns to the first-run screen. There is no undo after successful confirmation.
 
 Start Session captures the saved setup, uses its configured launch mode (in order by default), and leaves matching already-open apps running without taking ownership. Only one Session can be active at a time. Its sidebar marker and a persistent status panel remain visible while browsing another Session; switching selection never starts/ends anything. Editing/deleting the active definition and individual launch controls are unavailable until the run ends. Other saved Sessions can still be edited. Starting waits for an individual launch already in progress to settle.
+
+### Application Settings
+
+**Settings** opens a separate window from the sidebar footer or the empty-library
+header. Opening it again brings the same window forward. Session drafts, selection
+and active runs remain intact. Main-window controls keep their existing guards;
+in particular, finish editing a Session before using End. Closing Settings returns
+focus to its entry point and discards choices that have not been applied.
+
+Implemented appearance preferences:
+
+- **Color theme:** System (default), Light or Dark. System follows Windows changes
+  while the app is open. An explicit choice applies to Sessions and its app picker.
+- **Interface size:** 100%, 110%, 125% or 150%, relative to Windows display scaling.
+  Enlargement automatically fits the available window size to retain the established
+  minimum logical viewport and reachable fixed controls. At the 640×480 main-window
+  minimum, interface enlargement is limited to 100%; enlarging the window allows
+  more of the chosen size. Text sizing remains independent. Settings itself keeps
+  standard interface spacing so its reset controls stay reachable.
+- **Text size:** 100%, 110% or 125%, multiplying the existing brand typography and
+  line heights without changing the font family or independently enlarging icons
+  and spacing. Interface enlargement also enlarges text. Sessions does not read or
+  multiply Windows' text-size setting a second time; native behavior remains subject
+  to SESS-010 validation.
+
+Choices affect a labelled preview until **Apply preferences** saves successfully.
+Successful application updates open windows immediately and survives restart.
+**Reset preferences** immediately saves System theme and 100% sizing; its nearby
+explanation makes clear that saved Sessions are kept. Apply, reset and retry are
+serialized. Window close waits for an in-flight preferences operation to finish;
+request close again afterwards. Saving failure retains the selected choices for retry
+and leaves the current appearance unchanged.
+
+Preferences are stored separately in `%LOCALAPPDATA%\Sessions\preferences.json`.
+A missing file uses defaults without writing. Invalid, unsupported or unreadable
+preferences leave the app usable and show a warning with access to Settings.
+**Try loading again** retries without changing the file. Ordinary Apply is blocked
+until recovery; an explicit reset preserves any existing file as a uniquely named
+recovery backup before replacing it. If backup or saving fails, the original remains
+and the error stays available. Reset never deletes or changes Session definitions.
+
+Plugin management remains dependent on SESS-029/030. Startup/tray behavior, arbitrary
+font selection, notifications and the other proposed preferences are future work;
+Settings exposes only the implemented appearance choices above.
 
 ### Session audio devices
 

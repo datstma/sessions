@@ -334,6 +334,38 @@ Core is responsible for error-handling policies and runtime results that let the
 
 The policy aborts remaining startup on acquisition/readiness failure and cancels other readiness waits/pauses. It drains in-flight acquisitions before deciding whether cleanup is needed. If any acquisition was owned, it transitions to AwaitingEndConfirmation; rollback does not run until approval. Cancelling leaves NeedsAttention with retained ownership for later cleanup. Failure with no owned acquisitions can finish once all in-flight work settles. Confirmed rollback closes only owned apps already opened, in reverse definition order. Cleanup continues after individual close errors. Failed is terminal only once cleanup has completed; remaining owned apps keep NeedsAttention until observed exit, retry, targeted force quit or explicit leave-open. Untracked handoffs are an explained manual-management outcome, not inferred ownership. Normal close with explicit per-app force permission is the policy for every cleanup entry point; configurable retry/skip/optional-app policies remain future work.
 
+### Application preferences and appearance
+
+`AppPreferences` is App-layer presentation configuration, separate from Core Session
+models and the library schema. `JsonPreferencesStore` implements `IPreferencesStore`
+using a version-1 JSON envelope in `%LOCALAPPDATA%\Sessions\preferences.json`.
+It validates supported theme/size choices, writes a unique adjacent temporary file,
+then replaces the destination after a complete write. Missing files return defaults;
+invalid/unsupported files are errors. Explicit recovery copies existing bytes to a
+unique `.recovery-<id>.bak` before replacement. A failed backup prevents replacement.
+The existing application-instance guard also protects preference writes.
+
+`PreferencesService` serializes load/save/reset and exposes the last successfully
+applied immutable preferences. Composition loads it asynchronously when the main
+window opens. Load failure preserves usable appearance, reports a recovery warning,
+and blocks ordinary Apply until retry or explicit reset succeeds. Save failure does
+not change applied preferences. Settings has an independent `SettingsViewModel`
+draft and preview; its owned, modeless window neither replaces the Session editor
+nor invokes execution operations. Reopening activates the existing window. Closing
+either window is blocked during a preferences operation; other main-window close,
+draft and runtime rules remain in force. Preferences controls unsubscribe on close.
+
+`WindowAppearance` applies window-level theme variants and token-derived dynamic
+font-size/line-height resources, keeping application theme inheritance at System.
+Main and picker content use layout transforms, not Windows DPI changes. The effective
+interface multiplier is capped by available width/height divided by the window's
+established minimum viewport, with 100% as the floor. Compact styling uses the
+resulting logical width. Settings keeps standard interface spacing and applies text
+preferences; its isolated preview shows the requested multipliers. System preview
+tracks the application's OS-following actual theme even under a window override.
+No Windows text-size factor is manually reapplied. Headless rendering/scaling tests
+are not evidence of physical-monitor, native screen-reader or OS text-size behavior.
+
 ### Persistence
 
 Use simple local JSON persistence initially. Prefer readable, portable configuration that supports the [future product uses](PRODUCT.md#local-first-and-open-source-philosophy) of export, import, sharing, and source control.

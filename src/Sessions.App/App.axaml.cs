@@ -26,7 +26,10 @@ public partial class App : Application
             var presence = new WindowsAppPresenceService();
             var audio = new WindowsAudioDeviceService();
             var launcher = new IndividualAppLauncher(presence, new WindowsProcessStarter());
-            var window = new MainWindow();
+            var preferences = new PreferencesService(new JsonPreferencesStore(Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Sessions", "preferences.json")));
+            var window = new MainWindow { Preferences = preferences };
+            window.Opened += async (_, _) => await preferences.LoadAsync();
             window.DataContext = new MainViewModel(new JsonSessionStore(Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                     "Sessions", "sessions.json")), presence, launcher, new SessionRunner(new WindowsSessionProcessHost(), audioDevices: audio),

@@ -7,13 +7,14 @@ desktop tool, not a dashboard or a marketing page.
 ## Implementation direction — agreed 2026-09-09
 
 Follow the **OS light/dark setting** by default, including theme changes while the
-app is open. The reference size is **1440×900**; retain the **640×480 logical-pixel**
+app is open. Settings now offers explicit Light/Dark overrides and token-derived
+interface/text enlargement; System remains the default. The reference size is **1440×900**; retain the **640×480 logical-pixel**
 minimum and compact layout below 900px. The user approved filling token/asset gaps
 with consistent, readable adaptations of the mockups.
 
 The screenshots establish visual direction, not additional functionality or exact
 pixel matching. Ignore prototype history, Recently added, elapsed timers, shortcut
-chips, theme toggle, overflow menu and demo-state controls. Preserve the existing
+chips, the mockup theme toggle, overflow menu and demo-state controls. Preserve the existing
 advanced options, validation, empty-Session start guard, active-run editing rules,
 confirmation defaults and recovery flows. [PRODUCT.md](../docs/PRODUCT.md) defines
 behaviour; [ARCHITECTURE.md](../docs/ARCHITECTURE.md) defines implementation boundaries.
@@ -85,6 +86,16 @@ custom animation. Future animation must respect reduced-motion preferences.
   section with wrapping device selectors, Refresh and clear default/restoration copy.
   Configured choices also appear in the detail view. Reuse existing tokens; editing
   and refreshing devices never switches audio or launches apps.
+- **Settings:** a footer button in the sidebar and a header button on first run open
+  an owned, modeless window. Use existing surfaces, typography and spacing tokens;
+  stack theme, interface size and text size selectors above a labelled theme/size
+  preview. Scroll the form while Reset preferences / Close / Apply preferences stay
+  in a wrapping fixed footer. Apply is indigo; reset is neutral and explicitly keeps
+  saved Sessions. Settings keeps standard interface spacing, with independently
+  enlarged text, so reset stays reachable. Main/picker interface enlargement fits
+  their minimum logical viewports. Typography sizes and explicit line heights use
+  dynamic token resources multiplied by the chosen text preference; do not add a
+  separate hardcoded font scale. No new palette, spacing, radius or font tokens.
 - **Picker:** 820px default width, source pills for Start menu and Running apps, search,
   scrollable checkbox choices with icons/initials, selected-row tint and explicit Add.
   Preserve selections across filtering/source switches, browse, source errors and

@@ -102,7 +102,7 @@ public partial class SessionEditorView : UserControl
         try
         {
             using var model = new AppPickerViewModel(owner.RunningAppSource, editor.Apps.Select(app => app.ExecutablePath), owner.StartMenuAppSource);
-            var picker = new AppPickerWindow { DataContext = model };
+            var picker = new AppPickerWindow { DataContext = model, Preferences = (owner as MainWindow)?.Preferences };
             var apps = await picker.ShowDialog<IReadOnlyList<DiscoveredApp>?>(owner);
             if (apps is not null && ReferenceEquals(DataContext, editor)) editor.AddPickedApps(apps);
         }

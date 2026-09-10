@@ -5,15 +5,16 @@
         x:Class="Sessions.App.Views.MainWindow" x:DataType="vm:MainViewModel" x:CompileBindings="True"
         Width="{StaticResource Measure1120}" Height="{StaticResource Measure800}" MinWidth="{StaticResource Measure640}" MinHeight="{StaticResource Measure480}"
         WindowStartupLocation="CenterScreen" Title="Sessions" Icon="/Assets/sessions.ico">
+    <LayoutTransformControl x:Name="AppearanceRoot">
     <Grid>
     <Grid RowDefinitions="Auto,*" IsEnabled="{Binding IsMainContentEnabled}">
         <Border IsVisible="{Binding !HasSessions}" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource SessionBorder}" BorderThickness="{StaticResource Inset0x0x0x1}" Padding="{StaticResource Inset24x16}">
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <StackPanel Orientation="Horizontal" Spacing="{StaticResource Measure12}" VerticalAlignment="Center">
                     <views:BrandMark Width="{StaticResource Measure30}" Height="{StaticResource Measure30}" />
-                    <TextBlock Text="Sessions" FontSize="{StaticResource FontSubtitleSize}" FontWeight="{StaticResource WeightStrong}" VerticalAlignment="Center" />
+                    <TextBlock Text="Sessions" FontSize="{DynamicResource FontSubtitleSize}" FontWeight="{StaticResource WeightStrong}" VerticalAlignment="Center" />
                 </StackPanel>
-                <TextBlock Grid.Column="2" Text="On this computer" Classes="muted" FontSize="{StaticResource FontMicroSize}" VerticalAlignment="Center" />
+                <Button Grid.Column="2" x:Name="EmptySettingsButton" Content="Settings" Click="SettingsClicked" AutomationProperties.Name="Settings" />
             </Grid>
         </Border>
         <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
@@ -23,11 +24,15 @@
                     <StackPanel Spacing="{StaticResource Measure16}" Margin="{StaticResource Inset4x0x4x20}">
                         <StackPanel Orientation="Horizontal" Spacing="{StaticResource Measure12}" Margin="{StaticResource Inset4x0x0x20}">
                             <views:BrandMark Width="{StaticResource Measure26}" Height="{StaticResource Measure26}" />
-                            <TextBlock Text="Sessions" FontSize="{StaticResource FontSubtitleSize}" FontWeight="{StaticResource WeightHeading}" VerticalAlignment="Center" />
+                            <TextBlock Text="Sessions" FontSize="{DynamicResource FontSubtitleSize}" FontWeight="{StaticResource WeightHeading}" VerticalAlignment="Center" />
                         </StackPanel>
-                        <Grid ColumnDefinitions="*,Auto"><TextBlock Text="YOUR SESSIONS" Classes="eyebrow" /><TextBlock Grid.Column="1" Text="{Binding Sessions.Count}" Classes="muted" FontSize="{StaticResource FontMicroSize}" /></Grid>
+                        <Grid ColumnDefinitions="*,Auto"><TextBlock Text="YOUR SESSIONS" Classes="eyebrow" /><TextBlock Grid.Column="1" Text="{Binding Sessions.Count}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" /></Grid>
                         <Button x:Name="NewSessionButton" Content="+  New Session" Classes="primary" HorizontalAlignment="Stretch" Click="EditRequested"
-                                HorizontalContentAlignment="Center" Command="{Binding NewSessionCommand}" />
+                                HorizontalContentAlignment="Center" Command="{Binding NewSessionCommand}">
+                            <Button.ContentTemplate>
+                                <DataTemplate x:DataType="x:String"><TextBlock Text="{Binding}" TextWrapping="Wrap" TextAlignment="Center" Foreground="{DynamicResource OnBrandBrush}" /></DataTemplate>
+                            </Button.ContentTemplate>
+                        </Button>
                     </StackPanel>
                     <ListBox Grid.Row="1" x:Name="SessionList" Classes="sessions" ItemsSource="{Binding Sessions}"
                              SelectedItem="{Binding SelectedSession}" IsEnabled="{Binding CanBrowse}"
@@ -46,19 +51,28 @@
                                     </Border>
                                     <StackPanel Grid.Column="1" Spacing="{StaticResource Measure3}" Margin="{StaticResource Inset7x0x0x0}">
                                         <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" FontWeight="{StaticResource WeightStrong}" />
-                                        <TextBlock Text="{Binding AppCount}" Classes="muted" FontSize="{StaticResource FontMicroSize}" />
-                                        <TextBlock Text="● Active" IsVisible="{Binding IsActive}" Foreground="{DynamicResource RunningBrush}" FontSize="{StaticResource FontMicroSize}" />
+                                        <TextBlock Text="{Binding AppCount}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" />
+                                        <TextBlock Text="● Active" IsVisible="{Binding IsActive}" Foreground="{DynamicResource RunningBrush}" FontSize="{DynamicResource FontMicroSize}" />
                                     </StackPanel>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                    <TextBlock Grid.Row="2" Text="Saved locally. Always yours." Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" Margin="{StaticResource Inset4x20x4x0}" />
+                    <StackPanel Grid.Row="2" Spacing="{StaticResource Measure8}" Margin="{StaticResource Inset4x20x4x0}">
+                        <Button x:Name="SettingsButton" Content="Settings" Click="SettingsClicked" HorizontalAlignment="Stretch" AutomationProperties.Name="Settings" />
+                        <TextBlock Text="Saved locally. Always yours." Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
+                    </StackPanel>
                 </Grid>
             </Border>
             <Grid Grid.Column="1" RowDefinitions="Auto,*">
                 <ScrollViewer Classes="runtimeStatus" Classes.cleanup="{Binding NeedsCleanup}" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel>
+                <Border x:Name="PreferencesWarning" IsVisible="False" Classes="surface" Padding="{StaticResource Inset16}" Margin="{StaticResource Inset28x20x28x0}">
+                    <StackPanel Spacing="{StaticResource Measure8}">
+                        <TextBlock Text="Your preferences couldn't be loaded. Open Settings to retry or reset them." TextWrapping="Wrap" Foreground="{DynamicResource SessionError}" AutomationProperties.LiveSetting="Polite" />
+                        <Button Content="Open Settings" Click="SettingsClicked" />
+                    </StackPanel>
+                </Border>
                 <Border IsVisible="{Binding HasError}" Margin="{StaticResource Inset28x20x28x0}" Classes="surface" Padding="{StaticResource Inset16}">
                     <StackPanel Spacing="{StaticResource Measure10}">
                         <TextBlock Text="{Binding ErrorMessage}" AutomationProperties.LiveSetting="Polite" Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" />
@@ -74,8 +88,8 @@
                         </StackPanel>
                         <StackPanel Spacing="{StaticResource Measure8}">
                             <TextBlock Text="{Binding RuntimeTitle}" AutomationProperties.LiveSetting="Polite" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
-                            <TextBlock Text="{Binding Runtime.Message}" AutomationProperties.LiveSetting="Polite" Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
-                            <TextBlock Text="{Binding StartupFocusMessage}" IsVisible="{Binding HasStartupFocusMessage}" AutomationProperties.LiveSetting="Polite" Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding Runtime.Message}" AutomationProperties.LiveSetting="Polite" Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding StartupFocusMessage}" IsVisible="{Binding HasStartupFocusMessage}" AutomationProperties.LiveSetting="Polite" Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
                             <ItemsControl ItemsSource="{Binding CleanupApps}" IsVisible="{Binding NeedsCleanup}">
                                 <ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:CleanupAppViewModel">
                                     <StackPanel Spacing="{StaticResource Measure8}" Margin="{StaticResource Inset0x3}">
@@ -104,21 +118,21 @@
                                 <views:BrandMark Width="{StaticResource Measure40}" Height="{StaticResource Measure40}" />
                             </Border>
                             <StackPanel Spacing="{StaticResource Measure14}">
-                                <TextBlock Text="Get your apps together." FontSize="{StaticResource FontDisplayLSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" LineHeight="{StaticResource Measure44}" />
+                                <TextBlock Text="Get your apps together." FontSize="{DynamicResource FontDisplayLSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" LineHeight="{DynamicResource FontDisplayLLineHeight}" />
                                 <TextBlock Text="Work, gaming, or a little time to create. Bring the apps you need together in a Session, ready when you are."
-                                           Classes="muted" FontSize="{StaticResource FontSubtitleSize}" TextWrapping="Wrap" LineHeight="{StaticResource Measure26}" />
+                                           Classes="muted" FontSize="{DynamicResource FontSubtitleSize}" TextWrapping="Wrap" LineHeight="{DynamicResource FontSubtitleLineHeight}" />
                             </StackPanel>
                             <Button x:Name="CreateFirstButton" Content="+  Create your first Session" Classes="primary" Click="EditRequested" Command="{Binding NewSessionCommand}" />
                             <UniformGrid Classes="explainers steps" Margin="{StaticResource Inset0x4x0x0}">
-                                <Border Classes="surface" Padding="{StaticResource Inset20}" Margin="{StaticResource Inset0x0x8x8}"><StackPanel Spacing="{StaticResource Measure7}"><TextBlock Text="01  Make it yours" FontWeight="{StaticResource WeightStrong}" TextWrapping="Wrap" /><TextBlock Text="Name your context." Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" /></StackPanel></Border>
-                                <Border Classes="surface" Padding="{StaticResource Inset20}" Margin="{StaticResource Inset0x0x8x8}"><StackPanel Spacing="{StaticResource Measure7}"><TextBlock Text="02  Add your apps" FontWeight="{StaticResource WeightStrong}" TextWrapping="Wrap" /><TextBlock Text="Set what opens, and when." Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" /></StackPanel></Border>
-                                <Border Classes="surface" Padding="{StaticResource Inset20}" Margin="{StaticResource Inset0x0x0x8}"><StackPanel Spacing="{StaticResource Measure7}"><TextBlock Text="03  Settle in" FontWeight="{StaticResource WeightStrong}" TextWrapping="Wrap" /><TextBlock Text="Your context is ready to go." Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" /></StackPanel></Border>
+                                <Border Classes="surface" Padding="{StaticResource Inset20}" Margin="{StaticResource Inset0x0x8x8}"><StackPanel Spacing="{StaticResource Measure7}"><TextBlock Text="01  Make it yours" FontWeight="{StaticResource WeightStrong}" TextWrapping="Wrap" /><TextBlock Text="Name your context." Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" /></StackPanel></Border>
+                                <Border Classes="surface" Padding="{StaticResource Inset20}" Margin="{StaticResource Inset0x0x8x8}"><StackPanel Spacing="{StaticResource Measure7}"><TextBlock Text="02  Add your apps" FontWeight="{StaticResource WeightStrong}" TextWrapping="Wrap" /><TextBlock Text="Set what opens, and when." Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" /></StackPanel></Border>
+                                <Border Classes="surface" Padding="{StaticResource Inset20}" Margin="{StaticResource Inset0x0x0x8}"><StackPanel Spacing="{StaticResource Measure7}"><TextBlock Text="03  Settle in" FontWeight="{StaticResource WeightStrong}" TextWrapping="Wrap" /><TextBlock Text="Your context is ready to go." Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" /></StackPanel></Border>
                             </UniformGrid>
                         </StackPanel>
                     </ScrollViewer>
                     <Grid IsVisible="{Binding ShowDetails}">
                         <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-                            <StackPanel DataContext="{Binding SelectedSession}" x:DataType="vm:SessionViewModel"
+                            <StackPanel DataContext="{Binding SelectedSession, DataType={x:Type vm:MainViewModel}}" x:DataType="vm:SessionViewModel"
                                         Classes="detailContent" Spacing="{StaticResource Measure24}" MaxWidth="{StaticResource Measure1000}">
                                 <Border Classes="surface hero" Padding="{StaticResource Inset24}">
                                     <StackPanel Spacing="{StaticResource Measure16}">
@@ -132,12 +146,12 @@
                                             </StackPanel>
                                             <Grid ColumnDefinitions="Auto,*" Margin="{StaticResource Inset0x0x16x0}">
                                                 <Border Width="{StaticResource Measure56}" Height="{StaticResource Measure56}" Classes="heroAvatar" Classes.active="{Binding IsActive}" VerticalAlignment="Top">
-                                                    <TextBlock Text="{Binding Initial}" FontSize="{StaticResource FontDisplayMSize}" FontWeight="{StaticResource WeightHeading}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    <TextBlock Text="{Binding Initial}" FontSize="{DynamicResource FontDisplayMSize}" FontWeight="{StaticResource WeightHeading}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                                 </Border>
                                                 <StackPanel Grid.Column="1" Spacing="{StaticResource Measure4}" Margin="{StaticResource Inset16x0x0x0}">
-                                                    <TextBlock Text="{Binding Name}" FontSize="{StaticResource FontDisplayMSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
-                                                    <TextBlock Text="{Binding AppCount}" Classes="muted" FontSize="{StaticResource FontMicroSize}" />
-                                                    <TextBlock Text="Active Session" IsVisible="{Binding IsActive}" Foreground="{DynamicResource RunningBrush}" FontSize="{StaticResource FontMicroSize}" />
+                                                    <TextBlock Text="{Binding Name}" FontSize="{DynamicResource FontDisplayMSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
+                                                    <TextBlock Text="{Binding AppCount}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" />
+                                                    <TextBlock Text="Active Session" IsVisible="{Binding IsActive}" Foreground="{DynamicResource RunningBrush}" FontSize="{DynamicResource FontMicroSize}" />
                                                 </StackPanel>
                                             </Grid>
                                         </DockPanel>
@@ -146,8 +160,8 @@
                                 </Border>
                                 <StackPanel Spacing="{StaticResource Measure8}" IsVisible="{Binding $parent[Window].((vm:MainViewModel)DataContext).ShowStart}">
                                     <StackPanel Spacing="{StaticResource Measure8}" IsVisible="{Binding HasApps}">
-                                    <TextBlock Text="{Binding $parent[Window].((vm:MainViewModel)DataContext).StartHint}" Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
-                                    <TextBlock Text="{Binding StartupSummary}" Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding $parent[Window].((vm:MainViewModel)DataContext).StartHint}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding StartupSummary}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
                                     </StackPanel>
                                 </StackPanel>
                                 <StackPanel Spacing="{StaticResource Measure16}">
@@ -163,11 +177,11 @@
                                                         <Border Classes="appTile" Width="{StaticResource Measure44}" Height="{StaticResource Measure44}" Margin="{StaticResource Inset0x0x14x0}" VerticalAlignment="Top"><views:AppIcon AppName="{Binding Name}" ExecutablePath="{Binding ExecutablePath}" /></Border>
                                                         <StackPanel Grid.Column="1" Spacing="{StaticResource Measure4}" VerticalAlignment="Center" Margin="{StaticResource Inset0x0x12x0}">
                                                             <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" FontWeight="{StaticResource WeightStrong}" ToolTip.Tip="{Binding ExecutablePath}" />
-                                                            <TextBlock Text="{Binding Role}" Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" /><TextBlock Text="{Binding PathSummary}" Classes="muted" FontSize="{StaticResource FontMicroSize}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ExecutablePath}" />
-                                                            <TextBlock Text="{Binding RunMessage}" IsVisible="{Binding HasRunMessage}" Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
+                                                            <TextBlock Text="{Binding Role}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" /><TextBlock Text="{Binding PathSummary}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ExecutablePath}" />
+                                                            <TextBlock Text="{Binding RunMessage}" IsVisible="{Binding HasRunMessage}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
                                                         </StackPanel>
                                                         <Button Classes="runningStatus appStatus" Command="{Binding FocusCommand}" MinHeight="{StaticResource Measure40}" IsVisible="{Binding HasWindow}"
-                                                                Padding="{StaticResource Inset10x8}" VerticalAlignment="Center" FontSize="{StaticResource FontMicroSize}"
+                                                                Padding="{StaticResource Inset10x8}" VerticalAlignment="Center" FontSize="{DynamicResource FontMicroSize}"
                                                                 ToolTip.Tip="{Binding StatusHint}" AutomationProperties.Name="{Binding StatusHint}">
                                                             <StackPanel Orientation="Horizontal" Spacing="{StaticResource Measure8}">
                                                                 <Ellipse Width="{StaticResource Measure8}" Height="{StaticResource Measure8}" Fill="{DynamicResource RunningBrush}" IsVisible="{Binding IsRunning}" />
@@ -176,10 +190,10 @@
                                                             </StackPanel>
                                                         </Button>
                                                         <Button Classes="quiet appStatus" Command="{Binding LaunchCommand}" MinHeight="{StaticResource Measure40}" IsVisible="{Binding HasLaunchAction}"
-                                                                Padding="{StaticResource Inset10x8}" VerticalAlignment="Center" FontSize="{StaticResource FontMicroSize}"
+                                                                Padding="{StaticResource Inset10x8}" VerticalAlignment="Center" FontSize="{DynamicResource FontMicroSize}"
                                                                 ToolTip.Tip="{Binding StatusHint}" AutomationProperties.Name="{Binding StatusHint}">
                                                             <StackPanel Orientation="Horizontal" Spacing="{StaticResource Measure8}">
-                                                                <TextBlock Text="▶" Classes="muted" FontSize="{StaticResource FontMicroSize}" VerticalAlignment="Center" />
+                                                                <TextBlock Text="▶" Classes="muted" FontSize="{DynamicResource FontMicroSize}" VerticalAlignment="Center" />
                                                                 <TextBlock Text="{Binding StatusLabel}" VerticalAlignment="Center" />
                                                             </StackPanel>
                                                         </Button>
@@ -188,12 +202,12 @@
                                                             <StackPanel Orientation="Horizontal" Spacing="{StaticResource Measure8}" VerticalAlignment="Center">
                                                                 <Ellipse Width="{StaticResource Measure8}" Height="{StaticResource Measure8}" Fill="{DynamicResource RunningBrush}" IsVisible="{Binding IsRunning}" />
                                                                 <Ellipse Width="{StaticResource Measure8}" Height="{StaticResource Measure8}" Fill="{DynamicResource SessionMuted}" IsVisible="{Binding !IsRunning}" />
-                                                                <TextBlock Text="{Binding StatusLabel}" Classes="muted" FontSize="{StaticResource FontMicroSize}" VerticalAlignment="Center" />
+                                                                <TextBlock Text="{Binding StatusLabel}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" VerticalAlignment="Center" />
                                                             </StackPanel>
                                                         </Border>
                                                         <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding FocusMessage}" AutomationProperties.LiveSetting="Polite"
                                                                    IsVisible="{Binding HasFocusMessage}" Foreground="{DynamicResource SessionError}"
-                                                                   TextWrapping="Wrap" FontSize="{StaticResource FontMicroSize}" Margin="{StaticResource Inset0x8x0x0}" />
+                                                                   TextWrapping="Wrap" FontSize="{DynamicResource FontMicroSize}" Margin="{StaticResource Inset0x8x0x0}" />
                                                     </Grid></Border>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
@@ -202,7 +216,7 @@
                                     <Border Classes="surface" Padding="{StaticResource Inset22}" IsVisible="{Binding !HasApps}">
                                         <TextBlock Text="No apps added yet. Edit this Session to choose what opens." Classes="muted" TextWrapping="Wrap" />
                                     </Border>
-                                    <TextBlock Text="{Binding $parent[Window].((vm:MainViewModel)DataContext).AppInteractionHint}" Classes="muted" FontSize="{StaticResource FontMicroSize}"
+                                    <TextBlock Text="{Binding $parent[Window].((vm:MainViewModel)DataContext).AppInteractionHint}" Classes="muted" FontSize="{DynamicResource FontMicroSize}"
                                                TextWrapping="Wrap" IsVisible="{Binding HasApps}" />
                                 </StackPanel>
                                 <Border Classes="surface" Padding="{StaticResource Inset20}" IsVisible="{Binding HasAudioChoices}">
@@ -232,7 +246,7 @@
                         <Border Grid.Row="1" Classes="editorFooter" BorderBrush="{DynamicResource SessionBorder}" BorderThickness="{StaticResource Inset0x1x0x0}">
                             <Grid ColumnDefinitions="*,Auto,Auto">
                                 <Button x:Name="ReviewFieldsButton" Content="Review fields" Classes="quiet" Click="ReviewFieldsClicked" IsVisible="{Binding !Editor.CanSave}" IsEnabled="{Binding !IsBusy}" AutomationProperties.HelpText="{Binding Editor.ValidationMessage}" ToolTip.Tip="{Binding Editor.ValidationMessage}" HorizontalAlignment="Left" Margin="{StaticResource Inset0x0x12x0}" />
-                                <TextBlock IsVisible="{Binding Editor.CanSave}" Text="Nothing opens until you start." Classes="muted" FontSize="{StaticResource FontMicroSize}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="{StaticResource Inset0x0x16x0}" />
+                                <TextBlock IsVisible="{Binding Editor.CanSave}" Text="Nothing opens until you start." Classes="muted" FontSize="{DynamicResource FontMicroSize}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="{StaticResource Inset0x0x16x0}" />
                                 <Button Grid.Column="1" Content="Cancel" Command="{Binding CancelEditCommand}" Classes="quiet" Margin="{StaticResource Inset0x0x12x0}" />
                                 <Button Grid.Column="2" Content="{Binding Editor.SaveLabel}" Command="{Binding SaveSessionCommand}" Classes="primary" />
                             </Grid>
@@ -250,7 +264,7 @@
             <Grid RowDefinitions="*,Auto">
                 <ScrollViewer HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Spacing="{StaticResource Measure14}">
-                        <TextBlock Text="{Binding EndConfirmationTitle}" FontSize="{StaticResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding EndConfirmationTitle}" FontSize="{DynamicResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
                         <TextBlock Text="Save your work before continuing." FontWeight="{StaticResource WeightStrong}" TextWrapping="Wrap" />
                         <TextBlock Text="Sessions will ask its apps to close. Apps that stay running will wait for you to save your work or decide what to do." TextWrapping="Wrap" />
                         <TextBlock Text="{Binding AutomaticForceQuitWarning}" IsVisible="{Binding HasAutomaticForceQuit}" Foreground="{DynamicResource DangerBrush}" TextWrapping="Wrap" />
@@ -283,7 +297,7 @@
             <Grid RowDefinitions="*,Auto">
                 <ScrollViewer HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Spacing="{StaticResource Measure16}">
-                        <TextBlock Text="{Binding DraftCloseTitle}" FontSize="{StaticResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding DraftCloseTitle}" FontSize="{DynamicResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
                         <TextBlock Text="{Binding DraftCloseMessage}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
                         <TextBlock Text="Some settings need attention before you can save. Choose Keep editing to finish them, or discard this draft." IsVisible="{Binding DraftNeedsCorrection}" Classes="muted" TextWrapping="Wrap" />
                         <TextBlock Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
@@ -304,7 +318,7 @@
             <Grid RowDefinitions="*,Auto">
             <ScrollViewer HorizontalScrollBarVisibility="Disabled">
             <StackPanel Spacing="{StaticResource Measure16}">
-                <TextBlock Text="A Session is still active" FontSize="{StaticResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
+                <TextBlock Text="A Session is still active" FontSize="{DynamicResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
                 <TextBlock Text="End Session asks its apps to close. Sessions stays open if any apps need your attention. Apps already open stay open." TextWrapping="Wrap" />
                 <TextBlock Text="{Binding AutomaticForceQuitWarning}" IsVisible="{Binding HasAutomaticForceQuit}" Foreground="{DynamicResource DangerBrush}" TextWrapping="Wrap" />
             </StackPanel>
@@ -324,7 +338,7 @@
             <Grid RowDefinitions="*,Auto">
                 <ScrollViewer HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Spacing="{StaticResource Measure16}">
-                        <TextBlock Text="{Binding ForceQuitTitle}" FontSize="{StaticResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding ForceQuitTitle}" FontSize="{DynamicResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
                         <TextBlock Text="{Binding ForceQuitDescription}" TextWrapping="Wrap" />
                         <TextBlock Text="Cancel to return to the app and save your work first." Classes="muted" TextWrapping="Wrap" />
                     </StackPanel>
@@ -345,7 +359,7 @@
             <Grid RowDefinitions="*,Auto">
             <ScrollViewer HorizontalScrollBarVisibility="Disabled" Focusable="False">
             <StackPanel Spacing="{StaticResource Measure18}">
-                <TextBlock Text="{Binding DeleteTitle}" FontSize="{StaticResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding DeleteTitle}" FontSize="{DynamicResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
                 <TextBlock Text="This removes the saved Session and its app settings. This can't be undone." TextWrapping="Wrap" />
                 <TextBlock Text="Your installed apps, files, and running apps will stay as they are." Classes="muted" TextWrapping="Wrap" />
                 <TextBlock Text="{Binding DeleteErrorMessage}" IsVisible="{Binding HasDeleteError}" AutomationProperties.LiveSetting="Polite"
@@ -362,4 +376,5 @@
         </Border>
     </Border>
     </Grid>
+    </LayoutTransformControl>
 </Window>

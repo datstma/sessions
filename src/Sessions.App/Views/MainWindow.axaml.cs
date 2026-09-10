@@ -11,6 +11,36 @@ namespace Sessions.App.Views;
 
 public partial class MainWindow : Window
 {
+    public PreferencesService? Preferences { get; init; }
+    private SettingsWindow? _settingsWindow;
+    private WindowAppearance? _appearance;
+    private Control? _settingsReturnFocus;
+
+    private void SettingsClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (Preferences is null) return;
+        if (_settingsWindow is not null)
+        {
+            if (_settingsWindow.WindowState == WindowState.Minimized) _settingsWindow.WindowState = WindowState.Normal;
+            _settingsWindow.Activate();
+            return;
+        }
+        _settingsReturnFocus = sender as Control;
+        _settingsWindow = new SettingsWindow(Preferences);
+        _settingsWindow.Closed += (_, _) =>
+        {
+            _settingsWindow = null;
+            if (_settingsReturnFocus is { IsEffectivelyVisible: true, IsEffectivelyEnabled: true } previous) previous.Focus();
+            _settingsReturnFocus = null;
+        };
+        _settingsWindow.Show(this);
+    }
+
+    private void PreferencesChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(PreferencesService.HasLoadError))
+            PreferencesWarning.IsVisible = Preferences?.HasLoadError == true;
+    }
     private void ReviewFieldsClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e) => EditorView.ReviewFirstInvalidField();
 
     public IAppSource RunningAppSource { get; init; } = new WindowsRunningAppSource();
@@ -41,6 +71,8 @@ public partial class MainWindow : Window
         };
         Closing += (_, e) =>
         {
+            // Do not abandon a preferences write while closing the owner and its Settings window.
+            if (Preferences?.IsBusy == true) { e.Cancel = true; return; }
             if (DataContext is MainViewModel model)
             {
                 if (!model.IsCloseConfirmation && !model.IsDraftCloseConfirmation)
@@ -50,6 +82,9 @@ public partial class MainWindow : Window
         };
         Closed += (_, _) =>
         {
+            _settingsWindow?.Close();
+            _appearance?.Dispose();
+            if (Preferences is not null) Preferences.PropertyChanged -= PreferencesChanged;
             _presenceTimer.Stop();
             _presenceLifetime.Cancel();
             _presenceLifetime.Dispose();
@@ -62,6 +97,12 @@ public partial class MainWindow : Window
         };
         Opened += async (_, _) =>
         {
+            if (Preferences is not null)
+            {
+                _appearance = new WindowAppearance(this, AppearanceRoot, Preferences);
+                Preferences.PropertyChanged += PreferencesChanged;
+                PreferencesWarning.IsVisible = Preferences.HasLoadError;
+            }
             // Size in logical pixels: leave space for the taskbar and window decorations at high DPI.
             if (Screens.ScreenFromWindow(this) is { } screen)
             {

@@ -3,9 +3,10 @@
         x:DataType="vm:AppPickerViewModel" x:CompileBindings="True"
         Title="Add apps" Width="{StaticResource Measure820}" Height="{StaticResource Measure700}" MinWidth="{StaticResource Measure520}" MinHeight="{StaticResource Measure460}"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False" Icon="/Assets/sessions.ico">
+    <LayoutTransformControl x:Name="AppearanceRoot">
     <Grid RowDefinitions="Auto,Auto,*,Auto,Auto">
         <StackPanel Margin="{StaticResource Inset28x24x28x20}" Spacing="{StaticResource Measure8}">
-            <TextBlock Text="Add apps" FontSize="{StaticResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" />
+            <TextBlock Text="Add apps" FontSize="{DynamicResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" />
             <TextBlock Text="Your selections are kept while you search or switch sources." Classes="muted" TextWrapping="Wrap" />
             <StackPanel Orientation="Horizontal" Spacing="{StaticResource Measure22}" Margin="{StaticResource Inset0x8x0x0}" IsVisible="{Binding HasStartMenuSource}">
                 <RadioButton x:Name="StartMenuSourceButton" Classes="source" GroupName="AppSources" Content="Start menu" IsChecked="{Binding ShowStartMenu}" />
@@ -33,7 +34,7 @@
                                     </Grid>
                                     <StackPanel Grid.Column="1" Spacing="{StaticResource Measure4}" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding App.Name}" FontWeight="{StaticResource WeightStrong}" TextTrimming="CharacterEllipsis" />
-                                        <TextBlock Text="{Binding Status}" Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Status}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
                                     </StackPanel>
                                 </Grid>
                             </CheckBox>
@@ -49,7 +50,7 @@
         </Grid>
         <StackPanel Grid.Row="3" Margin="{StaticResource Inset28x14x28x18}" Spacing="{StaticResource Measure10}">
             <TextBlock Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" AutomationProperties.LiveSetting="Polite" Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" />
-            <TextBlock Text="{Binding SourceDescription}" Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding SourceDescription}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
         </StackPanel>
         <Border Grid.Row="4" BorderBrush="{DynamicResource SessionBorder}" BorderThickness="{StaticResource Inset0x1x0x0}" Padding="{StaticResource Inset28x18}">
             <Grid ColumnDefinitions="*,Auto,Auto">
@@ -59,4 +60,5 @@
             </Grid>
         </Border>
     </Grid>
+    </LayoutTransformControl>
 </Window>

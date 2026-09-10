@@ -5,12 +5,12 @@
         <Style Selector="TextBlock.fieldError">
             <Setter Property="Foreground" Value="{DynamicResource SessionError}" />
             <Setter Property="TextWrapping" Value="Wrap" />
-            <Setter Property="FontSize" Value="{StaticResource FontMicroSize}" />
+            <Setter Property="FontSize" Value="{DynamicResource FontMicroSize}" />
         </Style>
     </UserControl.Styles>
     <Border Classes="surface" Padding="{StaticResource Inset24}"><StackPanel Spacing="{StaticResource Measure26}">
         <StackPanel Spacing="{StaticResource Measure8}">
-            <TextBlock Text="{Binding Title}" FontSize="{StaticResource FontDisplayMSize}" FontWeight="{StaticResource WeightHeading}" />
+            <TextBlock Text="{Binding Title}" FontSize="{DynamicResource FontDisplayMSize}" FontWeight="{StaticResource WeightHeading}" />
             <TextBlock Text="Nothing launches while you edit. Save or cancel when you are ready." Classes="muted" TextWrapping="Wrap" />
             <TextBlock x:Name="ValidationSummary" Text="{Binding ValidationMessage}" IsVisible="{Binding HasValidationMessage}" AutomationProperties.LiveSetting="Polite" Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" />
         </StackPanel>
@@ -26,14 +26,14 @@
             <Grid ColumnDefinitions="*,Auto">
                 <StackPanel Spacing="{StaticResource Measure5}">
                     <TextBlock Text="Apps to open" Classes="section" />
-                    <TextBlock Text="{Binding OrderingHint}" Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding OrderingHint}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
                 </StackPanel>
                 <Button x:Name="AddAppsButton" Grid.Column="1" Content="+  Add app" Classes="quiet" Click="AddAppClicked" />
             </Grid>
             <Border Classes="surface" Padding="{StaticResource Inset20}" IsVisible="{Binding !HasApps}">
                 <StackPanel Spacing="{StaticResource Measure5}">
                     <TextBlock Text="Start with the apps you reach for." FontWeight="{StaticResource WeightBody}" />
-                    <TextBlock Text="Find apps in your Start menu, choose running apps, or browse for a file. You can add more later." Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
+                    <TextBlock Text="Find apps in your Start menu, choose running apps, or browse for a file. You can add more later." Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
             <ListBox x:Name="AppOrderList" ItemsSource="{Binding Apps}" SelectedItem="{Binding SelectedApp}" IsVisible="{Binding HasApps}" MaxHeight="{StaticResource Measure190}"
@@ -51,7 +51,7 @@
                             <TextBlock Text="{Binding Order}" Classes="muted" VerticalAlignment="Center" />
                             <StackPanel Grid.Column="1" Spacing="{StaticResource Measure3}">
                                 <TextBlock Text="{Binding DisplayName}" FontWeight="{StaticResource WeightStrong}" TextTrimming="CharacterEllipsis" />
-                                <TextBlock Text="{Binding ExecutablePath}" Classes="muted" FontSize="{StaticResource FontMicroSize}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding ExecutablePath}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextTrimming="CharacterEllipsis" />
                                 <TextBlock Text="{Binding ValidationHint}" IsVisible="{Binding ValidationHint, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" Classes="fieldError" />
                             </StackPanel>
                         </Grid>
@@ -63,7 +63,7 @@
                 <Button Content="Move down" Classes="quiet" Command="{Binding MoveDownCommand}" Click="AppListActionClicked" Margin="{StaticResource Inset0x0x8x6}" />
                 <Button Content="Remove" Classes="quiet" Command="{Binding RemoveAppCommand}" Click="AppListActionClicked" Margin="{StaticResource Inset0x0x0x6}" />
             </WrapPanel>
-            <TextBlock Text="{Binding SelectedAppSummary}" IsVisible="{Binding HasSelectedApp}" Classes="muted" FontSize="{StaticResource FontMicroSize}"
+            <TextBlock Text="{Binding SelectedAppSummary}" IsVisible="{Binding HasSelectedApp}" Classes="muted" FontSize="{DynamicResource FontMicroSize}"
                        TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
             <Expander x:Name="AppOptions" Header="{Binding AppOptionsHeading}" IsVisible="{Binding HasSelectedApp}" HorizontalAlignment="Stretch">
                 <Expander.HeaderTemplate>
@@ -74,35 +74,35 @@
                     <TextBlock Text="{Binding NameError}" IsVisible="{Binding NameError, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" Classes="fieldError" /></StackPanel>
                     <StackPanel Spacing="{StaticResource Measure6}"><TextBlock Text="Executable" /><TextBox Text="{Binding ExecutablePath}" AutomationProperties.Name="App executable path" AutomationProperties.HelpText="{Binding PathError}" />
                     <TextBlock Text="{Binding PathError}" IsVisible="{Binding PathError, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" Classes="fieldError" /></StackPanel>
-                    <TextBlock Text="You can save a path on a disconnected drive. Sessions checks availability when you launch the app." Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
+                    <TextBlock Text="You can save a path on a disconnected drive. Sessions checks availability when you launch the app." Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
                     <StackPanel Spacing="{StaticResource Measure6}"><TextBlock Text="Arguments (optional)" /><TextBox Text="{Binding Arguments}" AutomationProperties.Name="App arguments" /></StackPanel>
                     <StackPanel Spacing="{StaticResource Measure6}"><TextBlock Text="Working directory (optional)" /><TextBox Text="{Binding WorkingDirectory}" AutomationProperties.Name="App working directory" /></StackPanel>
                     <StackPanel Spacing="{StaticResource Measure4}">
                         <CheckBox Content="Run as administrator" IsChecked="{Binding RunAsAdministrator}" />
                         <TextBlock Text="Off by default. Enable only if this app can safely stop without saving. After a normal close request, Sessions may force quit it and lose unsaved changes." Classes="muted" TextWrapping="Wrap" />
                         <CheckBox IsChecked="{Binding AllowForceQuit}" AutomationProperties.Name="Force quit if this app stays open"><TextBlock Text="Force quit if this app stays open" TextWrapping="Wrap" /></CheckBox>
-                        <TextBlock Text="Windows asks for approval when opening this app. Useful for apps that otherwise restart to elevate." Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
+                        <TextBlock Text="Windows asks for approval when opening this app. Useful for apps that otherwise restart to elevate." Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
                     </StackPanel>
                     <TextBlock Text="Startup condition" FontWeight="{StaticResource WeightBody}" />
                     <ComboBox ItemsSource="{Binding ReadinessChoices}" SelectedIndex="{Binding ReadinessIndex}" HorizontalAlignment="Stretch"
                               AutomationProperties.Name="App startup condition" AutomationProperties.HelpText="{Binding ReadinessError}" />
                     <TextBlock Text="{Binding ReadinessError}" IsVisible="{Binding ReadinessError, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" Classes="fieldError" />
                     <TextBlock Text="A process or window is an observable condition, not proof that loading or sign-in is complete. Untracked launches cannot satisfy these checks."
-                               Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
+                               Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
                     <StackPanel Spacing="{StaticResource Measure6}" IsVisible="{Binding NeedsReadinessTimeout}">
                         <TextBlock Text="Maximum readiness wait (seconds)" TextWrapping="Wrap" />
                         <NumericUpDown Value="{Binding ReadinessTimeoutSeconds}" Minimum="1" Maximum="600" Increment="1" FormatString="0"
                                        AutomationProperties.Name="Maximum readiness wait in seconds" AutomationProperties.HelpText="{Binding TimeoutError}" />
                     <TextBlock Text="{Binding TimeoutError}" IsVisible="{Binding TimeoutError, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" Classes="fieldError" />
                         <TextBlock Text="Starts after Windows returns the launch request. A timeout stops startup and asks before cleaning up opened apps."
-                                   Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
+                                   Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
                     </StackPanel>
                     <CheckBox Content="Override the pause after this app" IsChecked="{Binding OverridePause}" />
                     <NumericUpDown Value="{Binding PauseAfterSeconds}" IsVisible="{Binding ShowPauseEditor}" Minimum="0" Maximum="300" Increment="1" FormatString="0"
                                    AutomationProperties.Name="Pause after this app in seconds" AutomationProperties.HelpText="{Binding PauseError}" />
                     <TextBlock Text="{Binding PauseError}" IsVisible="{Binding PauseError, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" Classes="fieldError" />
                     <TextBlock Text="Used only with In order. An override also pauses after the last app; otherwise the Session pause applies only between apps."
-                               Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
+                               Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
                 </StackPanel>
             </Expander>
         </StackPanel>
@@ -134,14 +134,14 @@
                           AutomationProperties.Name="Session launch mode" AutomationProperties.HelpText="{Binding LaunchModeError}" />
                     <TextBlock Text="{Binding LaunchModeError}" IsVisible="{Binding LaunchModeError, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" Classes="fieldError" />
                 <TextBlock Text="All at once overlaps independent apps, waits for their startup conditions, and ignores pauses. Repeated entries for the same executable remain ordered."
-                           IsVisible="{Binding !IsOrdered}" Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
+                           IsVisible="{Binding !IsOrdered}" Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
                 <StackPanel Spacing="{StaticResource Measure6}" IsVisible="{Binding ShowSessionPause}">
                     <TextBlock Text="Pause between apps (seconds)" />
                     <NumericUpDown Value="{Binding PauseBetweenAppsSeconds}" Minimum="0" Maximum="300" Increment="1" FormatString="0"
                                    AutomationProperties.Name="Pause between apps in seconds" AutomationProperties.HelpText="{Binding PauseError}" />
                     <TextBlock Text="{Binding PauseError}" IsVisible="{Binding PauseError, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" Classes="fieldError" />
                     <TextBlock Text="After each app's startup condition, before opening the next. Select an app to customize its waits and pauses."
-                               Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
+                               Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
                 </StackPanel>
                 <TextBlock Text="When startup finishes" FontWeight="{StaticResource WeightBody}" />
                 <ComboBox ItemsSource="{Binding StartupFocusChoices}" SelectedIndex="{Binding StartupFocusIndex}" HorizontalAlignment="Stretch"
@@ -158,7 +158,7 @@
                 </ComboBox>
                 <TextBlock Text="{Binding FocusAppError}" IsVisible="{Binding FocusAppError, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" Classes="fieldError" />
                 <TextBlock Text="Requests focus once after successful startup. Windows may decline. Focus stays unchanged if you are editing or a confirmation is open."
-                           Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
+                           Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
             </StackPanel>
         </Expander>
         <StackPanel Spacing="{StaticResource Measure10}">
@@ -177,7 +177,7 @@
             <TextBlock Text="{Binding MainAppError}" IsVisible="{Binding MainAppError, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" Classes="fieldError" />
         </StackPanel>
         <Border BorderBrush="{DynamicResource SessionBorder}" BorderThickness="{StaticResource Inset0x1x0x0}" Padding="{StaticResource Inset0x18x0x0}">
-            <TextBlock Text="Ending asks you to save your work, then stops apps opened by this Session. Apps already open stay open." Classes="muted" FontSize="{StaticResource FontMicroSize}" TextWrapping="Wrap" />
+            <TextBlock Text="Ending asks you to save your work, then stops apps opened by this Session. Apps already open stay open." Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
         </Border>
     </StackPanel></Border>
 </UserControl>

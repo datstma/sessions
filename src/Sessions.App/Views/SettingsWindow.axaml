@@ -1,0 +1,66 @@
+<Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Sessions.App.ViewModels" x:Class="Sessions.App.Views.SettingsWindow"
+        x:DataType="vm:SettingsViewModel" x:CompileBindings="True"
+        Title="Settings — Sessions" Icon="/Assets/sessions.ico" WindowStartupLocation="CenterOwner"
+        Width="{StaticResource Measure700}" Height="{StaticResource Measure800}"
+        MinWidth="{StaticResource Measure640}" MinHeight="{StaticResource Measure480}">
+    <Grid RowDefinitions="*,Auto">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="{StaticResource Inset24}" Spacing="{StaticResource Measure16}">
+                <TextBlock Text="Settings" FontSize="{DynamicResource FontDisplayMSize}" FontWeight="{StaticResource WeightHeading}" />
+                <TextBlock Text="Make Sessions comfortable for you. Preferences are saved on this computer." Classes="muted" TextWrapping="Wrap" />
+                <Border Classes="surface" Padding="{StaticResource Inset16}" IsVisible="{Binding Preferences.ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <StackPanel Spacing="{StaticResource Measure8}">
+                        <TextBlock Text="{Binding Preferences.ErrorMessage}" Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                        <Button Content="Try loading again" Command="{Binding RetryLoadCommand}" IsVisible="{Binding Preferences.HasLoadError}" />
+                    </StackPanel>
+                </Border>
+                <Border Classes="surface" Padding="{StaticResource Inset20}">
+                    <StackPanel Spacing="{StaticResource Measure12}" IsEnabled="{Binding CanChange}">
+                        <TextBlock Text="Appearance" Classes="section" />
+                        <TextBlock Text="Color theme" />
+                        <ComboBox x:Name="ThemeChoice" ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme}" HorizontalAlignment="Stretch" AutomationProperties.Name="Color theme" />
+                        <TextBlock Text="System follows your Windows light or dark theme." Classes="muted" TextWrapping="Wrap" />
+                        <TextBlock Text="Interface size" />
+                        <ComboBox x:Name="InterfaceChoice" ItemsSource="{Binding InterfaceSizes}" SelectedItem="{Binding InterfacePercent}" HorizontalAlignment="Stretch" AutomationProperties.Name="Interface size, percent">
+                            <ComboBox.ItemTemplate><DataTemplate x:DataType="x:Int32"><TextBlock Text="{Binding StringFormat='{}{0}%'}" /></DataTemplate></ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock Text="Enlarges the interface on top of Windows display scaling. Enlargement fits the available window space. Settings keeps its standard interface size so you can always reset it." Classes="muted" TextWrapping="Wrap" />
+                        <TextBlock Text="Text size" />
+                        <ComboBox x:Name="TextChoice" ItemsSource="{Binding TextSizes}" SelectedItem="{Binding TextPercent}" HorizontalAlignment="Stretch" AutomationProperties.Name="Text size, percent">
+                            <ComboBox.ItemTemplate><DataTemplate x:DataType="x:Int32"><TextBlock Text="{Binding StringFormat='{}{0}%'}" /></DataTemplate></ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock Text="Enlarges text separately from spacing and icons. Uses the Sessions font." Classes="muted" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+                <TextBlock Text="Preview" Classes="section" />
+                <TextBlock Text="Only this preview changes until you apply your preferences." Classes="muted" TextWrapping="Wrap" />
+                <ThemeVariantScope x:Name="PreviewTheme">
+                    <Border Classes="surface" Padding="{StaticResource Inset16}">
+                        <LayoutTransformControl x:Name="PreviewScale">
+                            <StackPanel Spacing="{StaticResource Measure8}">
+                                <TextBlock Text="Your workspace" FontSize="{DynamicResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
+                                <TextBlock Text="Your apps, ready when you are." FontSize="{DynamicResource FontBodySize}" TextWrapping="Wrap" />
+                                <TextBlock Text="Running" Foreground="{DynamicResource RunningBrush}" FontSize="{DynamicResource FontBodySize}" />
+                                <Border Background="{DynamicResource BrandBrush}" CornerRadius="{StaticResource Round11}" Padding="{StaticResource Inset16x10}" HorizontalAlignment="Left">
+                                    <TextBlock Text="Start Session" Foreground="{DynamicResource OnBrandBrush}" FontSize="{DynamicResource FontBodySize}" FontWeight="{StaticResource WeightHeading}" />
+                                </Border>
+                            </StackPanel>
+                        </LayoutTransformControl>
+                    </Border>
+                </ThemeVariantScope>
+                <TextBlock Text="Reset preferences restores System theme and 100% sizing immediately. Your saved Sessions are kept. Closing this window discards unapplied choices." Classes="muted" TextWrapping="Wrap" />
+            </StackPanel>
+        </ScrollViewer>
+        <Border Grid.Row="1" Background="{DynamicResource PanelBrush}" Padding="{StaticResource Inset16}">
+            <StackPanel Spacing="{StaticResource Measure8}">
+                <TextBlock Text="{Binding Status}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                <WrapPanel Orientation="Horizontal">
+                    <Button x:Name="ResetButton" Content="Reset preferences" Command="{Binding ResetCommand}" Margin="{StaticResource Inset0x0x8x8}" />
+                    <Button x:Name="CloseButton" Content="Close" Click="CloseClicked" IsEnabled="{Binding CanChange}" Margin="{StaticResource Inset0x0x8x8}" />
+                    <Button x:Name="ApplyButton" Content="Apply preferences" Classes="primary" Command="{Binding ApplyCommand}" Margin="{StaticResource Inset0x0x8x8}" />
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

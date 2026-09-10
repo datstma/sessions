@@ -35,7 +35,7 @@
 
 <p align="center"><em>Your apps, their order, and what's running—all in one place.</em></p>
 
-**Sessions 0.3.0 adds sound output and microphone choices for each Session.**
+**Sessions 0.4.0 adds Settings for theme, interface size and text size.**
 [Download the Windows preview](#downloads) to try it with your own apps.
 
 | Make it yours | Start together | End with clarity |
@@ -49,7 +49,7 @@
 | --- | --- |
 | ![Sessions detail in the light theme.](docs/images/session-light.png) | ![The same Session in the dark theme.](docs/images/session-dark.png) |
 
-Sessions follows your system appearance, including changes while the app is open.
+Sessions follows your system appearance by default. Settings also offers Light and Dark overrides.
 
 </details>
 
@@ -91,6 +91,12 @@ Later device changes are kept; missing devices and failed restoration show recov
 guidance. Apps with their own explicit audio selection may keep it. This changes
 Windows defaults, so other apps following those defaults are affected too.
 
+**Choose your appearance.** Open **Settings** from the sidebar or empty-library
+header. Preview System / Light / Dark, interface sizes from 100–150% and separate
+text sizes from 100–125%, then apply. Interface enlargement fits the available
+window space; Settings keeps its reset controls reachable. Reset preferences
+restores the defaults while keeping your saved Sessions.
+
 ### Small details that make daily use easier
 
 - **Find apps by name.** Start menu discovery keeps supported shortcuts' arguments, working folders, and administrator settings.
@@ -98,7 +104,7 @@ Windows defaults, so other apps following those defaults are affected too.
 - **See what's running.** A green Running button brings an app's window forward. Outside an active Session, click Not running to open an individual app.
 - **Keep your place.** Search and switch between app sources without losing checked selections.
 - **Stay oriented.** An active Session remains visible while you browse your other saved setups.
-- **Use either theme.** The interface follows your system's light or dark appearance.
+- **Make it comfortable.** Settings offers System / Light / Dark, interface and separate text sizing, a preview, and reset. Preferences stay local; drafts and active runs are preserved.
 - **Keep your edits.** Closing with a changed Session draft offers Keep editing, Discard and Save. Failed saves retain your edits. Deleting a Session requires confirmation and does not uninstall its apps.
 
 ## What happens when a Session ends?
@@ -118,20 +124,20 @@ If an app cannot be stopped or safely tracked, Sessions explains the problem and
 
 ## Downloads
 
-**Sessions 0.3.0 is a development preview.** Download the
-[Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.3.0/Sessions-0.3.0-win-x64.msi)
-from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.3.0).
+**Sessions 0.4.0 is a development preview.** Download the
+[Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.4.0/Sessions-0.4.0-win-x64.msi)
+from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.4.0).
 The installer includes .NET and installs for your Windows user, with a Start menu
 shortcut. Installer and application binaries are unsigned.
 
-[What's new in 0.3.0](docs/release-notes/0.3.0.md): per-Session sound output and
-microphone choices, automatic restoration and recovery for unavailable devices.
+[What's new in 0.4.0](docs/release-notes/0.4.0.md): appearance preferences with
+preview, local persistence and reset, plus compact-layout improvements.
 
 Close Sessions before installing, updating, or uninstalling. Updates and uninstall
-preserve your saved Sessions. To update, download and run a newer MSI; there is no
+preserve your saved Sessions and appearance preferences. To update, download and run a newer MSI; there is no
 automatic updater. The release page includes checksums, source, and validation limits.
 
-**Library compatibility:** saving in 0.3.0 uses v4, which 0.2.3 and earlier cannot
+**Library compatibility:** saving in 0.3.0 and 0.4.0 uses v4, which 0.2.3 and earlier cannot
 open. Loading an older library alone does not rewrite it. Keep a copy of
 `%LOCALAPPDATA%\Sessions\sessions.json` before saving if you need to return to an
 older release.
