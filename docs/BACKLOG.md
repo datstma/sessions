@@ -27,7 +27,8 @@ Public-facing branding polish and obsolete-asset cleanup shipped in 0.2.1 under
 SESS-025. Safer closing (SESS-026), saved-app icons (SESS-027) and draft-close
 protection (SESS-006) are user-confirmed and published in 0.2.2 Preview. Invalid-field guidance
 (SESS-011) is user-confirmed and published in 0.2.3 Preview. Installed-release checks and Actions maintenance
-remain SESS-021/022. Broader native checks stay under SESS-001, including UAC
+remain SESS-021; Actions runtime maintenance is validated under SESS-022. Broader
+native checks stay under SESS-001, including UAC
 cancellation. The user confirmed Playnite force quit under SESS-017 on 2026-09-10;
 this does not establish graceful-only closing or unsaved-document safety. Settings
 appearance preferences (SESS-031) are also implemented, validated and user-confirmed.
@@ -380,7 +381,7 @@ in a normal Windows environment before deciding whether a delay investigation is
 
 ## SESS-022 — Refresh GitHub Actions runtimes
 
-**P2 · In progress · Runtime upgrade and workflow validation · 2026-09-10**
+**P2 · Done · Node 24 actions validated locally and on GitHub · 2026-09-10**
 Source: [the successful 0.1.0 workflow](https://github.com/datstma/sessions/actions/runs/34292417455)
 reported that checkout/setup-dotnet/upload-artifact/download-artifact v4 target
 deprecated Node.js 20 and were forced onto Node.js 24. Builds, tests, artifact
@@ -402,10 +403,20 @@ without creating a release. Both modes check transferred file checksums before
 draft creation; the download action also fails on artifact digest mismatch.
 See [workflow validation](RELEASING.md#validate-workflow-maintenance-without-creating-a-release).
 
-Actionlint 1.7.12 and action-input/runtime checks pass. Full local packaging passes:
-zero build/MSI warnings or errors, 74 Core and 177 App tests (27 native skips).
-A hosted validation-only run against the immutable v0.4.0 tag is pending; do not
-claim the runtime notices resolved until the updated hosted workflow is checked.
+Validation: actionlint 1.7.12, action-input/runtime checks, 37 local documentation
+links/anchors and all 34 stable IDs pass. The exact transfer-check script accepts
+valid isolated files and rejects corrupted payloads or empty release notes. Full
+local packaging and [hosted run 34500827015](https://github.com/datstma/sessions/actions/runs/34500827015)
+pass with zero solution/MSI warnings or errors, 74 Core and 177 App tests (27 native
+skips). The hosted workflow at 45e28aa builds immutable v0.4.0, transfers the files,
+verifies all three MSI/source checksums and skips draft creation. Published tag,
+release metadata, asset IDs and digests match the pre-run snapshot.
+
+The Node 20/forced-runtime notices are gone. Download-artifact v8 emits a separate
+non-blocking Node DEP0005 `Buffer()` deprecation; no warning suppression was added.
+New draft creation was deliberately not exercised; its existing command remains
+unchanged behind the validation-only gate. No release, tag, application version or
+SDK change. Evidence and exact resolved action SHAs are in the handoff's run log.
 
 ## SESS-023 — Advanced startup timing, readiness, and completion focus
 

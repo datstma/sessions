@@ -2,7 +2,7 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — SESS-022 runtime maintenance 2026-09-10
+## Resume next session — SESS-022 validated 2026-09-10
 
 The user selected SESS-022 after backlog review. The release workflow now uses
 checkout v7, setup-dotnet v6, upload-artifact v7 and download-artifact v8. Official
@@ -17,10 +17,29 @@ Actionlint 1.7.12 (download checksum verified), YAML and action-manifest checks 
 The initial sandboxed build could not reach NuGet signature metadata; broader build
 access was automatically approved. Full local Build-Installer.ps1 passes: zero
 solution/MSI warnings or errors, 74 Core and 177 App tests (27 opt-in native skips),
-self-contained publish and notice collection. Hosted validation is pending.
-Evidence is under ignored artifacts/actions-review. Use a separate
-validation branch and the existing v0.4.0 tag; do not move tags or replace release
-assets. No application version, dependency, product behavior or UI change.
+self-contained publish and notice collection. The exact transfer-check script also
+accepts valid isolated files and rejects corrupted payloads or empty release notes.
+All 37 local links/anchors across the changed docs and all 34 stable backlog IDs pass.
+
+[Hosted run 34500827015](https://github.com/datstma/sessions/actions/runs/34500827015)
+passes on `codex/sess-022-actions-runtimes`, workflow commit 45e28aa, with
+`tag=v0.4.0`, `prerelease=true`, `validation_only=true`. Both runners use 2.337.0.
+Clean solution/MSI builds, 74 Core and 177 App tests (27 opt-in native skips), source
+assembly, upload/download and all three transferred MSI/source checksums pass.
+Draft creation is explicitly skipped. Published v0.4.0 tag, release metadata, asset
+IDs and digests match the pre-run snapshots. No runtime-forcing/Node 20 notices
+remain. Download-artifact v8 emits a separate non-blocking DEP0005 `Buffer()`
+deprecation; this is recorded rather than suppressed or described as a build warning.
+No new release/draft or installation trial was needed for this maintenance check.
+
+SESS-022 is Done. Changes are committed on the separate validation branch for
+review; main and published tags/releases were not updated. The follow-up commit
+only records validation results. Do not rerun packaging for those prose changes.
+Evidence is under ignored artifacts/actions-review: local-build.log, hosted-run.log,
+hosted-run.json, action manifests and before/after release/tag snapshots. The hosted
+log records exact resolved SHAs for all four action majors. No application version,
+SDK, application dependency, product behavior or UI change. No other backlog item
+is selected; SESS-001/010/021 retain their existing native-validation limits.
 
 ## Previous checkpoint — 0.4.0 published 2026-09-10
 
