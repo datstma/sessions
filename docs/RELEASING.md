@@ -154,6 +154,25 @@ Normal pushes and tags do not automatically trigger releases. A draft remains
 unpublished until a maintainer publishes it. Users upgrade by running a newer MSI;
 there is no in-app updater.
 
+### Validate workflow maintenance without creating a release
+
+Select the branch containing the workflow change, enter an existing version tag
+(for example `v0.4.0`), and enable **validation_only**. This runs the full tagged
+build, tests, packaging, source assembly, and artifact upload/download. The receiving
+job verifies `SHA256SUMS.txt` and checks that release notes are present, then skips
+draft creation. Outputs remain workflow artifacts with 14-day retention; existing
+GitHub releases and tags are untouched. The default is false, preserving ordinary
+draft creation. Both modes verify transferred files before any release creation.
+
+The workflow uses the Node 24 versions of
+[checkout](https://github.com/actions/checkout/tree/v7),
+[setup-dotnet](https://github.com/actions/setup-dotnet/tree/v6),
+[upload-artifact](https://github.com/actions/upload-artifact/tree/v7), and
+[download-artifact](https://github.com/actions/download-artifact/tree/v8).
+SDK selection still comes from the checked-out tag's `global.json`. Artifact upload
+retains the default ZIP mode; download retains extraction and its default failure
+on artifact digest mismatch. This repository uses GitHub-hosted runners.
+
 ## Release checks
 
 Use a disposable Windows VM with no separately installed .NET runtime and a

@@ -2,7 +2,27 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.4.0 published 2026-09-10
+## Resume next session — SESS-022 runtime maintenance 2026-09-10
+
+The user selected SESS-022 after backlog review. The release workflow now uses
+checkout v7, setup-dotnet v6, upload-artifact v7 and download-artifact v8. Official
+release notes and manifests confirm Node 24 and compatible configured inputs;
+download v8 changes digest mismatch from a warning to an error, retained here.
+The existing tagged SDK selection, ZIP artifact format and draft-only release flow
+remain. An optional `validation_only` dispatch input defaults to false; true runs
+the build/package/upload/download and checksum verification while skipping release
+creation. RELEASING.md documents this maintenance path.
+
+Actionlint 1.7.12 (download checksum verified), YAML and action-manifest checks pass.
+The initial sandboxed build could not reach NuGet signature metadata; broader build
+access was automatically approved. Full local Build-Installer.ps1 passes: zero
+solution/MSI warnings or errors, 74 Core and 177 App tests (27 opt-in native skips),
+self-contained publish and notice collection. Hosted validation is pending.
+Evidence is under ignored artifacts/actions-review. Use a separate
+validation branch and the existing v0.4.0 tag; do not move tags or replace release
+assets. No application version, dependency, product behavior or UI change.
+
+## Previous checkpoint — 0.4.0 published 2026-09-10
 
 [Sessions 0.4.0 Preview](https://github.com/datstma/sessions/releases/tag/v0.4.0)
 is public. Immutable tag v0.4.0 points to

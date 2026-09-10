@@ -380,7 +380,7 @@ in a normal Windows environment before deciding whether a delay investigation is
 
 ## SESS-022 — Refresh GitHub Actions runtimes
 
-**P2 · Open · CI maintenance finding · 2026-09-09**
+**P2 · In progress · Runtime upgrade and workflow validation · 2026-09-10**
 Source: [the successful 0.1.0 workflow](https://github.com/datstma/sessions/actions/runs/34292417455)
 reported that checkout/setup-dotnet/upload-artifact/download-artifact v4 target
 deprecated Node.js 20 and were forced onto Node.js 24. Builds, tests, artifact
@@ -392,6 +392,20 @@ workflow without replacing the published 0.1.0 assets or moving its tag.
 The successful 0.2.1 workflow (34398030125) repeats the forced Node.js 24/runtime
 deprecation notices; application and MSI builds still have zero warnings/errors.
 This remains CI maintenance, not a release-build failure.
+
+Selected by the user on 2026-09-10. Updated checkout to v7, setup-dotnet to v6,
+upload-artifact to v7 and download-artifact to v8 after reviewing official releases
+and verifying that each action manifest declares Node 24 and accepts the existing
+inputs. No SDK or application version change. Added an optional `validation_only`
+dispatch input (default false) to exercise the full build and artifact transfer
+without creating a release. Both modes check transferred file checksums before
+draft creation; the download action also fails on artifact digest mismatch.
+See [workflow validation](RELEASING.md#validate-workflow-maintenance-without-creating-a-release).
+
+Actionlint 1.7.12 and action-input/runtime checks pass. Full local packaging passes:
+zero build/MSI warnings or errors, 74 Core and 177 App tests (27 native skips).
+A hosted validation-only run against the immutable v0.4.0 tag is pending; do not
+claim the runtime notices resolved until the updated hosted workflow is checked.
 
 ## SESS-023 — Advanced startup timing, readiness, and completion focus
 
