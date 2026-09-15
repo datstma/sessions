@@ -34,6 +34,34 @@ The intended progression is:
 These are readiness criteria, not scheduled releases. Version numbering and release
 metadata follow [RELEASING.md](RELEASING.md#versioning).
 
+### 1.0 feature set
+
+Agreed with the maintainer on 2026-09-15 (SESS-037). Everything already implemented
+above remains part of 1.0. The additions below are planned, not implemented; each has
+its own backlog item that settles detailed behaviour before implementation.
+
+- Duplicate a Session (SESS-038).
+- Remember the window size, position and last selected Session (SESS-039).
+- Optional apps: let a Session continue when a chosen app fails to start (SESS-040).
+- A saved-data compatibility commitment: all earlier library formats stay readable,
+  a backup is written before a save upgrades the format, and the format is frozen at
+  Beta (SESS-041).
+- An About and support view with version, license, release notes and the local data
+  folder, without sending information anywhere (SESS-042).
+- Export and import a single Session as a portable file (SESS-043).
+- Open a website as part of a Session (SESS-044).
+- Start a Session from a desktop shortcut or the command line (SESS-045).
+- Launch Microsoft Store and other packaged apps (SESS-046).
+
+Beta additionally requires the hands-on checks in SESS-001, SESS-010 and SESS-021, a
+recorded real-app validation matrix and an up-to-date user guide with known limitations
+(SESS-048). Whether 1.0 binaries are code-signed is decided before Beta (SESS-047).
+
+Not part of 1.0: gaming utility profile integrations (SESS-028), Philips Hue, Home
+Assistant, third-party plugins, command/PowerShell items, starting with Windows or tray
+behaviour, notifications, launch stages, window placement, crash recovery of ownership
+and audio, diagnostic export, localization, and the out-of-scope list below.
+
 ## Vision
 
 **Sessions** is an open-source desktop application for creating, launching, managing, and ending reusable computer sessions.

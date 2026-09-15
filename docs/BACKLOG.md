@@ -35,6 +35,13 @@ appearance preferences (SESS-031) are also implemented, validated and user-confi
 On 2026-09-15 the user reported wasted space, inconsistent text centering and
 mismatched running statuses; SESS-036 implements the correction, which the user confirmed.
 
+The user agreed the 1.0 feature set on 2026-09-15 (SESS-037, recorded in PRODUCT.md).
+Suggested order, open to change: small wins first (SESS-039 window memory, SESS-038
+duplicate, SESS-042 About) and SESS-041's backup-on-upgrade before any format change;
+then format-changing features (SESS-040 optional apps, SESS-044 websites) with SESS-046
+packaged-app research alongside; then SESS-043 export/import once item kinds settle, and
+SESS-045 shortcuts. Finish with the SESS-041 format freeze, SESS-047 and SESS-048.
+
 ## SESS-001 — Review the first native UI with the user
 
 **P1 · Awaiting feedback · Current UI validation**  
@@ -1017,3 +1024,183 @@ README screenshots were not regenerated. Native monitor/text-size checks remain 
 User confirmation (2026-09-15): after running the source build with their library, the
 user reported it "looks better". This confirms the overall layout/alignment correction in
 their setup; specific window sizes, themes and scaling were not stated.
+
+## SESS-037 — Agree the 1.0 feature set
+
+**P1 · Done · Agreed with the user · 2026-09-15**
+Source: PRODUCT.md defines Beta as "the agreed 1.0 feature set is complete", but no
+set was agreed. After SESS-036 the user asked for a draft, which framed 1.0 as a
+dependable everyday loop (build, start, see, end safely) rather than the whole backlog.
+
+The agent proposed five must-haves (duplicate, window memory, optional apps, saved-data
+commitment, About) and five undecided candidates. The user kept the must list as
+drafted; added export/import, website items, starting from a shortcut or command line
+and Microsoft Store/packaged apps to 1.0; chose to decide code signing near Beta; and
+placed gaming utility integrations (SESS-028) after 1.0.
+
+The agreed set, Beta gates and exclusions are recorded in
+[PRODUCT.md](PRODUCT.md#10-feature-set). Features are split into SESS-038–046, the
+signing decision into SESS-047 and Beta readiness checks into SESS-048. Size estimates
+from the draft (S/M/L) are rough agent guesses, not commitments.
+
+## SESS-038 — Duplicate a Session
+
+**P1 · Open · 1.0 feature (S) · 2026-09-15**
+Source: SESS-009 deferred duplication; the user included it in 1.0 via SESS-037.
+
+The copy needs a new Session ID and new app IDs, with main-app and completion-focus
+references remapped to the copied apps. Plugin references, audio choices and startup
+settings copy as saved values; running state, ownership and any active run never copy.
+Decide the copy's name, placement and whether it opens in the editor before saving.
+Duplicating an active Session's saved definition must not affect its run.
+
+Done when: a duplicated Session saves, reloads and starts independently, with tests for
+identity remapping, plugin/audio settings and keyboard access in both themes.
+
+## SESS-039 — Remember window size, position and last selected Session
+
+**P1 · Open · 1.0 feature (S) · 2026-09-15**
+Source: SESS-031 candidate; the user included it in 1.0 via SESS-037, following the
+SESS-036 report that the app opens with too little usable space.
+
+Restore the last normal size, position and maximized state, and reselect the last
+Session. Never restore off-screen or below the 640×480 minimum after monitor, DPI or
+resolution changes; fall back to the current working-area sizing. Selection never starts
+anything, and a deleted Session falls back to the first. Store this with appearance
+preferences (a preferences format change) and keep failures non-blocking.
+
+Done when: restart restores these values, with tests for missing monitors, oversized
+bounds, maximized state, deleted Sessions and unreadable preferences.
+
+## SESS-040 — Optional apps: continue when an app fails to start
+
+**P1 · Proposed · 1.0 feature (M) · 2026-09-15**
+Source: agent proposal accepted in SESS-037. Today any launch failure stops startup and
+waits for confirmation to clean up; utility-heavy Sessions need a tolerant choice.
+Launch stages and broader failure policies (SESS-023 candidates) remain after 1.0.
+
+Settle before implementation: per-app setting name and default (off); which failures
+count (missing file, launch error, readiness timeout, UAC cancellation); whether the main
+or completion-focus app may be optional; how skipped apps appear during and after
+startup; and interaction with concurrent launching and pauses. Ownership, rollback of
+required-app failures and save-work confirmation stay mandatory. Library format change;
+coordinate with SESS-041.
+
+Done when: agreed semantics are in PRODUCT/ARCHITECTURE, Core tests cover ordered and
+concurrent failures with optional and required apps, and the UI explains skipped apps.
+
+## SESS-041 — Saved-data compatibility commitment
+
+**P1 · Open · 1.0 feature (S–M) · 2026-09-15**
+Source: agent proposal accepted in SESS-037; 1.0 requires clear compatibility expectations.
+
+Early slice: before the first save that upgrades a library (or preferences file) to a
+newer format, write a timestamped backup beside it and tell the user where it is. Keep
+reading every earlier format. Later slice, at Beta: declare the 1.0 library format frozen,
+document the compatibility policy (newer minor releases read and write it; older builds
+may reject newer data) and add tests loading real saved files from each released format.
+Format changes from SESS-040/043/044/046 should land before the freeze.
+
+Done when: backup-on-upgrade is tested (including write failure blocking the upgrade),
+fixture libraries from v1 onward load, and PRODUCT/RELEASING state the policy.
+
+## SESS-042 — About and support
+
+**P1 · Open · 1.0 feature (S) · 2026-09-15**
+Source: SESS-031 candidate; the user included it in 1.0 via SESS-037.
+
+Show version, Alpha/Beta stage, license, links to release notes and the issue tracker,
+and an action to open the local data folder. Nothing is sent automatically; diagnostic
+export stays after 1.0. Reuse Settings surfaces and existing tokens.
+
+Done when: the view is reachable by keyboard from Settings, opening the folder handles
+failures, and both themes/compact sizes are checked.
+
+## SESS-043 — Export and import a Session
+
+**P1 · Proposed · 1.0 feature (M) · 2026-09-15**
+Source: portability principle in PRODUCT.md; the user included it in 1.0 via SESS-037.
+
+Settle: file format and extension (versioned, readable JSON for one Session); whether
+import assigns fresh IDs; handling of name clashes, missing executables, unknown or
+disabled plugins and unavailable audio devices. Import must open a draft for review
+before saving, so arguments, Run as administrator and force-quit choices from a shared
+file are visible first; importing never launches anything. Exported files contain paths
+and arguments, so explain that before sharing. Depends on formats from SESS-040/044/046.
+
+Done when: exported Sessions round-trip, foreign or partial files import safely with
+clear explanations, and tests cover malformed, newer-format and hostile-looking files.
+
+## SESS-044 — Open a website as part of a Session
+
+**P1 · Proposed · 1.0 feature (M) · 2026-09-15**
+Source: Work Session example in PRODUCT.md; the user included it in 1.0 via SESS-037.
+
+Settle: the item type in the editor and picker, allowed schemes (http/https at least),
+ordering and pauses with apps, and what the detail view shows. Websites open through the
+default browser without process ownership: End never closes browser windows or tabs,
+readiness and main-app lifetime are unavailable, and the UI says so. Browser profile
+selection stays after 1.0. New item kind and library format change; coordinate with
+SESS-041 and the plugin/action architecture.
+
+Done when: website items save, reload, open in order during startup and individually,
+with tests for validation, ordering, failure reporting and cleanup leaving them alone.
+
+## SESS-045 — Start a Session from a shortcut or the command line
+
+**P1 · Proposed · 1.0 feature (M) · 2026-09-15**
+Source: SESS-023 candidate (local Session shortcuts); the user included it in 1.0 via SESS-037.
+
+Settle: command-line syntax referencing a stable Session ID, a Create desktop shortcut
+action, and behaviour when Sessions is closed, already open, editing, confirming or
+running another Session. The single-instance guard currently signals activation without
+data, so a newly started instance must pass its request to the running one. Existing
+start rules, draft protection and confirmations stay in force; a shortcut never bypasses
+them. Unknown or deleted Sessions show a clear message.
+
+Done when: shortcuts and commands start the right Session from each app state, with
+tests for forwarding, missing Sessions, an active run and an open editor.
+
+## SESS-046 — Launch Microsoft Store and packaged apps
+
+**P1 · Proposed · 1.0 feature (L, research first) · 2026-09-15**
+Source: SESS-008/019 list packaged-app activation as unsupported; the user included it
+in 1.0 via SESS-037.
+
+Research before committing to a design: discovery of packaged apps in the Add app
+picker, activation by application user model ID, whether activation yields a process
+that can be tracked, running-status detection, bring forward, and closing behaviour for
+apps with shared hosts, brokers or background tasks. Ownership rules stay mandatory:
+when a launch cannot be verified, the app is untracked and needs manual closing, as today.
+Record findings with primary sources and tested apps before choosing an approach.
+
+Done when: a documented approach launches packaged apps from Sessions and the picker,
+with verified ownership where possible, clear limits where not, and native tests using
+installed packaged apps.
+
+## SESS-047 — Decide code signing before Beta
+
+**P2 · Open · Decision, not code · 2026-09-15**
+Source: SESS-037; the user chose to decide near Beta. Releases are currently unsigned,
+which can trigger Windows SmartScreen warnings.
+
+Before Beta, compare available options (commercial certificates and signing services
+for open-source projects), cost, identity requirements and release workflow changes,
+then ask the user to decide. Do not contact vendors or buy anything without authorization.
+
+Done when: the decision is recorded in RELEASING.md and, if signing is chosen, a signed
+release passes verification.
+
+## SESS-048 — Beta readiness: real-app matrix and user guide
+
+**P1 · Open · Beta gate · 2026-09-15**
+Source: Beta criteria agreed in SESS-037. Complements SESS-001, SESS-010 and SESS-021.
+
+Record a real-app validation matrix with exact versions: for example Discord, SRS, Tobii,
+Playnite, Word, a Steam game and the 1.0 additions (websites, packaged apps). Cover start,
+running status, bring forward, End with save prompts, individual Close, force quit and UAC
+where relevant, with expected and observed results. Update the README or a user guide with
+setup, everyday use, data location, upgrades and known limitations.
+
+Done when: the matrix is recorded with outcomes, failures link to backlog IDs, and the
+guide matches the Beta build.

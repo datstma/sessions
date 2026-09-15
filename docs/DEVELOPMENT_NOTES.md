@@ -29,8 +29,13 @@ themes at 1440×900/640×480 and 125/150/200% scaling were reviewed in the sessi
 scratchpad, not retained under artifacts. README/public screenshots still show the
 previous layout; regenerate them with `scripts/Update-PublicScreenshots.ps1` (needs the
 installed sample executables for icons) when preparing a release. The user ran the
-source build and reported it "looks better"; SESS-036 is done. Nothing is committed yet.
-Do not start another backlog item automatically.
+source build and reported it "looks better"; SESS-036 is done. Committed and pushed as
+68ae889 (SDK pin) and 4d029d1 (layout). The user then agreed the 1.0 feature set (SESS-037):
+the drafted must list plus export/import, website items, shortcut/command-line start and
+packaged apps; signing decided near Beta; gaming integrations after 1.0. PRODUCT.md
+records the set; SESS-038–048 hold each item with open design questions and a suggested
+order in BACKLOG. None is implemented, and the 1.0 docs change is not yet committed.
+Continue from the user's choice of item.
 
 ## Previous checkpoint — Alpha designation 2026-09-10
 
