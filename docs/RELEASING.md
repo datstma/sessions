@@ -164,6 +164,23 @@ Publication was explicitly requested on 2026-09-15. The release introduces libra
 documented with its automatic backup; the installed-build format-upgrade check and
 repeated Sandbox lifecycle checks were not performed and are disclosed.
 
+For 0.6.1, workflow 34971241203 passed the tagged build and draft jobs for commit 9eb5080.
+The exact downloaded draft assets verify against SHA256SUMS.txt and GitHub's recorded
+digests; all 248 source ZIP entries match `git archive v0.6.1`; the WiX source commit,
+license and CloseApplications source are present; MSI ProductVersion is 0.6.1; the draft
+description matches the release notes. Administrative extraction shows Sessions.App
+0.6.1+9eb5080 with 274 payload files and the same licenses file list as 0.6.0. The MSI's
+dialog and banner bitmaps are byte-identical to `installer/Assets`, and both the executable
+and the MSI Icon table embed all seven new SESS-050 icon frames and none of the old ones.
+In Windows Sandbox with Smart App Control turned off, the draft MSI interactively upgraded a
+silent 0.6.0 install (Welcome after 1 s, Finished 15 s after Install, Launch Sessions ticked,
+app opened 2.7 s after Finish, installed version 0.6.1+9eb5080); screenshots show the new
+icon in the title bar, taskbar, Start menu search and Settings Installed apps and Programs and
+Features (0.6.1, Sessions contributors). Publication was explicitly requested on 2026-09-15;
+Sessions 0.6.1 Alpha was published as a pre-release at 2026-09-15T13:01:49Z with digests
+unchanged from the verified draft. Unticking Launch Sessions, Repair and standard-user
+installation were not exercised.
+
 ## Create a GitHub draft release
 
 1. Update the version and add `docs/release-notes/<version>.md`. Review dependency

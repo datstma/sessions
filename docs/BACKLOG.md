@@ -1415,7 +1415,7 @@ to commit and push. Tagging and publishing 0.6.1 remain separate requests.
 
 ## SESS-050 — Match the app icon to the canonical logo
 
-**P2 · In progress · Implemented for 0.6.1; Windows shell review with the draft MSI pending · 2026-09-15**
+**P2 · Done · Released in 0.6.1 after a Windows shell review · 2026-09-15**
 Source: code inspection while drawing installer art. `scripts/Generate-BrandAssets.py`
 renders `branding/logo/sessions-tile.svg` with Pillow outlines drawn inside each square and
 ignores the SVG `opacity` attributes. The shipped `sessions.ico` therefore shows three
@@ -1441,6 +1441,12 @@ Validation: a full Build-Installer run passes with zero warnings/errors (150 Cor
 tests, 31 opt-in native skips); the published Sessions.App.exe embeds all seven new ICO frames
 and none of the old ones, and the MSI still takes its shortcut and Installed apps icon from
 that executable.
+
+Release review (2026-09-15): the downloaded 0.6.1 draft MSI's executable and Icon table embed
+the new frames. After an interactive upgrade from 0.6.0 in Windows Sandbox, screenshots show
+the new icon in the title bar, taskbar, Start menu search results and details, Settings
+Installed apps and Programs and Features. Sessions 0.6.1 Alpha was published at the user's
+request (see RELEASING.md).
 
 Done when: the user decides; if approved, the regenerated icon is reviewed at all sizes in
 the taskbar, Start menu and Installed apps, and the MSI icon references still verify.

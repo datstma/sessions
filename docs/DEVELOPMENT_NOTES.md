@@ -2,7 +2,7 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.6.0 published, 0.6.1 installer next 2026-09-15
+## Resume next session — 0.6.1 published 2026-09-15
 
 The user requested commit, push, tag and workflow, then verification and publication.
 Release commit b0cf19b and annotated tag v0.6.0 were pushed; workflow 34958052678 passed
@@ -34,8 +34,20 @@ and 0.6.1 installer work are committed together (ca4cd99).
 The user then asked to do the SESS-050 app icon, then tag and run the release workflow.
 scripts/brand_art.py now shares the SVG-faithful tile drawing; the regenerated sessions.ico
 shows the logo's translucent overlapping cascade (installer bitmaps and fonts regenerate
-unchanged). 0.6.1 notes, README and logo README mention it. Next after the workflow: verify
-the draft assets and publish only on request.
+unchanged). 0.6.1 notes, README and logo README mention it. Full Build-Installer passed and
+the published exe embeds the new frames. Commit 9eb5080 and annotated tag v0.6.1 were pushed;
+release workflow 34971241203 passed (build and draft jobs) and created the Sessions 0.6.1
+Alpha pre-release draft with the MSI, both source ZIPs and SHA256SUMS.txt.
+
+The user then asked to verify the draft and publish. Exact draft assets verified under ignored
+artifacts/release-verification-0.6.1 (checksums and GitHub digests, 248 source entries, WiX
+source/license, MSI 0.6.1, body equals notes, administrative extraction 0.6.1+9eb5080 with
+unchanged licenses list, bitmaps and new icon frames in exe and MSI Icon table). A Sandbox run
+(artifacts/installer-ui-review/sandbox/results/draft-0.6.1) upgraded 0.6.0 interactively with
+the draft MSI and showed the new icon in the title bar, taskbar, Start search and both
+installed-apps lists; SESS-050 is done. Sessions 0.6.1 Alpha was published as a pre-release
+at 2026-09-15T13:01:49Z with digests unchanged. Latest public release is 0.6.1. The user
+then asked to commit and push these publication records.
 
 ## Previous checkpoint — 0.6.0 release preparation 2026-09-15
 
