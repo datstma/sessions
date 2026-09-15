@@ -18,11 +18,14 @@ both sidebar and card surfaces without introducing an SVG runtime dependency.
 
 The fixed indigo tile is used for the Windows icon; its white mark is artwork,
 not small action text. [Generate-BrandAssets.py](../../scripts/Generate-BrandAssets.py)
-exports all seven ICO sizes above into `src/Sessions.App/Assets/sessions.ico`.
+draws the tile once at 1536 px and downsamples it to all seven ICO sizes above in
+`src/Sessions.App/Assets/sessions.ico`. At 32 px and below the translucent back squares
+are faint, but the cascade still reads.
 Both windows and the application executable use that icon. The MSI uses the
 published executable's icon for Installed apps and the Start menu shortcut.
 The repository README uses the supplied tile SVG directly.
 [Generate-InstallerArt.py](../../scripts/Generate-InstallerArt.py) draws the installer's
-493×312 dialog and 493×58 banner bitmaps (`installer/Assets`) from the tile's colour and
-geometry, honouring the SVG's square opacity and centred background-coloured strokes, with
-the Manrope ExtraBold wordmark. Installer dialogs are light-only.
+493×312 dialog and 493×58 banner bitmaps (`installer/Assets`) with the Manrope ExtraBold
+wordmark. Installer dialogs are light-only. Both generators share
+[brand_art.py](../../scripts/brand_art.py), which draws the tile's colour and geometry
+honouring the SVG's square opacity and centred background-coloured strokes.

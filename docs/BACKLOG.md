@@ -1415,7 +1415,7 @@ to commit and push. Tagging and publishing 0.6.1 remain separate requests.
 
 ## SESS-050 — Match the app icon to the canonical logo
 
-**P2 · Proposed · Finding from SESS-049 · 2026-09-15**
+**P2 · In progress · Implemented for 0.6.1; Windows shell review with the draft MSI pending · 2026-09-15**
 Source: code inspection while drawing installer art. `scripts/Generate-BrandAssets.py`
 renders `branding/logo/sessions-tile.svg` with Pillow outlines drawn inside each square and
 ignores the SVG `opacity` attributes. The shipped `sessions.ico` therefore shows three
@@ -1424,9 +1424,23 @@ cascade of equal, overlapping squares (45% and 72% opacity) separated by centred
 strokes. The branding was approved with the current icon (SESS-024), so changing it is a
 visible brand change for the user to decide.
 
-Candidate fix: reuse the SVG-faithful drawing from `Generate-InstallerArt.py` in the icon
-generator, regenerate all seven ICO sizes, and review legibility at 16–32 px, where the
-translucent squares may read less clearly than today's solid ones.
+Decision (2026-09-15): the user asked to do the SESS-050 app icon before tagging 0.6.1.
+
+Implemented: new `scripts/brand_art.py` holds the tile colours and the SVG-faithful
+`draw_mark` (moved unchanged from `Generate-InstallerArt.py`) plus `draw_tile`. The icon
+generator draws the tile once at 1536 px and downsamples straight to each of the seven ICO
+frames (256–16 px), instead of drawing inward outlines without opacity and resampling twice.
+`Generate-InstallerArt.py` uses the shared module; regenerating its bitmaps is byte-identical.
+Regenerating the Manrope static fonts left them unchanged.
+
+Review: an enlarged and actual-size comparison of old and new frames on light and dark
+backgrounds (ignored scratch output) shows the designed overlapping cascade at 256–48 px; at
+32–16 px the translucent back squares are fainter than the old solid squares, but the
+diagonal cascade and bright front square still read, and the tile silhouette is unchanged.
+Validation: a full Build-Installer run passes with zero warnings/errors (150 Core and 266 App
+tests, 31 opt-in native skips); the published Sessions.App.exe embeds all seven new ICO frames
+and none of the old ones, and the MSI still takes its shortcut and Installed apps icon from
+that executable.
 
 Done when: the user decides; if approved, the regenerated icon is reviewed at all sizes in
 the taskbar, Start menu and Installed apps, and the MSI icon references still verify.

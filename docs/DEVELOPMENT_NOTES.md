@@ -29,8 +29,13 @@ Sandbox UI checks passed for the Welcome/Ready/Finished pages, Launch Sessions, 
 Repair/Remove, refusal while running, and removal without the launch option (scripts and
 screenshots under ignored artifacts/installer-ui-review/sandbox). All Sandboxes are stopped.
 The user then confirmed "works" and asked to commit and push; the 0.6.0 publication record
-and 0.6.1 installer work are committed together. Next on request: tag v0.6.1, run the
-release workflow, verify and publish; SESS-050 icon decision still open.
+and 0.6.1 installer work are committed together (ca4cd99).
+
+The user then asked to do the SESS-050 app icon, then tag and run the release workflow.
+scripts/brand_art.py now shares the SVG-faithful tile drawing; the regenerated sessions.ico
+shows the logo's translucent overlapping cascade (installer bitmaps and fonts regenerate
+unchanged). 0.6.1 notes, README and logo README mention it. Next after the workflow: verify
+the draft assets and publish only on request.
 
 ## Previous checkpoint — 0.6.0 release preparation 2026-09-15
 

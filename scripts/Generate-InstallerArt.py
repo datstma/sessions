@@ -5,30 +5,11 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'artifacts/branding-tools'))
 from PIL import Image, ImageDraw, ImageFont
+from brand_art import TILE, WHITE, draw_mark, draw_tile
 
-# Colours match the fixed tile in branding/logo/sessions-tile.svg, which also supplies the app icon.
-TILE = (0x5C, 0x66, 0xF5)
-WHITE = (0xFF, 0xFF, 0xFF)
 SCALE = 4  # Draw large, then downsample for smooth edges.
 output = ROOT / 'installer/Assets'
 output.mkdir(parents=True, exist_ok=True)
-
-
-def draw_mark(image, left, top, unit):
-    """Draw the tile's cascading squares (a 48-unit box) as the SVG does: element opacity, and a
-    3-unit background-coloured stroke centred on the edge that separates overlapping squares."""
-    for x, y, opacity, stroked in [(4, 4, 0.45, False), (14.5, 14.5, 0.72, True), (25, 25, 1.0, True)]:
-        layer = Image.new('RGBA', image.size)
-        draw = ImageDraw.Draw(layer)
-        box = lambda inset: (left + (x + inset) * unit, top + (y + inset) * unit,
-                             left + (x + 19 - inset) * unit, top + (y + 19 - inset) * unit)
-        if stroked:
-            draw.rounded_rectangle(box(-1.5), 6.5 * unit, fill=TILE)
-            draw.rounded_rectangle(box(1.5), 3.5 * unit, fill=WHITE)
-        else:
-            draw.rounded_rectangle(box(0), 5 * unit, fill=WHITE)
-        layer.putalpha(layer.getchannel('A').point(lambda value: round(value * opacity)))
-        image.alpha_composite(layer)
 
 
 def save(image, name, size):
@@ -50,10 +31,6 @@ save(dialog, 'InstallerDialog.bmp', (width, height))
 # Other dialogs draw their title on the left of the banner, so the tile sits at the right edge.
 width, height, tile = 493, 58, 40
 banner = Image.new('RGBA', (width * SCALE, height * SCALE), WHITE)
-draw = ImageDraw.Draw(banner)
-left, top = (width - tile - 12) * SCALE, (height - tile) / 2 * SCALE
-draw.rounded_rectangle((left, top, left + tile * SCALE, top + tile * SCALE), 20 / 96 * tile * SCALE, fill=TILE)
-unit = tile / 96 * SCALE
-draw_mark(banner, left + 24 * unit, top + 24 * unit, unit)
+draw_tile(banner, (width - tile - 12) * SCALE, (height - tile) / 2 * SCALE, tile * SCALE)
 save(banner, 'InstallerBanner.bmp', (width, height))
 print('Generated installer dialog and banner bitmaps.')

@@ -142,7 +142,7 @@ shortcut and an option to launch Sessions when setup finishes. Installer and
 application binaries are unsigned.
 
 [What's new in 0.6.1](docs/release-notes/0.6.1.md): a branded installer with Launch
-Sessions. [What's new in 0.6.0](docs/release-notes/0.6.0.md): optional apps, Duplicate
+Sessions and an app icon that matches the logo. [What's new in 0.6.0](docs/release-notes/0.6.0.md): optional apps, Duplicate
 Session, window and selection memory, About with in-app licenses, library upgrade
 backups and a roomier layout.
 
