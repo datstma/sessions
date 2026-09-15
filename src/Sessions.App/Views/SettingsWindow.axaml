@@ -87,6 +87,25 @@
                         </WrapPanel>
                     </StackPanel>
                 </Border>
+                <Border x:Name="AboutSection" Classes="surface" Padding="{StaticResource Inset20}" IsVisible="{Binding HasAbout}">
+                    <StackPanel DataContext="{Binding About}" x:DataType="vm:AboutViewModel" Spacing="{StaticResource Measure12}">
+                        <TextBlock Text="About Sessions" Classes="section" />
+                        <TextBlock x:Name="AboutVersion" Text="{Binding VersionLabel}" FontWeight="{StaticResource WeightStrong}" />
+                        <TextBlock Text="Sessions is free and open source under the GNU General Public License version 3. Your Sessions and preferences stay on this computer, and Sessions doesn't send information anywhere. Release notes, issues and source code open in your web browser." Classes="muted" TextWrapping="Wrap" />
+                        <WrapPanel ItemSpacing="{StaticResource Measure8}" LineSpacing="{StaticResource Measure8}">
+                            <Button x:Name="ReleaseNotesButton" Content="Release notes" Command="{Binding OpenReleaseNotesCommand}" />
+                            <Button x:Name="ReportIssueButton" Content="Report an issue" Command="{Binding ReportIssueCommand}" />
+                            <Button x:Name="SourceCodeButton" Content="Source code" Command="{Binding OpenSourceCodeCommand}" />
+                            <Button x:Name="LicensesButton" Content="Licenses and notices" Click="LicensesClicked" />
+                        </WrapPanel>
+                        <TextBlock Text="Data folder" FontWeight="{StaticResource WeightStrong}" />
+                        <TextBlock Text="Your saved Sessions, preferences and library backups are kept here." Classes="muted" TextWrapping="Wrap" />
+                        <SelectableTextBlock x:Name="DataFolderPath" Text="{Binding DataFolder}" TextWrapping="Wrap" AutomationProperties.Name="Data folder location" />
+                        <Button x:Name="OpenDataFolderButton" Content="Open data folder" Command="{Binding OpenDataFolderCommand}" HorizontalAlignment="Left" />
+                        <TextBlock x:Name="AboutStatus" Text="{Binding Status}" IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                   Classes="muted aboutStatus" Classes.error="{Binding IsStatusError}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </ScrollViewer>
         <Border Grid.Row="1" Background="{DynamicResource PanelBrush}" Padding="{StaticResource Inset16}">

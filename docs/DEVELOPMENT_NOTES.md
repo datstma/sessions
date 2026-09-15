@@ -61,7 +61,20 @@ tests/Sessions.Core.Tests/Fixtures/Libraries and are hand-written from tag shape
 Release build and 134 Core + 253 App tests pass (31 native skips). The format freeze
 remains for Beta. Not committed. The user's own library is already v5, so a hands-on check
 needs an old-format file in a disposable profile; never use the real library for it.
-Rider's XAML previewer locks whichever App bin configuration was built last.
+Rider's XAML previewer locks whichever App bin configuration was built last. SESS-041's
+early slice was then committed as 8efa8c4 (the first push hit a GitHub 500 and a retry
+succeeded).
+
+The user then selected SESS-042. Settings ends with About Sessions: version and stage from
+`AppInfo` (assembly metadata from Directory.Build.props, including new `ReleaseStage`),
+links through Avalonia `ILauncher`, License/notices from the install folder and the data
+folder with Open data folder. The user's trial found License opened the extension-less
+file through Windows' Open with prompt (Acrobat failed) and notices opened a raw folder;
+they chose an in-app viewer. Licenses and notices now opens `LicensesWindow` backed by
+`LicenseCatalog`. Debug build and 134 Core + 263 App tests pass (31 native skips); the
+previewer held Release. The user retried, reported it "works" and asked to commit and
+push; SESS-042 is done. Next suggested 1.0 work: SESS-040 optional apps (first format
+change) with SESS-046 packaged-app research alongside.
 
 ## Previous checkpoint — Alpha designation 2026-09-10
 

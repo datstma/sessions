@@ -17,6 +17,9 @@ Every published build gets a new version and matching Git tag (`v0.1.0`). Never
 move published tags or replace their binaries. MSI compares three numeric fields;
 their maximums are `255.255.65535`. The current project stage is **Alpha**; use release
 titles such as **Sessions 0.5.0 Alpha** and keep GitHub's **pre-release** flag enabled.
+The stage shown in the app's About section comes from `ReleaseStage` in
+Directory.Build.props; when the stage changes, update it together with the release
+workflow's title suffix.
 Keep numeric tags and MSI versions, without `-alpha` or `-beta` suffixes. Feature
 and fix releases keep the numbering rules above. [PRODUCT.md](PRODUCT.md#project-maturity)
 defines the Alpha, Beta and 1.0 readiness criteria.

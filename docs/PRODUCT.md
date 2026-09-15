@@ -47,7 +47,7 @@ its own backlog item that settles detailed behaviour before implementation.
   a backup is written before a save upgrades the format (implemented), and the format
   is frozen at Beta (SESS-041).
 - An About and support view with version, license, release notes and the local data
-  folder, without sending information anywhere (SESS-042).
+  folder, without sending information anywhere (SESS-042, implemented).
 - Export and import a single Session as a portable file (SESS-043).
 - Open a website as part of a Session (SESS-044).
 - Start a Session from a desktop shortcut or the command line (SESS-045).
@@ -316,6 +316,21 @@ preferences leave the app usable and show a warning with access to Settings.
 until recovery; an explicit reset preserves any existing file as a uniquely named
 recovery backup before replacing it. If backup or saving fails, the original remains
 and the error stays available. Reset never deletes or changes Session definitions.
+
+**About Sessions** at the end of Settings shows the version with its project stage
+(for example "Version 0.5.0 Alpha") and states that Sessions is GPL-3.0 open source,
+keeps Sessions and preferences on this computer and sends nothing anywhere. **Release
+notes**, **Report an issue** and **Source code** open the project's GitHub pages in the
+web browser. **Licenses and notices** opens a Sessions window instead of an external
+app: a document list shows the Sessions GPL-3.0 license first, then (in installed
+releases) an Included packages summary with each package's declared license, project
+page and notice files, the packaged notices overview and every bundled notice text, with
+the file location as selectable text. Source builds list only the licenses they bundle.
+Unreadable or very large files explain where they are instead. Escape or Close returns to
+Settings. The data folder path is shown as selectable text with **Open data folder**. If Sessions has not saved anything yet, it says where the folder will be
+instead of opening it. When the browser, file or folder cannot be opened, a nearby
+message names the address or path so it can be found manually. Nothing is sent, checked
+or downloaded automatically; diagnostic export remains future work.
 
 Plugin management is described below. Startup/tray behavior, arbitrary font
 selection, notifications and the other proposed preferences remain future work.

@@ -115,7 +115,12 @@ custom animation. Future animation must respect reduced-motion preferences.
   Plugin support adds a wrapping Plugins source pill and explanations of
   optional closing. The canonical `Inset28x8` source-footer spacing keeps a complete
   selectable row visible at the minimum size with enlarged text; exports are generated.
-  Settings adds a matching Plugins surface with name/version, enable choices,
+  About Sessions is the last Settings surface: section heading, version line, muted
+  local-first/license copy, a wrapping row of neutral link buttons, the selectable data
+  folder path with Open data folder, and a polite status line that uses error text only
+  for failures. Licenses and notices is an owned window with the picker's margins: title,
+  muted explanation, a full-width document selector, muted selectable file path, the text
+  in a scrolling surface and a right-aligned Close in the footer. Settings adds a matching Plugins surface with name/version, enable choices,
   supported settings and separate Apply plugins / Reset plugin preferences controls.
   Reuse existing fonts, colors and control styles. Appearance reset remains separate.
 - **End confirmation:** 640px dialog within the available window, clear save-work copy

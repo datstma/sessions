@@ -401,6 +401,21 @@ area minus the existing decoration allowances and never below the minimum window
 reports a maximized size before the state change. Selection is restored after the library
 loads; an unloaded library keeps the earlier saved ID.
 
+`AppInfo` supplies About's version (the informational version without build metadata),
+project stage and repository from assembly metadata generated from `Directory.Build.props`
+(`Version`, `ReleaseStage`, `RepositoryUrl`), plus the data folder
+(`%LOCALAPPDATA%\Sessions`, also used by composition for every local file) and the
+installation folder containing `LICENSE` and `licenses`. `AboutViewModel` opens web pages
+and the data folder only through Avalonia's `ILauncher`, supplied by the Settings window and
+replaceable in tests; a false result or exception becomes a nearby message with the
+address or path. It performs no network requests itself. License texts are shown in-app:
+`LicenseCatalog` lists `LICENSE`, the packaged `licenses/dependencies.json` inventory
+(formatted as a package summary, accepting PowerShell's single-object form), the top-level
+`THIRD-PARTY-NOTICES.txt` and notice files under `licenses` with .txt, .md or no extension
+(package .nuspec metadata is skipped), and reads each on selection with a 2 MiB cap.
+`LicensesViewModel` ignores stale reads; `LicensesWindow` is owned by Settings, reused while
+open and applies the same appearance preferences.
+
 `WindowAppearance` applies window-level theme variants and token-derived dynamic
 font-size/line-height resources, keeping application theme inheritance at System.
 Main and picker content use layout transforms, not Windows DPI changes. The effective

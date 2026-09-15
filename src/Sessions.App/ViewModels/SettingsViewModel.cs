@@ -13,6 +13,8 @@ public sealed partial class SettingsViewModel : ViewModelBase, IDisposable
     public PreferencesService Preferences { get; }
     public PluginSettingsViewModel? Plugins { get; }
     public bool HasPlugins => Plugins is not null;
+    public AboutViewModel? About { get; }
+    public bool HasAbout => About is not null;
     public IReadOnlyList<AppTheme> Themes { get; } = Array.AsReadOnly(Enum.GetValues<AppTheme>());
     public IReadOnlyList<int> InterfaceSizes => AppPreferences.InterfaceSizes;
     public IReadOnlyList<int> TextSizes => AppPreferences.TextSizes;
@@ -25,9 +27,10 @@ public sealed partial class SettingsViewModel : ViewModelBase, IDisposable
     public bool CanChange => !Preferences.IsBusy;
     public bool CanClose => !Preferences.IsBusy && Plugins?.Service.IsBusy != true;
 
-    public SettingsViewModel(PreferencesService preferences, PluginService? plugins = null)
+    public SettingsViewModel(PreferencesService preferences, PluginService? plugins = null, AboutViewModel? about = null)
     {
         Preferences = preferences;
+        About = about;
         Plugins = plugins is null ? null : new PluginSettingsViewModel(plugins);
         if (plugins is not null) plugins.PropertyChanged += PluginsChanged;
         CopyCurrent();

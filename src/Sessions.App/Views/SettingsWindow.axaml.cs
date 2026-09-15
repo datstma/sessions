@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using Sessions.App.Services;
 using Sessions.App.ViewModels;
 
@@ -14,13 +15,16 @@ public partial class SettingsWindow : Window
 {
     private readonly SettingsViewModel _model;
     private readonly WindowAppearance _appearance;
+    private readonly PreferencesService _preferences;
+    private LicensesWindow? _licensesWindow;
 
     public SettingsWindow() : this(new PreferencesService()) { }
 
-    public SettingsWindow(PreferencesService preferences, PluginService? plugins = null)
+    public SettingsWindow(PreferencesService preferences, PluginService? plugins = null, ILauncher? launcher = null, AppInfo? info = null)
     {
         InitializeComponent();
-        _model = new SettingsViewModel(preferences, plugins);
+        _preferences = preferences;
+        _model = new SettingsViewModel(preferences, plugins, new AboutViewModel(info ?? AppInfo.Current, launcher ?? Launcher));
         DataContext = _model;
         _appearance = new WindowAppearance(this, null, preferences);
         _model.PropertyChanged += ModelChanged;
@@ -46,6 +50,7 @@ public partial class SettingsWindow : Window
         };
         Closed += (_, _) =>
         {
+            _licensesWindow?.Close();
             _model.PropertyChanged -= ModelChanged;
             Application.Current!.PropertyChanged -= SystemAppearanceChanged;
             _model.Dispose();
@@ -74,4 +79,21 @@ public partial class SettingsWindow : Window
     }
 
     private void CloseClicked(object? sender, RoutedEventArgs e) => Close();
+
+    private void LicensesClicked(object? sender, RoutedEventArgs e)
+    {
+        if (_licensesWindow is not null)
+        {
+            if (_licensesWindow.WindowState == WindowState.Minimized) _licensesWindow.WindowState = WindowState.Normal;
+            _licensesWindow.Activate();
+            return;
+        }
+        _licensesWindow = new LicensesWindow(new LicensesViewModel(_model.About!.InstallFolder), _preferences);
+        _licensesWindow.Closed += (_, _) =>
+        {
+            _licensesWindow = null;
+            if (IsVisible) LicensesButton.Focus();
+        };
+        _licensesWindow.Show(this);
+    }
 }

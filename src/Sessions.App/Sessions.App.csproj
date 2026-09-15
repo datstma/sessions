@@ -9,6 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <AssemblyMetadata Include="ReleaseStage" Value="$(ReleaseStage)" />
+    <AssemblyMetadata Include="RepositoryUrl" Value="$(RepositoryUrl)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Models\" />
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>

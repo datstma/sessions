@@ -1,0 +1,32 @@
+<Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Sessions.App.ViewModels" xmlns:services="using:Sessions.App.Services" x:Class="Sessions.App.Views.LicensesWindow"
+        x:DataType="vm:LicensesViewModel" x:CompileBindings="True"
+        Title="Licenses and notices — Sessions" Icon="/Assets/sessions.ico" WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Width="{StaticResource Measure820}" Height="{StaticResource Measure700}"
+        MinWidth="{StaticResource Measure520}" MinHeight="{StaticResource Measure460}">
+    <Grid RowDefinitions="Auto,*,Auto">
+        <StackPanel Margin="{StaticResource Inset28x24x28x20}" Spacing="{StaticResource Measure8}">
+            <TextBlock Text="Licenses and notices" FontSize="{DynamicResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
+            <TextBlock Text="Sessions is licensed under GPL-3.0-only. Components included with it keep their own licenses." Classes="muted" TextWrapping="Wrap" />
+            <ComboBox x:Name="DocumentChoice" ItemsSource="{Binding Documents}" SelectedItem="{Binding SelectedDocument}" HorizontalAlignment="Stretch"
+                      AutomationProperties.Name="License or notice to show" Margin="{StaticResource Inset0x8x0x0}">
+                <ComboBox.Styles><Style Selector="ComboBoxItem" x:DataType="services:LicenseDocument"><Setter Property="AutomationProperties.Name" Value="{Binding Title}" /></Style></ComboBox.Styles>
+                <ComboBox.ItemTemplate><DataTemplate x:DataType="services:LicenseDocument"><TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" /></DataTemplate></ComboBox.ItemTemplate>
+            </ComboBox>
+            <SelectableTextBlock x:Name="DocumentPath" Text="{Binding SelectedDocument.Path, FallbackValue=''}" Foreground="{DynamicResource TextMutedBrush}"
+                                 FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" AutomationProperties.Name="File location" />
+        </StackPanel>
+        <Border Grid.Row="1" Classes="surface" Margin="{StaticResource Inset28x0}" Padding="{StaticResource Inset16}">
+            <Grid>
+                <ScrollViewer x:Name="DocumentScroll" HorizontalScrollBarVisibility="Disabled">
+                    <SelectableTextBlock x:Name="DocumentText" Text="{Binding Text}" TextWrapping="Wrap" AutomationProperties.Name="License text" />
+                </ScrollViewer>
+                <TextBlock x:Name="DocumentProblem" Text="{Binding Problem}" IsVisible="{Binding HasProblem}" Foreground="{DynamicResource SessionError}"
+                           TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+            </Grid>
+        </Border>
+        <Border Grid.Row="2" Padding="{StaticResource Inset28x18}">
+            <Button x:Name="CloseLicensesButton" Content="Close" HorizontalAlignment="Right" Click="CloseClicked" />
+        </Border>
+    </Grid>
+</Window>

@@ -1170,15 +1170,46 @@ upgrading edit and delete saves, and keep the draft and older file when the back
 
 ## SESS-042 — About and support
 
-**P1 · Open · 1.0 feature (S) · 2026-09-15**
-Source: SESS-031 candidate; the user included it in 1.0 via SESS-037.
+**P1 · Done · Implemented, revised after trial and user-confirmed · 2026-09-15**
+Source: SESS-031 candidate; the user included it in 1.0 via SESS-037 and selected it for
+implementation on 2026-09-15.
 
-Show version, Alpha/Beta stage, license, links to release notes and the issue tracker,
-and an action to open the local data folder. Nothing is sent automatically; diagnostic
-export stays after 1.0. Reuse Settings surfaces and existing tokens.
+Implemented: an About Sessions surface at the end of Settings with "Version <version>
+<stage>", local-first GPL-3.0 copy, Release notes / Report an issue / Source code (GitHub
+releases, issues and repository in the browser), Licenses and notices, the selectable
+data folder path and Open data folder. A missing data folder explains where it will be
+instead of opening; failures or launcher exceptions show the address or path in error
+text, and a later successful open clears it. Links without a repository URL are disabled.
+Stage comes from new `ReleaseStage` in Directory.Build.props via assembly metadata, so
+About and releases share one source; composition now uses `AppInfo.DefaultDataFolder` for
+all local files. Nothing is sent automatically and no update check exists. No library or
+preferences format change.
 
-Done when: the view is reachable by keyboard from Settings, opening the folder handles
-failures, and both themes/compact sizes are checked.
+User trial (2026-09-15), reproduced by inspection: "sort of works". The first version's
+License button opened the extension-less LICENSE through Windows, which asked for an app;
+the user chose Adobe Acrobat, which reported an unknown format or missing file. Third-party
+notices opened a raw Explorer folder (in source builds it holds only the Manrope OFL). Given
+a choice between shipping LICENSE.txt and an in-app viewer, the user chose the in-app
+viewer. Both buttons were replaced by Licenses and notices, which opens an owned window
+listing the GPL license, the packaged Included packages summary, the notices overview
+and every bundled notice text, with the file path and readable text. Unreadable and
+over-2 MiB files explain where they are. Web links and Open data folder still use the
+system launcher; the user did not report problems with them.
+
+Validation: Debug solution build has zero warnings/errors (Rider's XAML previewer held the
+Release output); 134 Core and 263 App tests pass (31 opt-in native skips). About cases
+check build metadata against Directory.Build.props, keyboard reachability and each web/data
+action through a fake launcher in both themes (700×800, 640×480), and missing-folder,
+failure, exception, recovery and repository-less behaviour. Six viewer cases cover document
+order and skipped metadata in a published layout, the package summary (including a
+single-object inventory), the real GPL and Manrope texts from build output, unreadable and
+oversized files, stale reads, and Settings keyboard opening, document switching, reuse,
+Escape and focus return in light 820×700 and dark 520×460 with 125% text (captures
+reviewed). The installed MSI's full notices folder was not exercised.
+
+User confirmation (2026-09-15): after retrying the revised viewer in a source build, the
+user reported it "works" and asked to commit and push. The installed build's full notices
+list remains to be seen in the next release check.
 
 ## SESS-043 — Export and import a Session
 
