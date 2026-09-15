@@ -2,7 +2,37 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.6.0 release preparation 2026-09-15
+## Resume next session — 0.6.0 published, 0.6.1 installer next 2026-09-15
+
+The user requested commit, push, tag and workflow, then verification and publication.
+Release commit b0cf19b and annotated tag v0.6.0 were pushed; workflow 34958052678 passed
+(build and draft jobs, zero warnings/errors, 150 Core + 266 App tests, 31 native skips).
+Exact draft assets verified under ignored artifacts/release-verification-0.6.0 (checksums,
+241 source entries, WiX source/license, MSI 0.6.0, body equals notes, administrative
+extraction with app 0.6.0+b0cf19b and notices). Sessions 0.6.0 Alpha was published as a
+pre-release at 2026-09-15T10:36:27Z with asset digests unchanged; RELEASING and the backlog
+record it. Latest public release is 0.6.0.
+
+The user then chose to do the branded installer (SESS-049) as 0.6.1. Implemented with
+WiX UI dialogs, generated bitmaps (scripts/Generate-InstallerArt.py), Launch Sessions via
+WixShellExec and new ARP links; version 0.6.1 and notes/docs updated. Full Build-Installer
+passes (0 warnings, 150 Core + 266 App tests); MSI tables verified. Finding SESS-050: the
+shipped app icon does not render the logo's opacity/overlap; awaiting the user's decision.
+
+The user reported both MSIs "stuck" in the review Sandbox. Cause found and recorded in
+SESS-049/021/047: Windows Sandbox runs Smart App Control in evaluation mode with Defender
+disabled, so each unsigned-package check waits about two minutes (before Welcome and after
+Install); not an installer defect, and the host is unaffected (Smart App Control off).
+Sessions-installer-review.wsb now turns it off at logon (input/Prepare-Sandbox.ps1); that
+offline configuration installed 0.6.0 in 4.4 s and upgraded to 0.6.1 in 8.1 s. Automated
+Sandbox UI checks passed for the Welcome/Ready/Finished pages, Launch Sessions, maintenance
+Repair/Remove, refusal while running, and removal without the launch option (scripts and
+screenshots under ignored artifacts/installer-ui-review/sandbox). All Sandboxes are stopped.
+The user then confirmed "works" and asked to commit and push; the 0.6.0 publication record
+and 0.6.1 installer work are committed together. Next on request: tag v0.6.1, run the
+release workflow, verify and publish; SESS-050 icon decision still open.
+
+## Previous checkpoint — 0.6.0 release preparation 2026-09-15
 
 After SESS-040 (7c1f0b6) the user asked to prepare 0.6.0. Shared version is now 0.6.0
 (minor bump for features). Added docs/release-notes/0.6.0.md (optional apps, Duplicate,

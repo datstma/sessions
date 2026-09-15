@@ -22,3 +22,7 @@ exports all seven ICO sizes above into `src/Sessions.App/Assets/sessions.ico`.
 Both windows and the application executable use that icon. The MSI uses the
 published executable's icon for Installed apps and the Start menu shortcut.
 The repository README uses the supplied tile SVG directly.
+[Generate-InstallerArt.py](../../scripts/Generate-InstallerArt.py) draws the installer's
+493×312 dialog and 493×58 banner bitmaps (`installer/Assets`) from the tile's colour and
+geometry, honouring the SVG's square opacity and centred background-coloured strokes, with
+the Manrope ExtraBold wordmark. Installer dialogs are light-only.

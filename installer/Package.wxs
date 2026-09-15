@@ -9,6 +9,9 @@
     <Icon Id="Sessions.exe" SourceFile="$(PublishDirectory)/Sessions.App.exe" />
     <Property Id="ARPPRODUCTICON" Value="Sessions.exe" />
     <Property Id="ARPURLINFOABOUT" Value="https://github.com/datstma/sessions" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/datstma/sessions/issues" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/datstma/sessions/releases" />
+    <Property Id="ARPCOMMENTS" Value="Get your apps together." />
     <!-- Do not let Restart Manager close an active Session behind its confirmation UI. -->
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable" />
     <Launch Condition="NOT ALLUSERS" Message="Sessions installs for the current user only. Remove the ALLUSERS option and retry." />
@@ -36,6 +39,46 @@
       <Custom Action="override Wix4CloseApplications_X64" Before="InstallValidate" />
       <Custom Action="RequireSessionsClosed" After="Wix4CloseApplications_X64" Condition="SESSIONS_RUNNING" />
     </InstallExecuteSequence>
+
+    <!-- Branded standard dialogs: Welcome, Ready to install, progress and Finished. The fixed per-user
+         location needs no folder page, and GPL-3.0-only requires no license acceptance. Silent installs
+         run no UI sequence, so they never launch the app. -->
+    <WixVariable Id="WixUIBannerBmp" Value="$(sys.SOURCEFILEDIR)Assets\InstallerBanner.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="$(sys.SOURCEFILEDIR)Assets\InstallerDialog.bmp" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch Sessions" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+    <CustomAction Id="LaunchSessions" BinaryRef="Wix4UtilCA_X64" DllEntry="WixShellExec" Impersonate="yes" />
+    <UI Id="SessionsInstallerUI">
+      <TextStyle Id="WixUI_Font_Normal" FaceName="Segoe UI" Size="9" />
+      <TextStyle Id="WixUI_Font_Bigger" FaceName="Segoe UI" Size="12" />
+      <TextStyle Id="WixUI_Font_Title" FaceName="Segoe UI" Size="9" Bold="yes" />
+      <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+
+      <DialogRef Id="ErrorDlg" />
+      <DialogRef Id="FatalError" />
+      <DialogRef Id="FilesInUse" />
+      <DialogRef Id="MsiRMFilesInUse" />
+      <DialogRef Id="PrepareDlg" />
+      <DialogRef Id="ProgressDlg" />
+      <DialogRef Id="ResumeDlg" />
+      <DialogRef Id="UserExit" />
+      <DialogRef Id="WelcomeDlg" />
+
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Condition="NOT Installed" />
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="1" Condition="NOT Installed" />
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2" Condition="Installed" />
+      <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg" />
+      <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg" />
+      <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg" />
+      <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg" />
+      <!-- The Finished checkbox is shown only for a new install or upgrade (NOT Installed). -->
+      <Publish Dialog="ExitDialog" Control="Finish" Property="WixShellExecTarget" Value="[INSTALLFOLDER]Sessions.App.exe" Order="1"
+               Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed" />
+      <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchSessions" Order="2"
+               Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed" />
+      <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999" />
+    </UI>
+    <UIRef Id="WixUI_Common" />
 
     <Feature Id="SessionsFeature" Title="Sessions" Level="1">
       <ComponentGroupRef Id="PublishedFiles" />

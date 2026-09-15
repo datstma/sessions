@@ -386,8 +386,10 @@ or installed real-app/UAC outcomes and does not close this item.
 Done when: record ordinary-user install/update/uninstall and installed launch/end
 checks, including the elevated helper and cancellation paths where applicable.
 Keep test libraries and apps isolated. Coordinate hands-on app findings with SESS-001.
-Fresh offline Sandbox MSI operations also took about two minutes; record behavior
-in a normal Windows environment before deciding whether a delay investigation is needed.
+Fresh Sandbox MSI operations took about two minutes; cause established 2026-09-15
+(SESS-049): Smart App Control evaluation in Windows Sandbox with Defender disabled.
+It is Sandbox-specific and needs no installer change; test configurations should turn
+Smart App Control off inside the Sandbox.
 
 ## SESS-022 — Refresh GitHub Actions runtimes
 
@@ -1026,6 +1028,8 @@ User confirmation (2026-09-15): after running the source build with their librar
 user reported it "looks better". This confirms the overall layout/alignment correction in
 their setup; specific window sizes, themes and scaling were not stated.
 
+Published in 0.6.0 Alpha from v0.6.0/b0cf19b on 2026-09-15; release validation is recorded under SESS-040.
+
 ## SESS-037 — Agree the 1.0 feature set
 
 **P1 · Done · Agreed with the user · 2026-09-15**
@@ -1079,6 +1083,8 @@ held the Release output; CI and release packaging build Release.
 User confirmation (2026-09-15): after trying the source build, the user reported it
 "works" and asked to commit and push. The specific steps tried were not stated.
 
+Published in 0.6.0 Alpha from v0.6.0/b0cf19b on 2026-09-15; release validation is recorded under SESS-040.
+
 ## SESS-039 — Remember window size, position and last selected Session
 
 **P1 · Done · Implemented, validated and user-confirmed · 2026-09-15**
@@ -1117,6 +1123,8 @@ User confirmation (2026-09-15): after running the source build natively, the use
 reported it "works". Which suggested checks were performed (maximize/restore, a second
 monitor, a deleted Session) was not stated, so multi-monitor and DPI-change behaviour
 remain unconfirmed.
+
+Published in 0.6.0 Alpha from v0.6.0/b0cf19b on 2026-09-15; release validation is recorded under SESS-040.
 
 ## SESS-040 — Optional apps: continue when an app fails to start
 
@@ -1163,6 +1171,14 @@ User confirmation (2026-09-15): after trying the source build, the user reported
 "works" and asked to commit and push. The specific scenarios tried were not stated, so
 UAC cancellation, readiness timeouts and Steam skips remain unconfirmed in real use.
 
+Published in 0.6.0 Alpha from v0.6.0/b0cf19b on 2026-09-15 together with SESS-036, 038,
+039, 041 (upgrade backup) and 042. Workflow 34958052678 passed clean tagged builds with zero
+warnings/errors and 150 Core + 266 App tests (31 opt-in native skips). Downloaded checksums,
+241 source entries, WiX source/license and MSI ProductVersion 0.6.0 verify; the exact MSI's
+administrative extraction contains Sessions.App 0.6.0+b0cf19b and the licenses payload.
+Release notes disclose library v6, the backup, unconfirmed real-app scenarios and omitted
+installed-build lifecycle and format-upgrade checks.
+
 ## SESS-041 — Saved-data compatibility commitment
 
 **P1 · Open · Upgrade backup done; format freeze at Beta · 2026-09-15**
@@ -1195,6 +1211,8 @@ first save only, skip new and current libraries, copy unreadable files without
 overwriting an earlier copy name, and block the upgrade when the copy fails with a
 storage error. Three App cases show, capture (both themes) and dismiss the notice after
 upgrading edit and delete saves, and keep the draft and older file when the backup fails.
+
+Published in 0.6.0 Alpha from v0.6.0/b0cf19b on 2026-09-15; release validation is recorded under SESS-040.
 
 ## SESS-042 — About and support
 
@@ -1238,6 +1256,8 @@ reviewed). The installed MSI's full notices folder was not exercised.
 User confirmation (2026-09-15): after retrying the revised viewer in a source build, the
 user reported it "works" and asked to commit and push. The installed build's full notices
 list remains to be seen in the next release check.
+
+Published in 0.6.0 Alpha from v0.6.0/b0cf19b on 2026-09-15; release validation is recorded under SESS-040.
 
 ## SESS-043 — Export and import a Session
 
@@ -1307,6 +1327,10 @@ installed packaged apps.
 Source: SESS-037; the user chose to decide near Beta. Releases are currently unsigned,
 which can trigger Windows SmartScreen warnings.
 
+Finding (2026-09-15, SESS-049): Smart App Control's audit event in Windows Sandbox
+records that the unsigned MSI would have been blocked if Smart App Control were enforced.
+Users with Smart App Control on may therefore be unable to install unsigned releases.
+
 Before Beta, compare available options (commercial certificates and signing services
 for open-source projects), cost, identity requirements and release workflow changes,
 then ask the user to decide. Do not contact vendors or buy anything without authorization.
@@ -1330,22 +1354,79 @@ guide matches the Beta build.
 
 ## SESS-049 — Branded installer with Launch Sessions
 
-**P2 · Proposed · Awaiting the user's timing decision · 2026-09-15**
+**P2 · Done · Implemented for 0.6.1, Sandbox-checked and user-confirmed · 2026-09-15**
 Source: during 0.6.0 release preparation the user asked whether the installer can be
 branded with Sessions icons and typical installation information, and offer "Launch
-Sessions" after installation. Code inspection: the MSI has no authored UI (only Windows
-Installer's basic progress), already registers the product icon and an about link, and
-installs per-user to a fixed folder.
+Sessions" after installation. The user chose to ship it as 0.6.1 after publishing 0.6.0.
+Code inspection: the MSI had no authored UI (only Windows Installer's basic progress),
+already registered the product icon and an about link, and installs per-user to a fixed
+folder.
 
-Agent proposal: WiX standard dialogs (Welcome, progress, Finished) with a Sessions
-banner and side image generated from branding assets (light only, as installer dialogs
-do not follow dark mode); no folder or license-acceptance steps (fixed per-user location;
-GPL-3.0 needs no acceptance); a default-checked Launch Sessions option on the Finished
-page that starts the installed app as the user and is absent from silent installs and
-uninstall; fuller Installed apps details (publisher, help and update links, comments).
-The existing running-app refusal must remain visible in the new UI. Adds the WiX UI
-extension (review notices) and generated bitmaps to the branding pipeline.
+Implemented: `installer/Package.wxs` defines a custom sequence from the WiX 7 UI
+extension's dialogs (WixToolset.UI.wixext 7.0.0): Welcome → Ready to install → progress →
+Finished, keeping the standard maintenance Repair/Remove pages and error, cancel and
+files-in-use dialogs; no folder or license pages. Branded 493×312 dialog and 493×58
+banner bitmaps come from new `scripts/Generate-InstallerArt.py` (tile colour and geometry,
+SVG-faithful opacity/strokes, Manrope wordmark) into `installer/Assets`. Finished offers a
+default-checked Launch Sessions that sets `WixShellExecTarget` to the installed executable
+and runs `WixShellExec` as the user only when `NOT Installed`; silent installs run no UI.
+Installed apps gains help, update and comment properties. `Package.en-us.wxl` rewrites the
+Welcome and Ready texts for the fixed per-user install. Because a .wxl makes WiX write into
+a culture folder, `Build-Installer.ps1` now copies the single MSI it finds. Version 0.6.1;
+release notes, README, PRODUCT, RELEASING, installer licenses and logo README updated.
 
-Done when: interactive install, upgrade from the previous release, launch option,
-refusal while running and uninstall are exercised on the built MSI (a Sandbox or manual
-run), ICE validation passes, and RELEASING and the release notes describe the change.
+Validation: clean full Release solution/MSI builds with zero warnings/errors and WiX
+validation (warnings as errors; an intermediate WIX1077 about a literal property reference
+was resolved by setting the launch target from the Finish button). 150 Core and 266 App
+tests pass (31 opt-in native skips). Table inspection of the final MSI (SHA-256
+0257eb782e416573e34b4e1e982af288b838c37be19c2820e95a437fe78671f3) confirms dialogs without a
+license page, UI sequence, Welcome/Ready navigation, Finish events and conditions, the
+LaunchSessions custom action, unchanged running-app refusal actions, new ARP properties,
+localized texts and embedded bitmap sizes. Record: ignored artifacts/installer-ui-review.
+
+User trial (2026-09-15): both the 0.6.0 and 0.6.1 MSIs "seems stuck" when started in the
+prepared Sandbox. Reproduced: in Windows Sandbox, a fresh package open shows only Windows
+Installer's "Preparing to install" box for about 121 s before Welcome, and progress sits
+for about 129 s after Install (silent installs about 124 s). Networking made no difference.
+Cause: Windows Sandbox starts Smart App Control in evaluation mode
+(`VerifiedAndReputablePolicyState` 2; host is 0) with Defender disabled, so its reputation
+check of the unsigned package waits about two minutes before allowing it; the
+AppLocker "MSI and Script" log records event 8028 ("would have been prevented if the
+Config CI policy were enforced") exactly when each wait ends. Authenticode checks of the
+MSI take 0.1 s in the Sandbox and 0.3 s on the host. Setting the value to 0 with
+`CiTool --refresh` inside the Sandbox cut a silent install to 3.6 s. The review
+configuration now does that at logon (`artifacts/installer-ui-review/input/Prepare-Sandbox.ps1`);
+in that exact offline configuration 0.6.0 installed in 4.4 s and 0.6.1 upgraded it silently
+in 8.1 s (installed version 0.6.1+b0cf19b). Not an installer defect; see SESS-047.
+
+Sandbox interactive checks, driven by UI Automation and screenshots (ignored
+`artifacts/installer-ui-review/sandbox/results`): branded Welcome, Ready to install,
+progress and Finished pages render; Launch Sessions is ticked by default and Finish opened
+the installed 0.6.1 app within 2.7 s; running Setup again shows the maintenance Welcome
+and the bannered Change (disabled)/Repair/Remove page; Remove while Sessions runs shows the
+close-Sessions message, then "ended prematurely", exits 1603 and keeps the files; after
+closing Sessions, Remove completes, its Finished page has no Launch Sessions and nothing
+launches. Verbose logs show only the benign WiX UI debug notes 2826 (lines 7 px past the
+dialog edge at this DPI) and 2836. Not exercised: unticking Launch Sessions, an interactive
+upgrade, Repair, and a standard user account.
+
+User confirmation (2026-09-15): after the Sandbox fix the user reported "works" and asked
+to commit and push. Tagging and publishing 0.6.1 remain separate requests.
+
+## SESS-050 — Match the app icon to the canonical logo
+
+**P2 · Proposed · Finding from SESS-049 · 2026-09-15**
+Source: code inspection while drawing installer art. `scripts/Generate-BrandAssets.py`
+renders `branding/logo/sessions-tile.svg` with Pillow outlines drawn inside each square and
+ignores the SVG `opacity` attributes. The shipped `sessions.ico` therefore shows three
+separate, fully white squares of different apparent sizes, instead of the designed
+cascade of equal, overlapping squares (45% and 72% opacity) separated by centred indigo
+strokes. The branding was approved with the current icon (SESS-024), so changing it is a
+visible brand change for the user to decide.
+
+Candidate fix: reuse the SVG-faithful drawing from `Generate-InstallerArt.py` in the icon
+generator, regenerate all seven ICO sizes, and review legibility at 16–32 px, where the
+translucent squares may read less clearly than today's solid ones.
+
+Done when: the user decides; if approved, the regenerated icon is reviewed at all sizes in
+the taskbar, Start menu and Installed apps, and the MSI icon references still verify.

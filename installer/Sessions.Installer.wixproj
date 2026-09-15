@@ -12,6 +12,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="WixToolset.Util.wixext" Version="7.0.0" />
+    <PackageReference Include="WixToolset.UI.wixext" Version="7.0.0" />
     <Compile Include="$(PayloadSource)" Condition="'$(PayloadSource)' != ''" />
   </ItemGroup>
   <Target Name="RequirePublishedPayload" BeforeTargets="PrepareForBuild">

@@ -35,7 +35,7 @@
 
 <p align="center"><em>Your apps, their order, and what's running—all in one place.</em></p>
 
-**Sessions 0.6.0 adds optional apps, Duplicate Session and an About page, and reopens where you left off.**
+**Sessions 0.6 adds optional apps, Duplicate Session and an About page, reopens where you left off, and now installs with a branded setup.**
 [Download the Windows alpha](#downloads) to try it with your own apps.
 
 | Make it yours | Start together | End with clarity |
@@ -134,21 +134,23 @@ If an app cannot be stopped or safely tracked, Sessions explains the problem and
 Features and saved-data formats may change, and some apps require manual handling.
 Feedback and bug reports are welcome.
 
-Download the Sessions 0.6.0
-[Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.6.0/Sessions-0.6.0-win-x64.msi)
-from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.6.0).
+Download the Sessions 0.6.1
+[Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.6.1/Sessions-0.6.1-win-x64.msi)
+from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.6.1).
 The installer includes .NET and installs for your Windows user, with a Start menu
-shortcut. Installer and application binaries are unsigned.
+shortcut and an option to launch Sessions when setup finishes. Installer and
+application binaries are unsigned.
 
-[What's new in 0.6.0](docs/release-notes/0.6.0.md): optional apps, Duplicate Session,
-window and selection memory, About with in-app licenses, library upgrade backups and a
-roomier layout.
+[What's new in 0.6.1](docs/release-notes/0.6.1.md): a branded installer with Launch
+Sessions. [What's new in 0.6.0](docs/release-notes/0.6.0.md): optional apps, Duplicate
+Session, window and selection memory, About with in-app licenses, library upgrade
+backups and a roomier layout.
 
 Close Sessions before installing, updating, or uninstalling. Updates and uninstall
 preserve your saved Sessions and appearance preferences. To update, download and run a newer MSI; there is no
 automatic updater. The release page includes checksums, source, and validation limits.
 
-**Library compatibility:** saving in 0.6.0 uses v6, which 0.5.0 and earlier cannot
+**Library compatibility:** saving in 0.6.0 or later uses v6, which 0.5.0 and earlier cannot
 open. Loading an older library alone does not rewrite it. On the first save, Sessions
 keeps the previous file beside your library as `sessions.v<old version>-backup-<date>-<time>.json`
 and shows where it is; restore it as `sessions.json` to return to an older release.

@@ -1,0 +1,5 @@
+<WixLocalization Culture="en-US" xmlns="http://wixtoolset.org/schemas/v4/wxl">
+  <!-- Plain wording for the fixed per-user install; other dialog text comes from the WiX UI extension. -->
+  <String Id="WelcomeDlgDescription" Value="Setup installs [ProductName] for your Windows user. Your saved Sessions and preferences are kept. Click Next to continue, or Cancel to exit." />
+  <String Id="VerifyReadyDlgInstallText" Value="Click Install to begin. If Sessions is running, close it first. Click Cancel to exit Setup." />
+</WixLocalization>

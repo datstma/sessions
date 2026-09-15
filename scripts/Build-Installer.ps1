@@ -32,8 +32,10 @@ try {
         "-p:PublishDirectory=$publish", "-p:PayloadSource=$payload", "-p:OutputPath=$work/msi/",
         "-p:IntermediateOutputPath=$work/obj/")
     $name = "Sessions-$version-win-x64.msi"
-    $built = Join-Path $work "msi/$name"
-    if (!(Test-Path -LiteralPath $built)) { throw "Expected installer not found: $built" }
+    # Localized builds write into a culture folder (for example msi/en-US).
+    $built = @(Get-ChildItem -LiteralPath (Join-Path $work 'msi') -Recurse -File -Filter $name | ForEach-Object FullName)
+    if ($built.Count -ne 1) { throw "Expected exactly one installer named $name under $work/msi." }
+    $built = $built[0]
     $destination = Join-Path $output $name
     Copy-Item -LiteralPath $built -Destination $destination -Force
     $hash = (Get-FileHash -LiteralPath $destination -Algorithm SHA256).Hash.ToLowerInvariant()

@@ -70,7 +70,16 @@ The script does not install Sessions, access your library, or upload anything.
 - Program files: `%LOCALAPPDATA%\Programs\Sessions` for the installing user.
 - Saved library: `%LOCALAPPDATA%\Sessions\sessions.json`, outside installer ownership.
 - Start menu shortcut and Windows Installed apps registration, both using the
-  Sessions icon embedded in the published executable.
+  Sessions icon embedded in the published executable, with project, support (issues)
+  and update (releases) links and a short description.
+- Interactive setup (since 0.6.1) uses the WiX UI extension's standard dialogs in a
+  custom sequence: Welcome → Ready to install → progress → Finished, plus the standard
+  maintenance Repair/Remove pages. There is no folder or license page. Bitmaps come from
+  `installer/Assets`, regenerated with `python scripts/Generate-InstallerArt.py`, and
+  `installer/Package.en-us.wxl` overrides two strings. Finished offers a default-checked
+  **Launch Sessions** that runs the installed executable through WiX's `WixShellExec`
+  as the user, only when `NOT Installed`. Localized builds write the MSI into a culture
+  folder; `Build-Installer.ps1` copies the single MSI it finds to the release folder.
 - A stable upgrade identity; higher versions replace previous versions, and lower
   versions are rejected. Rebuilding a published version is not an update mechanism.
 - Uninstall removes installed files and empty program directories, preserving the
@@ -145,6 +154,16 @@ lifecycle checks were omitted under the existing instruction and disclosed. Rele
 notes document library v5 compatibility, Steam tracking limits and native validation
 limits. Plugin preferences remain outside installer ownership.
 
+For 0.6.0, workflow 34958052678 passed clean tagged solution/MSI builds (zero warnings or
+errors, first CI run on SDK 10.0.401) and 150 Core + 266 App tests (31 opt-in native skips).
+Downloaded checksums, all 241 source archive entries, WiX source/license and MSI
+ProductVersion 0.6.0 verify; the draft description matches the release notes. An
+administrative extraction of the exact MSI shows Sessions.App 0.6.0+b0cf19b with LICENSE,
+THIRD-PARTY-NOTICES.txt, dependencies.json and 20 notice texts among 274 payload files.
+Publication was explicitly requested on 2026-09-15. The release introduces library v6,
+documented with its automatic backup; the installed-build format-upgrade check and
+repeated Sandbox lifecycle checks were not performed and are disclosed.
+
 ## Create a GitHub draft release
 
 1. Update the version and add `docs/release-notes/<version>.md`. Review dependency
@@ -198,6 +217,15 @@ on artifact digest mismatch. This repository uses GitHub-hosted runners.
 Use a disposable Windows VM with no separately installed .NET runtime and a
 standard user. Never replace the real development library with test fixtures.
 
+- Run interactive setup: check the branded Welcome, Ready to install and Finished
+  pages, that Launch Sessions opens the installed app and unticking it does not, that
+  running Setup again offers Repair/Remove without the launch option, and that setup
+  while Sessions is running is refused.
+- In Windows Sandbox, first turn Smart App Control off inside the Sandbox (set
+  `HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy` `VerifiedAndReputablePolicyState`
+  to 0, then `CiTool --refresh`). The Sandbox starts it in evaluation mode with Defender
+  disabled, and each unsigned-package check then waits about two minutes (before Welcome
+  and again after Install), which looks like a hang.
 - Install, use the Start menu shortcut, create/save a Session, close and reopen.
   Check the Sessions icon in the shortcut, taskbar and Installed apps, and verify
   the bundled Manrope typography in both themes.

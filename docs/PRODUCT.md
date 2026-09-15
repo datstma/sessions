@@ -10,6 +10,10 @@ The accepted Windows distribution direction is occasional self-contained x64 MSI
 releases on GitHub. Installations are per-user, include the .NET runtime, and add a
 Start menu shortcut. Upgrades and uninstall preserve saved Sessions. Users install
 a newer MSI to update; an automatic updater is outside the implemented scope.
+Interactive setup uses branded Welcome, Ready to install and Finished pages without
+folder or license-acceptance steps; Finished offers **Launch Sessions** (ticked by
+default) after a new install or upgrade, never after repair, removal or a silent install.
+Installed apps shows the project, support and update links.
 Installer changes require Sessions to be closed through its normal confirmation
 flow. Version 0.1.0 is the first unsigned development preview, distributed through
 [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.1.0).

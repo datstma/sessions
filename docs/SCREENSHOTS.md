@@ -2,7 +2,7 @@
 
 These screenshots show **Sessions 0.6.0**, including executable icons in the app
 list, matching status chips and the safer-closing confirmation. You can
-[download the Windows alpha](https://github.com/datstma/sessions/releases/tag/v0.6.0).
+[download the Windows alpha](https://github.com/datstma/sessions/releases/tag/v0.6.1).
 The screenshots show the system-following themes; Settings also offers appearance
 preferences.
 
