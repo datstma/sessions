@@ -521,6 +521,28 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     }
 
     private bool CanEdit() => CanBrowse && SelectedSession is not null && !SelectedIsActive && !HasOpeningApps;
+    // Copying reads only the saved definition, so it stays available while that Session runs.
+    private bool CanDuplicate() => CanBrowse && SelectedSession is not null;
+
+    [RelayCommand(CanExecute = nameof(CanDuplicate))]
+    private void DuplicateSession()
+    {
+        ErrorMessage = null;
+        var original = SelectedSession!.Definition;
+        Editor = SessionEditorViewModel.ForDuplicate(original, CopyName(original.Name), audioDevices);
+    }
+
+    internal string CopyName(string name)
+    {
+        const int maximumLength = 120;
+        var taken = Sessions.Select(session => session.Name).ToHashSet(StringComparer.CurrentCultureIgnoreCase);
+        for (var number = 1; ; number++)
+        {
+            var suffix = number == 1 ? " copy" : $" copy {number}";
+            var candidate = name.Trim()[..Math.Min(name.Trim().Length, maximumLength - suffix.Length)].TrimEnd() + suffix;
+            if (!taken.Contains(candidate)) return candidate;
+        }
+    }
 
     [RelayCommand(CanExecute = nameof(CanEdit))]
     private void EditSession()
@@ -561,11 +583,13 @@ public partial class MainViewModel : ViewModelBase, IDisposable
             var definition = editor.BuildDefinition();
             var definitions = Sessions.Select(session => session.Definition).ToList();
             var index = definitions.FindIndex(session => session.Id == definition.Id);
-            if (index < 0) definitions.Add(definition);
+            var original = editor.DuplicateOf is { } source ? definitions.FindIndex(session => session.Id == source) : -1;
+            var insertAt = original >= 0 ? original + 1 : definitions.Count;
+            if (index < 0) definitions.Insert(insertAt, definition);
             else definitions[index] = definition;
             await store.SaveAsync(definitions);
             var saved = CreateSessionViewModel(definition);
-            if (index < 0) Sessions.Add(saved);
+            if (index < 0) Sessions.Insert(insertAt, saved);
             else Sessions[index] = saved;
             SelectedSession = saved;
             if (_closeAfterSave && HasActiveRun) IsCloseConfirmation = true;
@@ -654,6 +678,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         LeaveAppsAndCloseCommand.NotifyCanExecuteChanged();
         NewSessionCommand.NotifyCanExecuteChanged();
         EditSessionCommand.NotifyCanExecuteChanged();
+        DuplicateSessionCommand.NotifyCanExecuteChanged();
         CancelEditCommand.NotifyCanExecuteChanged();
         SaveSessionCommand.NotifyCanExecuteChanged();
         SaveDraftAndCloseCommand.NotifyCanExecuteChanged();

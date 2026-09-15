@@ -18,6 +18,23 @@ public sealed record SessionDefinition(
     AudioDeviceChoice? OutputAudioDevice = null,
     AudioDeviceChoice? InputAudioDevice = null)
 {
+    /// <summary>
+    /// Copies the saved setup under new Session and app identities, so the copy never replaces the
+    /// original or shares its apps. Main-app and completion-focus choices point at the copied apps.
+    /// </summary>
+    public SessionDefinition Duplicate(string name)
+    {
+        var copies = Apps.Select(app => app.Id).Distinct().ToDictionary(id => id, _ => Guid.NewGuid());
+        return this with
+        {
+            Id = Guid.NewGuid(),
+            Name = name,
+            Apps = Apps.Select(app => app with { Id = copies[app.Id], Plugin = app.Plugin?.Capture() }).ToArray(),
+            MainAppId = MainAppId is { } main && copies.TryGetValue(main, out var mainCopy) ? mainCopy : null,
+            FocusAppId = FocusAppId is { } focus && copies.TryGetValue(focus, out var focusCopy) ? focusCopy : null
+        };
+    }
+
     public void Validate()
     {
         foreach (var device in new[] { OutputAudioDevice, InputAudioDevice })

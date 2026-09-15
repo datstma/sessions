@@ -1045,17 +1045,38 @@ from the draft (S/M/L) are rough agent guesses, not commitments.
 
 ## SESS-038 — Duplicate a Session
 
-**P1 · Open · 1.0 feature (S) · 2026-09-15**
-Source: SESS-009 deferred duplication; the user included it in 1.0 via SESS-037.
+**P1 · Done · Implemented, validated and user-confirmed · 2026-09-15**
+Source: SESS-009 deferred duplication; the user included it in 1.0 via SESS-037 and
+selected it for implementation on 2026-09-15.
 
-The copy needs a new Session ID and new app IDs, with main-app and completion-focus
-references remapped to the copied apps. Plugin references, audio choices and startup
-settings copy as saved values; running state, ownership and any active run never copy.
-Decide the copy's name, placement and whether it opens in the editor before saving.
-Duplicating an active Session's saved definition must not affect its run.
+Decisions (agent, reversible): **Duplicate Session** sits beside Delete Session… and
+opens a new draft rather than saving immediately, so the usual reason for copying
+(changing something) needs no extra step and an accidental copy leaves nothing behind.
+The draft is titled Duplicate Session, suggests "<name> copy" (then "copy 2", within the
+120-character limit, ignoring case) with the name selected, and counts as unsaved even
+when untouched, so closing Sessions asks first. The saved copy is inserted directly after
+the original and selected; other Sessions keep their order. It is available whenever
+browsing is, including for the active Session, because only the saved definition is read.
 
-Done when: a duplicated Session saves, reloads and starts independently, with tests for
-identity remapping, plugin/audio settings and keyboard access in both themes.
+Implemented: `SessionDefinition.Duplicate` in Core gives the Session and every app new
+identities, remaps main-app and completion-focus references to the copies and clones
+plugin settings. Arguments, working folders, elevation, force quit, readiness, pauses,
+launch mode, audio choices and plugin close options copy unchanged. No library format,
+ownership or runtime change.
+
+Validation: Debug solution build has zero warnings/errors; 122 Core and 250 App tests pass
+(31 opt-in native skips). Three Core cases cover identity remapping with every app and
+Session field, plugin settings surviving disposal of the original JSON document, and an
+original and copy round-tripping together. Six App cases cover keyboard Duplicate at
+1440×900 light and 640×480 dark (button row, selected name, remapped main app, insertion
+after the original, focus return, repeated copy names), Cancel and window close without
+writes, duplicating the active Session without affecting its run, numbered and
+length-limited names, and a real JSON library reload with plugin, focus and audio choices.
+Captures were reviewed. The Release build was not rerun because Rider's Avalonia previewer
+held the Release output; CI and release packaging build Release.
+
+User confirmation (2026-09-15): after trying the source build, the user reported it
+"works" and asked to commit and push. The specific steps tried were not stated.
 
 ## SESS-039 — Remember window size, position and last selected Session
 

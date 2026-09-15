@@ -244,9 +244,13 @@
                                         <TextBlock Text="Apps running before you start stay independent of this Session. Ending it leaves them open." Classes="muted" TextWrapping="Wrap" />
                                     </StackPanel></Border>
                                 </UniformGrid>
-                                <Button x:Name="DeleteSessionButton" Content="Delete Session…" Classes="quiet"
-                                        Foreground="{DynamicResource SessionError}"
-                                        Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).RequestDeleteSessionCommand}" />
+                                <WrapPanel ItemSpacing="{StaticResource Measure12}" LineSpacing="{StaticResource Measure8}">
+                                    <Button x:Name="DuplicateSessionButton" Content="Duplicate Session" Classes="quiet" Click="EditRequested"
+                                            Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).DuplicateSessionCommand}" />
+                                    <Button x:Name="DeleteSessionButton" Content="Delete Session…" Classes="quiet"
+                                            Foreground="{DynamicResource SessionError}"
+                                            Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).RequestDeleteSessionCommand}" />
+                                </WrapPanel>
                             </StackPanel>
                         </ScrollViewer>
                     </Grid>

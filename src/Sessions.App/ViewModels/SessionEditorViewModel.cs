@@ -65,7 +65,8 @@ public partial class SessionEditorViewModel : ViewModelBase
     private readonly DraftSettings _initialSettings;
     private readonly AppDraft[] _initialApps;
     // Compare raw editable values, including invalid inputs; building a valid definition would lose them.
-    public bool HasChanges => CaptureSettings() != _initialSettings || !Apps.Select(CaptureApp).SequenceEqual(_initialApps);
+    // A copy does not exist until it is saved, so even an untouched duplicate is unsaved work.
+    public bool HasChanges => DuplicateOf is not null || CaptureSettings() != _initialSettings || !Apps.Select(CaptureApp).SequenceEqual(_initialApps);
     private DraftSettings CaptureSettings() => new(Name, Description, EndWithApp, MainApp?.Id,
         LaunchModeIndex, PauseBetweenAppsSeconds, StartupFocusIndex, FocusApp?.Id, OutputAudio?.Choice, InputAudio?.Choice);
     private static AppDraft CaptureApp(AppEditorViewModel app) => new(app.Id, app.Name, app.ExecutablePath,
@@ -76,7 +77,9 @@ public partial class SessionEditorViewModel : ViewModelBase
     private sealed record AppDraft(Guid Id, string Name, string Path, string Arguments, string Directory,
         bool Administrator, bool ForceQuit, int Readiness, decimal? Timeout, bool OverridePause, decimal? Pause, bool CloseOnEnd);
     public bool IsNew { get; }
-    public string Title => IsNew ? "Create a Session" : "Edit Session";
+    /// <summary>The saved Session this new draft copies; the copy is placed after it.</summary>
+    public Guid? DuplicateOf { get; private init; }
+    public string Title => DuplicateOf is not null ? "Duplicate Session" : IsNew ? "Create a Session" : "Edit Session";
     public string SaveLabel => IsNew ? "Create Session" : "Save changes";
     public ObservableCollection<AppEditorViewModel> Apps { get; } = [];
     public IReadOnlyList<AppEditorViewModel> ProcessApps => Apps.Where(app => !app.IsPlugin).ToArray();
@@ -117,14 +120,20 @@ public partial class SessionEditorViewModel : ViewModelBase
     public bool HasValidationMessage => ValidationMessage is not null;
     public bool CanSave => FirstValidationIssue is null;
 
+    public static SessionEditorViewModel ForDuplicate(SessionDefinition original, string name, IAudioDeviceService? audioDevices = null) =>
+        new(original.Duplicate(name), audioDevices, isNew: true) { DuplicateOf = original.Id };
+
     public SessionEditorViewModel(SessionDefinition? definition = null, IAudioDeviceService? audioDevices = null)
+        : this(definition, audioDevices, isNew: definition is null) { }
+
+    private SessionEditorViewModel(SessionDefinition? definition, IAudioDeviceService? audioDevices, bool isNew)
     {
         _audioDevices = audioDevices;
         OutputAudioOptions = AudioOptions([], AudioFlow.Output, definition?.OutputAudioDevice);
         InputAudioOptions = AudioOptions([], AudioFlow.Input, definition?.InputAudioDevice);
         OutputAudio = OutputAudioOptions.Last();
         InputAudio = InputAudioOptions.Last();
-        IsNew = definition is null;
+        IsNew = isNew;
         _id = definition?.Id ?? Guid.NewGuid();
         Name = definition?.Name ?? "";
         Description = definition?.Description ?? "";

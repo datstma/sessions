@@ -40,7 +40,7 @@ Agreed with the maintainer on 2026-09-15 (SESS-037). Everything already implemen
 above remains part of 1.0. The additions below are planned unless marked implemented; each has
 its own backlog item that settles detailed behaviour before implementation.
 
-- Duplicate a Session (SESS-038).
+- Duplicate a Session (SESS-038, implemented).
 - Remember the window size, position and last selected Session (SESS-039, implemented).
 - Optional apps: let a Session continue when a chosen app fails to start (SESS-040).
 - A saved-data compatibility commitment: all earlier library formats stay readable,
@@ -223,6 +223,16 @@ Presence matches the full executable path, not merely the app name. Apps with se
 Clicking **Not running** launches only that saved app, using its configured arguments and working directory (or its executable folder when no working directory is configured). The control shows **Starting…** and prevents repeated clicks while launch/presence catches up. A fresh check avoids launching an app that has already opened; if it now has a window, the click focuses it instead. Uncertain presence does not permit a new launch. Missing executables, invalid working folders, and Windows launch errors appear beside the app, with retry when its status can be checked.
 
 A successful launch request does not prove the app stayed running. Presence checks determine the green status. Requests for the same executable are serialized within this Sessions instance, with a ten-second startup grace period to avoid duplicates during a delayed startup/handoff. If the app has not appeared after that period, the UI allows retry and explains that it has not been observed running. A manual launch neither starts a Session nor changes saved configuration: individually opened apps remain independent, stay open when Sessions closes, and must be treated as pre-existing by any later Session run. Individual launches are disabled during an active Session; apps already opened individually remain pre-existing for a later run. Executable launches use Windows desktop Open activation so they do not inherit Sessions’ console/output pipes. App options includes **Run as administrator**, off by default. When enabled, Windows requests approval before launching the app directly with elevation; this can avoid an app restarting itself to elevate. Windows can also request consent when an executable itself requires elevation. Sessions itself stays unelevated. Packaged-app activation remains unsupported.
+
+Session details also offer **Duplicate Session** beside Delete. It opens a new draft
+with the saved setup: apps, arguments, lifetime, startup, audio and plugin choices. The
+name is selected and suggests "<name> copy", numbered when that name is taken. Nothing
+is saved until **Create Session**. Cancel discards the copy; closing Sessions first asks
+whether to keep editing, discard or save, even if the copy is untouched. The saved copy
+appears directly after the original, becomes selected and is independent: it has its own
+identity and app identities, so editing, deleting or starting it never affects the
+original. Duplicating the active Session copies only its saved setup; the run continues
+unchanged, and the copy cannot start until that run ends.
 
 Session details also offer **Delete Session…**. A confirmation names the Session, explains that its saved setup will be removed permanently, and makes clear that installed apps, files, and running processes are unaffected. Cancel receives initial focus; Enter on Cancel or Escape dismisses the confirmation. Deletion is unavailable while editing or saving, and the rest of the window is disabled during confirmation. Only an explicit Delete Session confirmation saves the reduced library. The displayed Session is removed only after that save succeeds; failure preserves it and offers retry or cancellation. Selection moves to the next Session, or the previous one when deleting the last item; deleting the only Session returns to the first-run screen. There is no undo after successful confirmation.
 

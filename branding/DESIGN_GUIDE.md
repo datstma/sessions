@@ -80,7 +80,8 @@ custom animation. Future animation must respect reduced-motion preferences.
   or background-only) is green, other passive states are neutral. Running rows add a
   red **Close…** action beside the status, using the same height and centered alignment,
   wrapping with it at compact widths. End-condition and ownership explainer
-  cards sit below; the end condition leads the first card's paragraph. Individual Close uses the existing modal surfaces, scrollable
+  cards sit below; the end condition leads the first card's paragraph. Quiet **Duplicate
+  Session** and red-text **Delete Session…** buttons share a wrapping row at the bottom. Individual Close uses the existing modal surfaces, scrollable
   save-work explanation and fixed Cancel / Close app footer. Cancel receives initial
   focus, Escape cancels and focus returns to the row. Reuse existing tokens.
 - **Running:** green-tinted banner with real run status and a red End action; active

@@ -18,8 +18,13 @@ public partial class SessionEditorView : UserControl
         InitializeComponent();
         DataContextChanged += (_, _) =>
         {
-            if (DataContext is SessionEditorViewModel)
-                Avalonia.Threading.Dispatcher.UIThread.Post(() => SessionName.Focus());
+            if (DataContext is SessionEditorViewModel editor)
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    SessionName.Focus();
+                    // A copy's suggested name is usually replaced, so typing should overwrite it.
+                    if (editor.DuplicateOf is not null) SessionName.SelectAll();
+                });
         };
     }
 

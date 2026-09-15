@@ -42,7 +42,17 @@ maximized state and last selected Session from a separate `%LOCALAPPDATA%\Sessio
 is clean; 119 Core and 244 App tests pass (31 native skips). The user ran it natively,
 reported it "works" and asked to commit and push; the specific checks performed were not
 stated, so multi-monitor/DPI changes remain unconfirmed. SESS-039 is done. Continue from
-the user's choice; the suggested next 1.0 items are SESS-038 and SESS-042.
+the user's choice; the suggested next 1.0 items are SESS-038 and SESS-042. Committed as 5024931.
+
+The user then selected SESS-038. Duplicate Session (beside Delete) opens a new
+"<name> copy" draft from `SessionDefinition.Duplicate`, which assigns new Session and
+app identities and remaps main/focus references; saving inserts the copy after the
+original. Debug build and 122 Core + 250 App tests pass (31 native skips). Rider's
+Avalonia XAML previewer (dotnet Avalonia.Designer.HostApp processes) locked
+src/Sessions.App/bin/Release, so Release was not rebuilt; do not kill those processes
+without asking. The user tried it, reported it "works" and asked to commit and push;
+SESS-038 is done. Suggested next 1.0 items: SESS-042 About, then SESS-041's
+backup-on-upgrade before format-changing work.
 
 ## Previous checkpoint — Alpha designation 2026-09-10
 
