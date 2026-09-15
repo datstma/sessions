@@ -430,6 +430,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private SessionEditorViewModel? _editor;
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string? _errorMessage;
+    [ObservableProperty] private string? _libraryNotice;
     [ObservableProperty] private SessionViewModel? _pendingDeletion;
     [ObservableProperty] private string? _deleteErrorMessage;
 
@@ -441,6 +442,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     public bool CanBrowse => _loaded && !IsBusy && Editor is null && IsMainContentEnabled;
     public bool CanRetryLoad => !_loaded && !IsBusy;
     public bool HasError => ErrorMessage is not null;
+    public bool HasLibraryNotice => LibraryNotice is not null;
     public string LibraryCount => Sessions.Count == 1 ? "1 Session" : $"{Sessions.Count} Sessions";
     public bool IsConfirmingDelete => PendingDeletion is not null;
     public string DeleteTitle => $"Delete “{PendingDeletion?.Name}”?";
@@ -482,6 +484,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
             var remaining = Sessions.Where(item => item.Definition.Id != session.Definition.Id)
                 .Select(item => item.Definition).ToArray();
             await store.SaveAsync(remaining);
+            NoteLibraryUpgrade();
             Sessions.RemoveAt(index);
             SelectedSession = Sessions.Count == 0 ? null : Sessions[Math.Min(index, Sessions.Count - 1)];
             PendingDeletion = null;
@@ -588,6 +591,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
             if (index < 0) definitions.Insert(insertAt, definition);
             else definitions[index] = definition;
             await store.SaveAsync(definitions);
+            NoteLibraryUpgrade();
             var saved = CreateSessionViewModel(definition);
             if (index < 0) Sessions.Insert(insertAt, saved);
             else Sessions[index] = saved;
@@ -644,6 +648,17 @@ public partial class MainViewModel : ViewModelBase, IDisposable
     }
     partial void OnIsBusyChanged(bool value) => Refresh();
     partial void OnErrorMessageChanged(string? value) => OnPropertyChanged(nameof(HasError));
+    partial void OnLibraryNoticeChanged(string? value) => OnPropertyChanged(nameof(HasLibraryNotice));
+
+    [RelayCommand]
+    private void DismissLibraryNotice() => LibraryNotice = null;
+
+    private void NoteLibraryUpgrade()
+    {
+        if (store.LastUpgradeBackupPath is { } backup)
+            LibraryNotice = "Your Sessions are now saved in this version's format, so earlier versions of Sessions can't open them. " +
+                $"A copy of your previous library was kept at {backup}";
+    }
     partial void OnPendingDeletionChanged(SessionViewModel? value) => Refresh();
     partial void OnDeleteErrorMessageChanged(string? value) => OnPropertyChanged(nameof(HasDeleteError));
 

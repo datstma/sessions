@@ -206,6 +206,11 @@ standard user. Never replace the real development library with test fixtures.
 - Exercise launch and confirmed cleanup in the installed build, including the
   elevated helper path where relevant. Regular CI skips the 31 opt-in native checks (including read-only Steam discovery, isolated Steam tracking/cleanup and individual app closing);
   a GitHub runner is not a substitute for desktop/UAC and installation testing.
+- If the release changes the library format, state it under Compatibility in the
+  release notes, name the last release that can read the new format, and mention the
+  automatic `sessions.v<old>-backup-<time>.json` copy made on the first save. Load a
+  library from the previous release in the installed build, save once, and confirm
+  the copy and notice.
 - Compare checksums, inspect packaged license notices, and review matching source
   and build instructions. `Collect-ReleaseNotices.ps1` inventories packages from the
   published dependency manifest and copies available package/runtime notices plus

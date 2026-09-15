@@ -1,17 +1,21 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Sessions.Core;
 
 /// <summary>Readable local storage; a failed load is never treated as an empty library.</summary>
-public sealed class JsonSessionStore(string filePath) : ISessionStore
+public sealed class JsonSessionStore(string filePath, TimeProvider? timeProvider = null) : ISessionStore
 {
+    private const int CurrentVersion = 5;
     private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = true,
         Converters = { new JsonStringEnumConverter() }
     };
     private readonly string _filePath = Path.GetFullPath(filePath);
+    private readonly TimeProvider _time = timeProvider ?? TimeProvider.System;
+    public string? LastUpgradeBackupPath { get; private set; }
 
     public async Task<IReadOnlyList<SessionDefinition>> LoadAsync(CancellationToken cancellationToken = default)
     {
@@ -49,6 +53,7 @@ public sealed class JsonSessionStore(string filePath) : ISessionStore
     {
         Validate(sessions);
         cancellationToken.ThrowIfCancellationRequested();
+        LastUpgradeBackupPath = null;
         Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
         var temporaryPath = _filePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
@@ -57,16 +62,55 @@ public sealed class JsonSessionStore(string filePath) : ISessionStore
                              FileShare.None, 4096, FileOptions.Asynchronous))
             {
                 // Older builds must reject plugin libraries rather than treating their targets as executable paths.
-                await JsonSerializer.SerializeAsync(stream, new Library(5, sessions), Options, cancellationToken);
+                await JsonSerializer.SerializeAsync(stream, new Library(CurrentVersion, sessions), Options, cancellationToken);
                 await stream.FlushAsync(cancellationToken);
             }
             cancellationToken.ThrowIfCancellationRequested();
+            // A failed backup throws before the replaced library is touched.
+            var backup = await BackUpReplacedFormatAsync(cancellationToken);
             File.Move(temporaryPath, _filePath, overwrite: true);
+            LastUpgradeBackupPath = backup;
         }
         finally
         {
             if (File.Exists(temporaryPath))
                 File.Delete(temporaryPath);
+        }
+    }
+
+    /// <summary>
+    /// Keeps a byte-for-byte copy when a save would replace a library in another (usually older) format,
+    /// because older Sessions versions cannot read the file afterwards.
+    /// </summary>
+    private async Task<string?> BackUpReplacedFormatAsync(CancellationToken cancellationToken)
+    {
+        if (!File.Exists(_filePath)) return null;
+        int? version = null;
+        try
+        {
+            await using var stream = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read,
+                4096, FileOptions.Asynchronous);
+            using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
+            if (document.RootElement.ValueKind == JsonValueKind.Object)
+                foreach (var property in document.RootElement.EnumerateObject())
+                    if (string.Equals(property.Name, "version", StringComparison.OrdinalIgnoreCase) && property.Value.TryGetInt32(out var number))
+                        version = number;
+        }
+        catch (JsonException) { }
+        if (version == CurrentVersion) return null;
+
+        var stamp = _time.GetLocalNow().ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
+        var prefix = Path.Combine(Path.GetDirectoryName(_filePath)!, Path.GetFileNameWithoutExtension(_filePath)) +
+            (version is { } found ? $".v{found}" : ".unreadable") + "-backup-" + stamp;
+        for (var attempt = 1; ; attempt++)
+        {
+            var backup = prefix + (attempt == 1 ? "" : "-" + attempt) + Path.GetExtension(_filePath);
+            try
+            {
+                File.Copy(_filePath, backup, overwrite: false);
+                return backup;
+            }
+            catch (IOException) when (File.Exists(backup)) { }
         }
     }
 

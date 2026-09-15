@@ -44,8 +44,8 @@ its own backlog item that settles detailed behaviour before implementation.
 - Remember the window size, position and last selected Session (SESS-039, implemented).
 - Optional apps: let a Session continue when a chosen app fails to start (SESS-040).
 - A saved-data compatibility commitment: all earlier library formats stay readable,
-  a backup is written before a save upgrades the format, and the format is frozen at
-  Beta (SESS-041).
+  a backup is written before a save upgrades the format (implemented), and the format
+  is frozen at Beta (SESS-041).
 - An About and support view with version, license, release notes and the local data
   folder, without sending information anywhere (SESS-042).
 - Export and import a single Session as a portable file (SESS-043).
@@ -149,6 +149,16 @@ update feedback immediately; repeated review proceeds to the next remaining prob
 Invalid retained timing values stay visible even when their option is inactive,
 so switching launch/readiness modes or disabling an override cannot hide a blocker.
 Reviewing a field does not change those choices or reset its value.
+
+Opening a library saved by an earlier Sessions version never rewrites it. The first
+change saved afterwards (an edit, new Session, duplicate or deletion) converts the file
+to the current format, which earlier versions cannot open. Just before that save,
+Sessions keeps an exact copy beside the library, named for example
+`sessions.v4-backup-20260915-143012.json`, and a notice shows where the copy is, with
+Dismiss. If the copy cannot be written, nothing is changed: the save reports an error
+and the draft or Session stays for retry. A file that became unreadable after loading is
+kept the same way. Later saves in the current format make no further copies. To return
+to an earlier version, restore the copy as `sessions.json` while Sessions is closed.
 
 Saving validates configuration, not current file availability. Nonblank executable
 paths on disconnected or portable drives remain saveable; Sessions checks executable

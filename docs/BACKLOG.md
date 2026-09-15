@@ -40,7 +40,8 @@ Suggested order, open to change: small wins first (SESS-039 window memory, SESS-
 duplicate, SESS-042 About) and SESS-041's backup-on-upgrade before any format change;
 then format-changing features (SESS-040 optional apps, SESS-044 websites) with SESS-046
 packaged-app research alongside; then SESS-043 export/import once item kinds settle, and
-SESS-045 shortcuts. Finish with the SESS-041 format freeze, SESS-047 and SESS-048.
+SESS-045 shortcuts. Finish with the SESS-041 format freeze, SESS-047 and SESS-048. SESS-041's
+upgrade backup is in place (2026-09-15).
 
 ## SESS-001 — Review the first native UI with the user
 
@@ -1136,18 +1137,36 @@ concurrent failures with optional and required apps, and the UI explains skipped
 
 ## SESS-041 — Saved-data compatibility commitment
 
-**P1 · Open · 1.0 feature (S–M) · 2026-09-15**
+**P1 · Open · Upgrade backup done; format freeze at Beta · 2026-09-15**
 Source: agent proposal accepted in SESS-037; 1.0 requires clear compatibility expectations.
+The user selected the early slice on 2026-09-15, before format-changing 1.0 work.
 
-Early slice: before the first save that upgrades a library (or preferences file) to a
-newer format, write a timestamped backup beside it and tell the user where it is. Keep
-reading every earlier format. Later slice, at Beta: declare the 1.0 library format frozen,
-document the compatibility policy (newer minor releases read and write it; older builds
-may reject newer data) and add tests loading real saved files from each released format.
-Format changes from SESS-040/043/044/046 should land before the freeze.
+Early slice implemented: before replacing a library whose `version` is not the current
+writer version (older, newer or unreadable), `JsonSessionStore` copies it byte-for-byte
+beside `sessions.json` as `sessions.v<version>-backup-<local time>.json`, never
+overwriting an earlier copy. A failed copy fails the save before replacement, so the
+editor or delete flow keeps the change for retry and the original is untouched. After a
+successful upgrading edit, creation, duplicate or deletion, a dismissible notice explains
+that earlier versions cannot open the library and shows the selectable path. Later saves
+in the current format make no copies. Loading still never rewrites. Preferences, plugin
+preferences and window state are version 1, so they have nothing to back up yet; the
+architecture requires the same rule when they change. RELEASING adds a format-change
+release check. No library format change.
 
-Done when: backup-on-upgrade is tested (including write failure blocking the upgrade),
-fixture libraries from v1 onward load, and PRODUCT/RELEASING state the policy.
+Remaining for Beta: declare the 1.0 library format frozen once SESS-040/043/044/046
+format changes land, and document the compatibility policy (newer minor releases read and
+write it; older builds may reject newer data) in PRODUCT and RELEASING.
+
+Validation: clean full Release build with zero warnings/errors; 134 Core and 253 App tests
+pass (31 opt-in native skips). Checked-in fixtures follow the envelopes of 0.1.0 (v1),
+0.2.0 (v2), 0.2.2 (v3), 0.3.0–0.4.0 (v4) and 0.5.0 (v5), with shapes verified against those
+tags; they are hand-written, not files produced by the released binaries. Twelve Core
+cases load each format with its own defaults (including ignored legacy force-close,
+stray v2 force and v3 audio fields) without rewriting, keep exact v1–v4 copies on the
+first save only, skip new and current libraries, copy unreadable files without
+overwriting an earlier copy name, and block the upgrade when the copy fails with a
+storage error. Three App cases show, capture (both themes) and dismiss the notice after
+upgrading edit and delete saves, and keep the draft and older file when the backup fails.
 
 ## SESS-042 — About and support
 

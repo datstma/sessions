@@ -79,6 +79,12 @@
                         <Button Content="Try loading again" Command="{Binding LoadCommand}" IsVisible="{Binding CanRetryLoad}" />
                     </StackPanel>
                 </Border>
+                <Border x:Name="LibraryNoticePanel" IsVisible="{Binding HasLibraryNotice}" Margin="{StaticResource Inset20x16x20x0}" Classes="surface" Padding="{StaticResource Inset16}">
+                    <StackPanel Spacing="{StaticResource Measure10}">
+                        <SelectableTextBlock x:Name="LibraryNotice" Text="{Binding LibraryNotice}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                        <Button x:Name="DismissLibraryNoticeButton" Content="Dismiss" Classes="quiet" Command="{Binding DismissLibraryNoticeCommand}" />
+                    </StackPanel>
+                </Border>
                 <Border IsVisible="{Binding HasRuntime}" Margin="{StaticResource Inset20x16x20x0}" Classes="surface runtime" Classes.running="{Binding HasActiveRun}" Padding="{StaticResource Inset16}">
                     <DockPanel LastChildFill="True">
                         <StackPanel Classes="runtimeActions" Spacing="{StaticResource Measure8}" VerticalAlignment="Center">

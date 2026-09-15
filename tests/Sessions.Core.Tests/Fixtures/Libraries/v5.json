@@ -1,0 +1,71 @@
+{
+  "version": 5,
+  "sessions": [
+    {
+      "id": "7f3c1a52-5a2e-4b1c-9a51-0c1d2e3f4a01",
+      "name": "Flight sim",
+      "description": "Everything ready for your next flight.",
+      "apps": [
+        {
+          "id": "0a6d6b1e-9c1f-4f5e-8a2b-3c4d5e6f7a01",
+          "name": "SR-ClientRadio",
+          "executablePath": "C:\\Program Files\\DCS-SimpleRadio-Standalone\\SR-ClientRadio.exe",
+          "arguments": "",
+          "workingDirectory": "",
+          "runAsAdministrator": true,
+          "readiness": "WindowAppeared",
+          "readinessTimeoutSeconds": 45,
+          "pauseAfterSeconds": 3,
+          "allowForceQuit": true,
+          "plugin": null
+        },
+        {
+          "id": "0a6d6b1e-9c1f-4f5e-8a2b-3c4d5e6f7a02",
+          "name": "DCS World",
+          "executablePath": "D:\\DCS World\\bin\\DCS.exe",
+          "arguments": "--force_enable_VR",
+          "workingDirectory": "D:\\DCS World\\bin",
+          "runAsAdministrator": false,
+          "readiness": "LaunchCompleted",
+          "readinessTimeoutSeconds": 30,
+          "pauseAfterSeconds": null,
+          "allowForceQuit": false,
+          "plugin": null
+        },
+        {
+          "id": "0a6d6b1e-9c1f-4f5e-8a2b-3c4d5e6f7a03",
+          "name": "3DMark",
+          "executablePath": "",
+          "arguments": "",
+          "workingDirectory": "",
+          "runAsAdministrator": false,
+          "readiness": "LaunchCompleted",
+          "readinessTimeoutSeconds": 30,
+          "pauseAfterSeconds": null,
+          "allowForceQuit": false,
+          "plugin": { "pluginId": "steam", "targetId": "223850", "version": 1, "settings": null, "closeOnEnd": true }
+        }
+      ],
+      "mainAppId": "0a6d6b1e-9c1f-4f5e-8a2b-3c4d5e6f7a02",
+      "launchMode": "Together",
+      "pauseBetweenAppsSeconds": 5,
+      "focusAfterStartup": "App",
+      "focusAppId": "0a6d6b1e-9c1f-4f5e-8a2b-3c4d5e6f7a01",
+      "outputAudioDevice": { "id": "{0.0.0.00000000}.{headset}", "name": "Headset" },
+      "inputAudioDevice": { "id": "{0.0.1.00000000}.{microphone}", "name": "Microphone" }
+    },
+    {
+      "id": "7f3c1a52-5a2e-4b1c-9a51-0c1d2e3f4a02",
+      "name": "Work",
+      "description": "",
+      "apps": [],
+      "mainAppId": null,
+      "launchMode": "InOrder",
+      "pauseBetweenAppsSeconds": 0,
+      "focusAfterStartup": "Unchanged",
+      "focusAppId": null,
+      "outputAudioDevice": null,
+      "inputAudioDevice": null
+    }
+  ]
+}

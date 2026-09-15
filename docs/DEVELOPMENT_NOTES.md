@@ -51,8 +51,17 @@ original. Debug build and 122 Core + 250 App tests pass (31 native skips). Rider
 Avalonia XAML previewer (dotnet Avalonia.Designer.HostApp processes) locked
 src/Sessions.App/bin/Release, so Release was not rebuilt; do not kill those processes
 without asking. The user tried it, reported it "works" and asked to commit and push;
-SESS-038 is done. Suggested next 1.0 items: SESS-042 About, then SESS-041's
-backup-on-upgrade before format-changing work.
+SESS-038 is done (be7a760).
+
+The user then selected SESS-041's early slice. `JsonSessionStore` now copies a replaced
+library that is not in the current format to `sessions.v<n>-backup-<time>.json` before
+replacing it; a failed copy fails the save. `ISessionStore.LastUpgradeBackupPath` (default
+null) drives a dismissible notice with the path. Fixtures for v1–v5 live in
+tests/Sessions.Core.Tests/Fixtures/Libraries and are hand-written from tag shapes.
+Release build and 134 Core + 253 App tests pass (31 native skips). The format freeze
+remains for Beta. Not committed. The user's own library is already v5, so a hands-on check
+needs an old-format file in a disposable profile; never use the real library for it.
+Rider's XAML previewer locks whichever App bin configuration was built last.
 
 ## Previous checkpoint — Alpha designation 2026-09-10
 
