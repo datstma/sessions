@@ -2,10 +2,76 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — 0.6.1 published 2026-09-15
+## Resume next session — 0.6.1 published; next 1.0 item not chosen 2026-09-15
 
-The user requested commit, push, tag and workflow, then verification and publication.
-Release commit b0cf19b and annotated tag v0.6.0 were pushed; workflow 34958052678 passed
+**Stopping point.** Last commit cd8786d is pushed; this handover section was written after it,
+so check `git status` in case it is still uncommitted. Latest public release is
+Sessions 0.6.1 Alpha (pre-release, tag `v0.6.1`, published 2026-09-15T13:01:49Z; notes in
+[release-notes/0.6.1.md](release-notes/0.6.1.md), verification in
+[RELEASING.md](RELEASING.md)). No work is in progress or running (no Sandbox, workflow or
+background task). Do not start the next backlog item automatically; ask the
+user which one to take.
+
+**Done on 2026-09-15, each trialled or confirmed by the user and committed:** SESS-036
+layout and text centring; SESS-037 1.0 feature set; SESS-039 window placement and last
+Session; SESS-038 Duplicate Session; SESS-041 upgrade backup slice; SESS-042 About with the
+in-app licenses viewer; SESS-040 optional apps (library v6); 0.6.0 release; SESS-049 branded
+installer with Launch Sessions; SESS-050 app icon matching the logo; 0.6.1 release.
+
+**Remaining toward Beta** (see [PRODUCT.md](PRODUCT.md#10-feature-set)):
+
+- 1.0 features, all Proposed: SESS-043 export/import a Session (M), SESS-044 website item
+  (M), SESS-045 start from a shortcut or command line (M), SESS-046 Microsoft Store and
+  packaged apps (L, research first). Each item settles detailed behaviour with the user
+  before implementation; a new item that changes the library format needs a v7 fixture,
+  upgrade backup check and compatibility notes (SESS-041 freezes the format at Beta).
+- Beta gates: SESS-001 and SESS-010 (awaiting user feedback), SESS-021 (standard-user
+  install and installed real-app/UAC checks), SESS-048 (real-app matrix and user guide),
+  SESS-047 signing decision. New input for SESS-047: Smart App Control logged that it would
+  block the unsigned MSI if enforced.
+- After 1.0: SESS-028 gaming utilities, SESS-033 Hue, SESS-034 Home Assistant.
+
+**Validation.** Last full run passed with zero warnings: 150 Core and 266 App tests
+(31 opt-in native skips).
+
+```powershell
+dotnet build Sessions.slnx
+dotnet test tests/Sessions.Core.Tests/Sessions.Core.Tests.csproj
+dotnet test tests/Sessions.App.Tests/Sessions.App.Tests.csproj
+.\scripts\Build-Installer.ps1   # Release build, both test projects, MSI in artifacts/releases/<version>
+```
+
+**How the user works.** The user picks an item ("start SESS-0xx"), answers focused product
+questions, trials the local build and replies "works" or with feedback. Commit and push
+only when asked; tagging, running the release workflow, verifying the draft and publishing
+are each separate explicit requests. Record decisions and trial feedback in BACKLOG and
+these notes, and update PRODUCT/ARCHITECTURE when behaviour changes. Never replace the real
+development library with fixtures or install over the user's real app; test installers in
+Windows Sandbox. Do not contact vendors or buy anything (SESS-047). Ask before stopping
+Rider's previewer processes.
+
+**Environment notes.**
+
+- .NET SDK 10.0.401 is pinned in `global.json` with roll-forward disabled.
+- Rider's Avalonia previewer (`Avalonia.Designer.HostApp` dotnet processes) can lock
+  `src/Sessions.App/bin`; build Debug instead or ask the user before stopping them.
+- Windows Sandbox starts Smart App Control in evaluation mode with Defender disabled, so
+  every unsigned-MSI check waits about two minutes and setup looks stuck. Turn it off inside
+  the Sandbox first (RELEASING release checks). `wsb exec` needs `wsb connect` first. MSI
+  dialog controls expose no UI Automation patterns; click their bounding boxes.
+- Asset generators (`scripts/Generate-BrandAssets.py`, `Generate-InstallerArt.py`) share
+  `scripts/brand_art.py` and import Pillow/fontTools from ignored `artifacts/branding-tools`;
+  `Generate-BrandTheme.py` regenerates theme tokens.
+- Release workflow: `gh workflow run release.yml --ref main -f tag=vX.Y.Z -f prerelease=true
+  -f validation_only=false`. Everything under `artifacts/` is ignored and local to this
+  machine, including the previous verification scripts
+  (`artifacts/release-verification-0.6.1`) and Sandbox harness
+  (`artifacts/installer-ui-review`); recreate them from RELEASING if missing.
+
+## Previous checkpoint — 0.6.0 and 0.6.1 releases, installer and icon 2026-09-15
+
+0.6.0: the user requested commit, push, tag and workflow, then verification and
+publication. Release commit b0cf19b and annotated tag v0.6.0 were pushed; workflow 34958052678 passed
 (build and draft jobs, zero warnings/errors, 150 Core + 266 App tests, 31 native skips).
 Exact draft assets verified under ignored artifacts/release-verification-0.6.0 (checksums,
 241 source entries, WiX source/license, MSI 0.6.0, body equals notes, administrative
