@@ -26,6 +26,7 @@ public partial class SessionAppRow(int order, string name, string executablePath
     public string PathSummary => IsPlugin ? $"{Order} · Plugin app · " + (definition!.Plugin!.CloseOnEnd ? "close with Session when tracked" : "close manually") : $"{Order} · {ExecutablePath}";
     public string ExecutablePath { get; } = executablePath;
     public string Role { get; } = role;
+    public bool HasRole => Role.Length > 0;
     [ObservableProperty] private AppPresence _presence = AppPresence.Checking;
     [ObservableProperty] private string? _focusMessage;
     [ObservableProperty] private string? _launchMessage;

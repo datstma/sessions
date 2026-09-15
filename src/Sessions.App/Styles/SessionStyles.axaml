@@ -15,6 +15,7 @@
         <Setter Property="CornerRadius" Value="{StaticResource Round11}" /><Setter Property="FontWeight" Value="{StaticResource WeightHeading}" />
         <Setter Property="Background" Value="{DynamicResource PanelAltBrush}" /><Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" /><Setter Property="BorderThickness" Value="{StaticResource Inset1}" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" /><Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
     <Style Selector="Button.primary">
         <Setter Property="Background" Value="{DynamicResource BrandBrush}" /><Setter Property="Foreground" Value="{DynamicResource OnBrandBrush}" />
@@ -46,11 +47,28 @@
     <Style Selector="Button.runningStatus:pointerover /template/ ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource RunningSoftBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource RunningBrush}" />
     </Style>
+    <!-- Passive statuses share the status button's shape so running states read as one family. -->
+    <Style Selector="Border.statusChip">
+        <Setter Property="MinHeight" Value="{StaticResource Measure44}" /><Setter Property="Padding" Value="{StaticResource Inset10x8}" />
+        <Setter Property="CornerRadius" Value="{StaticResource Round11}" /><Setter Property="BorderThickness" Value="{StaticResource Inset1}" />
+        <Setter Property="Background" Value="{DynamicResource PanelAltBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    </Style>
+    <Style Selector="Border.statusChip TextBlock">
+        <Setter Property="FontSize" Value="{DynamicResource FontMicroSize}" /><Setter Property="FontWeight" Value="{StaticResource WeightHeading}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    </Style>
+    <Style Selector="Border.statusChip.running"><Setter Property="Background" Value="{DynamicResource RunningSoftBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource RunningBrush}" /></Style>
+    <Style Selector="Border.statusChip.running TextBlock"><Setter Property="Foreground" Value="{DynamicResource RunningBrush}" /></Style>
     <Style Selector="TextBox, NumericUpDown, ComboBox">
         <Setter Property="MinHeight" Value="{StaticResource Measure44}" /><Setter Property="CornerRadius" Value="{StaticResource Round10}" />
         <Setter Property="Background" Value="{DynamicResource PanelAltBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
+    <Style Selector="TextBox"><Setter Property="VerticalContentAlignment" Value="Center" /></Style>
+    <Style Selector="NumericUpDown"><Setter Property="VerticalContentAlignment" Value="Center" /></Style>
+    <!-- Fluent's uneven vertical padding would pull centered combo box text above its field neighbours. -->
+    <Style Selector="ComboBox"><Setter Property="VerticalContentAlignment" Value="Center" /><Setter Property="Padding" Value="{StaticResource Inset12x0x0x0}" /></Style>
+    <Style Selector="TextBox[AcceptsReturn=True]"><Setter Property="VerticalContentAlignment" Value="Top" /></Style>
     <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
         <Setter Property="Background" Value="{DynamicResource PanelAltBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BrandForegroundBrush}" />
@@ -81,8 +99,8 @@
     <Style Selector="Border.heroAvatar.active"><Setter Property="BorderBrush" Value="{DynamicResource RunningBrush}" /><Setter Property="BorderThickness" Value="{StaticResource Inset2}" /></Style>
     <Style Selector="Border.runtime.running"><Setter Property="Background" Value="{DynamicResource RunningSoftBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource RunningBrush}" /></Style>
     <Style Selector="Border.sidebar"><Setter Property="Width" Value="{StaticResource Measure288}" /></Style>
-    <Style Selector="StackPanel.detailContent"><Setter Property="Margin" Value="{StaticResource Inset20x24x20x24}" /></Style>
-    <Style Selector="views|SessionEditorView.editorContent"><Setter Property="Margin" Value="{StaticResource Inset20x24}" /></Style>
+    <Style Selector="StackPanel.detailContent"><Setter Property="Margin" Value="{StaticResource Inset20}" /></Style>
+    <Style Selector="views|SessionEditorView.editorContent"><Setter Property="Margin" Value="{StaticResource Inset20}" /></Style>
     <Style Selector="Border.editorFooter"><Setter Property="Padding" Value="{StaticResource Inset20x16}" /><Setter Property="Background" Value="{DynamicResource PanelBrush}" /></Style>
     <Style Selector="StackPanel.heroActions"><Setter Property="DockPanel.Dock" Value="Right" /></Style>
     <Style Selector="ScrollViewer.runtimeStatus"><Setter Property="MaxHeight" Value="{StaticResource Measure200}" /></Style>
@@ -127,6 +145,10 @@
     </Style>
     <Style Selector="Expander /template/ ToggleButton#ExpanderHeader:pointerover /template/ Border#ToggleButtonBackground, Expander /template/ ToggleButton#ExpanderHeader:pressed /template/ Border#ToggleButtonBackground">
         <Setter Property="Background" Value="{DynamicResource BrandSoftBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource BrandForegroundBrush}" />
+    </Style>
+    <!-- The whole header already shows hover/pressed; a separate chevron square looks like a second control. -->
+    <Style Selector="Expander /template/ ToggleButton#ExpanderHeader:pointerover /template/ Border#ExpandCollapseChevronBorder, Expander /template/ ToggleButton#ExpanderHeader:pressed /template/ Border#ExpandCollapseChevronBorder">
+        <Setter Property="Background" Value="{DynamicResource TransparentBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource TransparentBrush}" />
     </Style>
     <Style Selector="Window.compact StackPanel.runtimeActions"><Setter Property="DockPanel.Dock" Value="Bottom" /><Setter Property="Margin" Value="{StaticResource Inset0x8x0x0}" /></Style>
 </Styles>

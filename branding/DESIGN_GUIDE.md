@@ -68,22 +68,28 @@ custom animation. Future animation must respect reduced-motion preferences.
 - **First run:** brand tile, “Get your apps together.”, brief supporting copy, Create
   your first Session, and three step cards. This is a real empty library, without a
   running banner or saved Sessions. Cards stack in compact mode.
-- **Detail:** hero card with 56px initial, name, app count, description and Start/Edit
-  actions. One card per app: 44px tile with a 30px executable icon (initial fallback), name, role, order/path and status.
+- **Detail:** hero card with 56px initial beside the name, app count and description, plus Start/Edit
+  actions. The startup summary sits under the Apps in this Session heading; a start hint
+  appears above it only when Start is blocked. One card per app: 44px tile with a 30px
+  executable icon (initial fallback), name, order/path and status; the role line appears
+  only for the app that ends the Session. Cards and explainers use container spacing
+  rather than trailing margins, so a typical three-app Session fits the default window.
   Full-width layouts place actions/status to the right; compact layouts move them
   below. Preserve status click behaviour and the distinction between already-open
-  and Session-owned apps. Running rows add a red **Close…** action beside the green
-  status, using the same 44px minimum height and centered alignment, wrapping with
-  it at compact widths. End-condition and ownership explainer
-  cards sit below. Individual Close uses the existing modal surfaces, scrollable
+  and Session-owned apps. Every status shares one 44px chip shape: running (clickable
+  or background-only) is green, other passive states are neutral. Running rows add a
+  red **Close…** action beside the status, using the same height and centered alignment,
+  wrapping with it at compact widths. End-condition and ownership explainer
+  cards sit below; the end condition leads the first card's paragraph. Individual Close uses the existing modal surfaces, scrollable
   save-work explanation and fixed Cancel / Close app footer. Cancel receives initial
   focus, Escape cancels and focus returns to the row. Reuse existing tokens.
 - **Running:** green-tinted banner with real run status and a red End action; active
   avatar gets a green ring. Recovery and focus messages remain available. Do not add
   fake counters, history or timers. All state also has a text label.
-- **Editor:** one main card, clear name field, ordered app list and existing move/remove
+- **Editor:** one main card with a 22px title, clear name field, ordered app list and existing move/remove
   controls. Description, selected-app options and Session startup options use inset
-  expandable sections. Keep contextual headings and the end-condition choices.
+  expandable sections; Session audio and advanced startup sit together with the 8px card gap.
+  Keep contextual headings and the end-condition choices, with the ending note inside that group.
   Save/Cancel stay in the footer while the form scrolls. When fields prevent saving,
   a quiet Review fields action opens and focuses the first problem. Use existing error
   text tokens for wrapping nearby explanations and invalid app-row guidance; keep
@@ -130,6 +136,11 @@ Selection only changes what is shown; starting is a separate action. Save remain
 subject to all existing name, app, lifetime/focus-target and startup-value validation.
 Loading/errors use plain text and available recovery actions. Unavailable controls
 retain native disabled feedback; do not weaken validation to match a prototype.
+
+Button labels, single-line inputs, combo boxes and number fields center their text
+vertically (and button labels horizontally) inside the 44px minimum; multi-line inputs
+start at the top. Expandable section headers show hover/pressed on the whole header,
+without a separate chevron square.
 
 Use visible focus rings and preserve keyboard navigation, focus return, accessible
 names and live error/status messages. Ordinary text—including buttons and status

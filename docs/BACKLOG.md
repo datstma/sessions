@@ -1,6 +1,6 @@
 # Sessions — Backlog
 
-Last reviewed: **2026-09-10**. Scope comes from [PRODUCT.md](PRODUCT.md); technical constraints come from [ARCHITECTURE.md](ARCHITECTURE.md). [DEVELOPMENT_NOTES.md](DEVELOPMENT_NOTES.md) contains the current handoff and validation evidence.
+Last reviewed: **2026-09-15**. Scope comes from [PRODUCT.md](PRODUCT.md); technical constraints come from [ARCHITECTURE.md](ARCHITECTURE.md). [DEVELOPMENT_NOTES.md](DEVELOPMENT_NOTES.md) contains the current handoff and validation evidence.
 
 This is a work record, not authorization to implement everything. The user explicitly requested safe Session deletion (SESS-009), a running-app picker (SESS-008), running indicators with window focus (SESS-012), and individual app launching (SESS-013), implemented below. Priorities remain an initial sequencing recommendation and can change with feedback.
 
@@ -32,6 +32,8 @@ native checks stay under SESS-001, including UAC
 cancellation. The user confirmed Playnite force quit under SESS-017 on 2026-09-10;
 this does not establish graceful-only closing or unsaved-document safety. Settings
 appearance preferences (SESS-031) are also implemented, validated and user-confirmed.
+On 2026-09-15 the user reported wasted space, inconsistent text centering and
+mismatched running statuses; SESS-036 implements the correction, which the user confirmed.
 
 ## SESS-001 — Review the first native UI with the user
 
@@ -967,3 +969,51 @@ Project-stage follow-up, 2026-09-10: the user approved relabelling current 0.5.0
 Alpha and documenting Alpha/Beta/1.0 criteria. This changes release metadata and
 current documentation, preserving published tag/assets and historical Preview
 releases. UI inspection found Preview only in the appearance-preview controls.
+
+## SESS-036 — Use space efficiently and align text consistently
+
+**P1 · Done · Implemented, validated and user-confirmed · 2026-09-15**
+Source: user feedback with screenshots of 0.5.0 Alpha at 100% Sessions appearance on
+their normal Windows scaling (about 1112×815 logical): opening the app "always" needs
+scrolling, text in fields is not naturally or consistently centered, and Running and
+Running · no window boxes look different. The editor screenshot also showed a separate
+square behind the Session audio chevron on hover.
+
+Reproduced headlessly at the user's logical size. Text boxes and number fields drew
+their text 5.4px above center, Close… 4.8px and other buttons 1.4px: Sessions raises
+controls to 44px but never set content alignment, so Fluent's stretched content
+pinned text to the top. Combo boxes sat 1.4px high from Fluent's uneven padding. The
+background-only status was a plain muted row rather than the green chip PRODUCT
+describes. The chevron hover square came from a Fluent pointer-over style.
+Measured scroll overflow at the 1120×800 default: 3-app detail 101px, 4 apps 197px,
+new named draft 147px.
+
+Implemented: centered button labels and single-line field/combo/number text (multi-line
+description stays top-aligned); one status chip shape with green running and neutral
+passive variants; transparent chevron hover. Detail view: description joins the hero
+title column, the startup summary moves under the apps heading, the default
+already-open start hint is dropped (the ownership card already says it) while the
+active-run/opening blockers remain, the role line shows only for the app that ends the
+Session, the end condition leads the first explainer paragraph, and container spacing
+replaces trailing margins. Hero, detail and editor margins use 20px; the editor title
+uses the 22px title size, audio/advanced sections sit together and the ending note joins
+the end-condition group. Two layout tokens orphaned by this change were removed and exports
+regenerated; no new tokens. No behaviour, persistence, ownership or Core changes.
+
+After: at 1120×800 and the user's size, 2–4 app Sessions fit without scrolling; 6 apps
+overflow 150px (was 389px). Every control of a new named draft is visible at 1120×800,
+with only its closing note possibly a few pixels below; it fits fully at the user's size.
+At 1440×900 up to 4 apps and a new draft fit.
+
+Validation: clean full Release build with zero warnings/errors; 119 Core and 230 App
+tests pass (31 opt-in native skips). Six new cases check vertical centering across
+detail, expanded editor options and picker (light 1440×900 at 100% text, dark 640×480 at
+125% text), shared chip appearance for window/background/unknown statuses in both themes
+and default-window fit for a three-app Session and a new draft's last choice. Existing
+layout, scaling, keyboard, close-control alignment and theme suites pass. Captures in
+both themes at reference/compact sizes and 125/150/200% scaling were reviewed; public
+README screenshots were not regenerated. Native monitor/text-size checks remain SESS-010.
+
+User confirmation (2026-09-15): after running the source build with their library, the
+user reported it "looks better". This confirms the overall layout/alignment correction in
+their setup; specific window sizes, themes and scaling were not stated.

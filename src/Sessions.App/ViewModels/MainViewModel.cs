@@ -163,9 +163,10 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         SessionRunState.Failed => "Couldn't start", _ => "Ended"
     }}";
     public string EndLabel => NeedsCleanup ? "Retry End Session" : Runtime?.State == SessionRunState.Stopping ? "Ending…" : "End Session";
-    public string StartHint => HasActiveRun ? "End the active Session before starting another."
-        : HasOpeningApps ? "Wait for your app to finish opening before starting a Session."
-        : "Apps already open will stay open when this Session ends.";
+    // Shown only when Start is blocked; the detail view's ownership card already explains already-open apps.
+    public string? StartHint => HasActiveRun ? "End the active Session before starting another."
+        : HasOpeningApps ? "Wait for your app to finish opening before starting a Session." : null;
+    public bool HasStartHint => ShowStart && SelectedSession is { HasApps: true } && StartHint is not null;
     public string AppInteractionHint => HasActiveRun
         ? "Click Running to bring an app forward. Individual launches are available after the Session ends."
         : "Click Not running to open an app, or Running to bring it forward. Apps opened individually stay open independently of the Session.";
@@ -422,6 +423,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
         EditSessionCommand.NotifyCanExecuteChanged();
         RequestDeleteSessionCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(StartHint));
+        OnPropertyChanged(nameof(HasStartHint));
     }
     public ObservableCollection<SessionViewModel> Sessions { get; } = [];
     [ObservableProperty] private SessionViewModel? _selectedSession;
@@ -631,7 +633,7 @@ public partial class MainViewModel : ViewModelBase, IDisposable
                      nameof(CanBrowse), nameof(CanRetryLoad), nameof(LibraryCount), nameof(ShowLoading),
                      nameof(IsConfirmingDelete), nameof(DeleteTitle), nameof(DeleteButtonLabel),
                      nameof(HasActiveRun), nameof(HasRuntime), nameof(NeedsCleanup), nameof(SelectedIsActive), nameof(ShowStart),
-                     nameof(ShowActiveNavigation), nameof(RuntimeTitle), nameof(EndLabel), nameof(StartHint), nameof(AppInteractionHint), nameof(IsMainContentEnabled),
+                     nameof(ShowActiveNavigation), nameof(RuntimeTitle), nameof(EndLabel), nameof(StartHint), nameof(HasStartHint), nameof(AppInteractionHint), nameof(IsMainContentEnabled),
                      nameof(IsEndConfirmation), nameof(EndConfirmationTitle), nameof(AppsToStop), nameof(AppsToKeep), nameof(HasAppsToKeep), nameof(HasAppsToStop),
                      nameof(IsForceQuitConfirmation), nameof(ForceQuitTitle), nameof(ForceQuitDescription), nameof(AutomaticForceQuitWarning), nameof(HasAutomaticForceQuit),
                      nameof(DraftCloseTitle), nameof(DraftCloseMessage), nameof(DraftNeedsCorrection),

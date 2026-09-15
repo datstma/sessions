@@ -2,7 +2,37 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — Alpha designation 2026-09-10
+## Resume next session — layout density and alignment 2026-09-15
+
+The user reviewed 0.5.0 Alpha with screenshots and reported three UI problems:
+opening the app always needs scrolling, field/button text is not consistently
+centered, and Running and Running · no window statuses look different. SESS-036 records
+the reproduction, measurements and implementation. Their preferences file showed
+System theme with 100% interface/text, so screenshots were at normal Windows scaling
+(about 1112×815 logical).
+
+Root causes: Sessions raised controls to 44px without setting content alignment, so
+Fluent's stretched content drew text at the top (up to 5.4px off); the background-only
+status was a plain muted row; the chevron hover square came from a Fluent pointer-over
+style, which only a `:pointerover`/`:pressed` selector outranks. Fixed in shared styles,
+detail and editor layout without behaviour, persistence or Core changes. Default-window
+overflow for a 3-app Session went from 101px to none; LayoutConsistencyTests guards
+centering, chip appearance and default-window fit.
+
+Environment: this machine now has only .NET SDK 10.0.401, so `global.json` moved from
+10.0.400 (roll-forward disabled) to 10.0.401; the release workflow installs the pinned
+SDK from that file. No release build ran on 10.0.401 yet.
+
+Validation: clean full Release build with zero warnings/errors; 119 Core and 230 App
+tests pass (31 opt-in native skips); `git diff --check` passes. Headless captures in both
+themes at 1440×900/640×480 and 125/150/200% scaling were reviewed in the session
+scratchpad, not retained under artifacts. README/public screenshots still show the
+previous layout; regenerate them with `scripts/Update-PublicScreenshots.ps1` (needs the
+installed sample executables for icons) when preparing a release. The user ran the
+source build and reported it "looks better"; SESS-036 is done. Nothing is committed yet.
+Do not start another backlog item automatically.
+
+## Previous checkpoint — Alpha designation 2026-09-10
 
 The user approved adopting Alpha for the current project and relabelling 0.5.0,
 while retaining numeric tags/MSI versions and GitHub prerelease status. README,

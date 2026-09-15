@@ -177,7 +177,6 @@
   <Thickness x:Key="Inset2">2</Thickness>
   <Thickness x:Key="Inset10x9">10,9</Thickness>
   <Thickness x:Key="Inset0x0x0x8">0,0,0,8</Thickness>
-  <Thickness x:Key="Inset20x24x20x24">20,24,20,24</Thickness>
   <Thickness x:Key="Inset20x24">20,24</Thickness>
   <Thickness x:Key="Inset20x16">20,16</Thickness>
   <Thickness x:Key="Inset16x20">16,20</Thickness>
@@ -219,7 +218,6 @@
   <Thickness x:Key="Inset0x0x10x8">0,0,10,8</Thickness>
   <Thickness x:Key="Inset0x24x0x0">0,24,0,0</Thickness>
   <Thickness x:Key="Inset0">0</Thickness>
-  <Thickness x:Key="Inset0x18x0x0">0,18,0,0</Thickness>
   <Thickness x:Key="Inset28x24x28x20">28,24,28,20</Thickness>
   <Thickness x:Key="Inset28x0x28x16">28,0,28,16</Thickness>
   <Thickness x:Key="Inset12x0x0x0">12,0,0,0</Thickness>

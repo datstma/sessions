@@ -8,9 +8,9 @@
             <Setter Property="FontSize" Value="{DynamicResource FontMicroSize}" />
         </Style>
     </UserControl.Styles>
-    <Border Classes="surface" Padding="{StaticResource Inset24}"><StackPanel Spacing="{StaticResource Measure26}">
+    <Border Classes="surface" Padding="{StaticResource Inset24}"><StackPanel Spacing="{StaticResource Measure24}">
         <StackPanel Spacing="{StaticResource Measure8}">
-            <TextBlock Text="{Binding Title}" FontSize="{DynamicResource FontDisplayMSize}" FontWeight="{StaticResource WeightHeading}" />
+            <TextBlock Text="{Binding Title}" FontSize="{DynamicResource FontTitleSize}" FontWeight="{StaticResource WeightHeading}" TextWrapping="Wrap" />
             <TextBlock Text="Nothing launches while you edit. Save or cancel when you are ready." Classes="muted" TextWrapping="Wrap" />
             <TextBlock x:Name="ValidationSummary" Text="{Binding ValidationMessage}" IsVisible="{Binding HasValidationMessage}" AutomationProperties.LiveSetting="Polite" Foreground="{DynamicResource SessionError}" TextWrapping="Wrap" />
         </StackPanel>
@@ -30,7 +30,7 @@
                 </StackPanel>
                 <Button x:Name="AddAppsButton" Grid.Column="1" Content="+  Add app" Classes="quiet" Click="AddAppClicked" />
             </Grid>
-            <Border Classes="surface" Padding="{StaticResource Inset20}" IsVisible="{Binding !HasApps}">
+            <Border Classes="surface" Padding="{StaticResource Inset16}" IsVisible="{Binding !HasApps}">
                 <StackPanel Spacing="{StaticResource Measure5}">
                     <TextBlock Text="Start with the apps you reach for." FontWeight="{StaticResource WeightBody}" />
                     <TextBlock Text="Find apps in your Start menu, choose running apps, or browse for a file. You can add more later." Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
@@ -113,6 +113,7 @@
                 </StackPanel>
             </Expander>
         </StackPanel>
+        <StackPanel Spacing="{StaticResource Measure8}">
         <Expander Header="Session audio" HorizontalAlignment="Stretch" Expanding="AudioExpanding">
             <StackPanel Spacing="{StaticResource Measure12}">
                 <TextBlock Text="Choose Windows defaults before your apps open. This includes communication devices and can affect other apps using defaults. Apps with their own device selection may keep it." Classes="muted" TextWrapping="Wrap" />
@@ -168,7 +169,8 @@
                            Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
             </StackPanel>
         </Expander>
-        <StackPanel Spacing="{StaticResource Measure10}">
+        </StackPanel>
+        <StackPanel Spacing="{StaticResource Measure8}">
             <TextBlock Text="When does it end?" Classes="section" />
             <TextBlock Text="By default, your Session stays active until you press End Session." Classes="muted" TextWrapping="Wrap" />
             <CheckBox Content="Ask to end when an app closes" IsChecked="{Binding EndWithApp}" />
@@ -182,9 +184,7 @@
                 <ComboBox.ItemTemplate><DataTemplate x:DataType="vm:AppEditorViewModel"><TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" /></DataTemplate></ComboBox.ItemTemplate>
             </ComboBox>
             <TextBlock Text="{Binding MainAppError}" IsVisible="{Binding MainAppError, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" Classes="fieldError" />
-        </StackPanel>
-        <Border BorderBrush="{DynamicResource SessionBorder}" BorderThickness="{StaticResource Inset0x1x0x0}" Padding="{StaticResource Inset0x18x0x0}">
             <TextBlock Text="Ending asks you to save your work, then stops apps opened by this Session. Apps already open stay open." Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
-        </Border>
+        </StackPanel>
     </StackPanel></Border>
 </UserControl>

@@ -31,8 +31,8 @@ public sealed partial class SessionViewModel(SessionDefinition definition, IAppP
         });
     public IReadOnlyList<SessionAppRow> Apps { get; } = definition.Apps
         .Select((app, index) => new SessionAppRow(index + 1, app.Name, app.ExecutablePath,
-            app.Id == definition.MainAppId ? "Ends with this app" : "Open app", presenceService, appLauncher, app, plugins)).ToArray();
+            app.Id == definition.MainAppId ? "Ends with this app" : "", presenceService, appLauncher, app, plugins)).ToArray();
     public string EndSummary => Definition.MainAppId is { } id
-        ? $"Ask to end when {Definition.Apps.First(app => app.Id == id).Name} closes"
-        : "When you confirm End Session";
+        ? $"Sessions asks to end when {Definition.Apps.First(app => app.Id == id).Name} closes."
+        : "It ends when you confirm End Session.";
 }
