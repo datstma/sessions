@@ -32,11 +32,18 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
     {
         try
         {
-            // Resolve every plugin before changing audio or launching any ordinary app.
-            foreach (var app in run.Definition.Apps.Where(app => app.Plugin is not null))
+            // Resolve every plugin before changing audio or launching any ordinary app. Optional apps are skipped instead.
+            foreach (var entry in run.Entries.Where(entry => entry.App.Plugin is not null))
             {
-                if (run.Plugins is null) throw new InvalidOperationException($"The plugin for {app.Name} is unavailable. Open Settings to check plugins.");
-                await run.Plugins.ValidateAsync(app.Plugin!, run.StartCancellation.Token).ConfigureAwait(false);
+                try
+                {
+                    if (run.Plugins is null) throw new InvalidOperationException($"The plugin for {entry.App.Name} is unavailable. Open Settings to check plugins.");
+                    await run.Plugins.ValidateAsync(entry.App.Plugin!, run.StartCancellation.Token).ConfigureAwait(false);
+                }
+                catch (Exception exception) when (entry.App.Optional && exception is not OperationCanceledException)
+                {
+                    lock (_sync) SkipOptional(run, entry, exception.Message);
+                }
             }
             await run.Audio.ApplyAsync(run.Definition, run.StartCancellation.Token).ConfigureAwait(false);
             run.StartCancellation.Token.ThrowIfCancellationRequested();
@@ -89,9 +96,15 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
             {
                 run.State = SessionRunState.Running;
                 run.StartupSucceeded = true;
-                run.Message = run.Definition.MainAppId is { } main && run.Entries.First(e => e.App.Id == main).Processes.Count == 0
-                    ? "The main app couldn't be tracked. Use End Session when you're finished."
-                    : "Your Session is active.";
+                var mainEntry = run.Definition.MainAppId is { } main ? run.Entries.First(e => e.App.Id == main) : null;
+                run.Message = mainEntry is { State: SessionAppState.Skipped }
+                    ? $"Your Session is active. {mainEntry.App.Name} didn't start, so it won't end this Session. Use End Session when you're finished."
+                    : mainEntry is { Processes.Count: 0 }
+                        ? "The main app couldn't be tracked. Use End Session when you're finished."
+                        : "Your Session is active.";
+                var incomplete = run.Entries.Where(e => e.OptionalProblem && !ReferenceEquals(e, mainEntry)).Select(e => e.App.Name).ToArray();
+                if (incomplete.Length == 1) run.Message += $" {incomplete[0]} didn't finish starting; its status explains why.";
+                else if (incomplete.Length > 1) run.Message += $" {incomplete.Length} optional apps didn't finish starting: {string.Join(", ", incomplete)}.";
             }
         }
         Publish(run);
@@ -102,7 +115,7 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
     {
         lock (_sync)
         {
-            if (run.StopRequested || run.Failed) return;
+            if (run.StopRequested || run.Failed || entry.State == SessionAppState.Skipped) return;
             entry.State = SessionAppState.Starting;
             entry.Message = "Opening…";
         }
@@ -153,6 +166,22 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
                 entry.Message = acquiredMessage is null ? "Startup cancelled before opening" : acquiredMessage + " · Startup wait cancelled";
             }
         }
+        catch (Exception exception) when (entry.App.Optional && !(exception is OperationCanceledException && (run.StopRequested || run.Failed)))
+        {
+            lock (_sync)
+            {
+                if (acquiredMessage is null || (entry.Processes.Count > 0 && !HasLiveProcess(entry))) SkipOptional(run, entry, exception.Message);
+                else
+                {
+                    // It opened but missed its startup condition. A tracked app stays tracked, so End still closes
+                    // what this Session owns; an untracked launch may still be running and stays manual.
+                    entry.OptionalProblem = true;
+                    entry.State = entry.Processes.Count == 0 ? SessionAppState.Untracked :
+                        entry.Owned ? SessionAppState.Running : SessionAppState.AlreadyRunning;
+                    entry.Message = $"{acquiredMessage} · Didn't finish starting: {exception.Message}";
+                }
+            }
+        }
         catch (Exception exception)
         {
             lock (_sync)
@@ -186,12 +215,28 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
             }, token).ConfigureAwait(false);
             if (ready) return;
             if (timer.Elapsed >= timeout)
-                throw new TimeoutException($"No window appeared for {entry.App.Name} within {entry.App.ReadinessTimeoutSeconds} seconds. Startup stopped.");
+                throw new TimeoutException($"No window appeared for {entry.App.Name} within {entry.App.ReadinessTimeoutSeconds} seconds.");
             var remaining = (int)Math.Ceiling((timeout - timer.Elapsed).TotalSeconds);
             lock (_sync) entry.Message = $"Waiting for {entry.App.Name}'s window · {remaining}s remaining";
             Publish(run);
             await Task.Delay(TimeSpan.FromMilliseconds(Math.Max(1, Math.Min(250, (timeout - timer.Elapsed).TotalMilliseconds))), token).ConfigureAwait(false);
         }
+    }
+
+    private static bool HasLiveProcess(Entry entry)
+    {
+        try { return entry.Processes.Any(process => !process.HasExited); }
+        catch (Exception exception) when (exception is not OutOfMemoryException) { return true; } // Unknown state stays tracked.
+    }
+
+    /// <summary>An optional app that has no running tracked process from this launch; the Session continues without it.</summary>
+    private static void SkipOptional(Run run, Entry entry, string reason)
+    {
+        entry.State = SessionAppState.Skipped;
+        entry.Message = "Skipped: " + reason;
+        entry.OptionalProblem = true;
+        // A skipped main app cannot end the Session, so ending becomes manual.
+        if (entry.App.Id == run.Definition.MainAppId) run.MainEndDismissed = true;
     }
 
     private static string StartupPathKey(string path)
@@ -380,7 +425,8 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
             else if (run.State != SessionRunState.Running) return Task.CompletedTask;
             else
             {
-                foreach (var entry in run.Entries.Where(e => e.Processes.Count > 0))
+                // A skipped optional app keeps its explanation; its exited launch is not a new event.
+                foreach (var entry in run.Entries.Where(e => e.Processes.Count > 0 && e.State != SessionAppState.Skipped))
                 {
                     try
                     {
@@ -467,5 +513,6 @@ public sealed class SessionRunner(ISessionProcessHost host, TimeSpan? closeTimeo
         public bool Owned;
         public SessionAppState State = SessionAppState.Waiting;
         public string Message = "Waiting";
+        public bool OptionalProblem;
     }
 }

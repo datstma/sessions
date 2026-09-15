@@ -90,4 +90,5 @@ public sealed record StartProcessAction(
     int ReadinessTimeoutSeconds = 30,
     int? PauseAfterSeconds = null,
     bool AllowForceQuit = false,
-    PluginAppReference? Plugin = null);
+    PluginAppReference? Plugin = null,
+    bool Optional = false);

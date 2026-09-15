@@ -73,8 +73,16 @@ file through Windows' Open with prompt (Acrobat failed) and notices opened a raw
 they chose an in-app viewer. Licenses and notices now opens `LicensesWindow` backed by
 `LicenseCatalog`. Debug build and 134 Core + 263 App tests pass (31 native skips); the
 previewer held Release. The user retried, reported it "works" and asked to commit and
-push; SESS-042 is done. Next suggested 1.0 work: SESS-040 optional apps (first format
-change) with SESS-046 packaged-app research alongside.
+push; SESS-042 is done (3bc1953).
+
+The user then selected SESS-040 and chose: launch and startup-condition failures count;
+the main app may be optional with manual End when skipped; library v6. Implemented in
+SessionRunner/JsonSessionStore/editor/detail; skipped apps use SessionAppState.Skipped.
+Also fixed the swapped Run as administrator / Force quit explanations (present since
+0.2.2). Debug build and 150 Core + 266 App tests pass (31 native skips). The user tried
+it, reported it "works" and asked to commit and push; SESS-040 is done. Their library may
+now be v6, which published 0.5.0 cannot open; a v5 backup exists beside it if they saved. README/PLUGINS still describe published 0.5.0 (v5) and should
+be updated at the next release.
 
 ## Previous checkpoint — Alpha designation 2026-09-10
 

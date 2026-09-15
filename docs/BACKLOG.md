@@ -1120,20 +1120,48 @@ remain unconfirmed.
 
 ## SESS-040 — Optional apps: continue when an app fails to start
 
-**P1 · Proposed · 1.0 feature (M) · 2026-09-15**
-Source: agent proposal accepted in SESS-037. Today any launch failure stops startup and
-waits for confirmation to clean up; utility-heavy Sessions need a tolerant choice.
-Launch stages and broader failure policies (SESS-023 candidates) remain after 1.0.
+**P1 · Done · Implemented, validated and user-confirmed · 2026-09-15**
+Source: agent proposal accepted in SESS-037. Before this change any launch failure stopped
+startup and waited for confirmation to clean up; utility-heavy Sessions needed a tolerant
+choice. Launch stages and broader failure policies (SESS-023 candidates) remain after 1.0.
 
-Settle before implementation: per-app setting name and default (off); which failures
-count (missing file, launch error, readiness timeout, UAC cancellation); whether the main
-or completion-focus app may be optional; how skipped apps appear during and after
-startup; and interaction with concurrent launching and pauses. Ownership, rollback of
-required-app failures and save-work confirmation stay mandatory. Library format change;
-coordinate with SESS-041.
+Decisions (2026-09-15): the agent proposed a per-app "Continue if this app doesn't start"
+setting (default off) for ordinary and plugin apps, skipped pauses, no retry during the
+run, a skipped focus target leaving focus unchanged and an Optional label. The user chose
+that both launch failures and startup-condition failures count; that the main app may be
+optional, with a skipped main app falling back to manual End; and library format v6.
 
-Done when: agreed semantics are in PRODUCT/ARCHITECTURE, Core tests cover ordered and
-concurrent failures with optional and required apps, and the UI explains skipped apps.
+Implemented: Core `StartProcessAction.Optional` and `SessionAppState.Skipped`. Optional
+plugin preflight failures, launch exceptions and readiness failures no longer set the run
+failure or cancel other launches. With no live tracked process the app is Skipped (and
+ignored by the exit monitor); an app that opened but missed its condition keeps its
+tracked/untracked state with an explanation and stays owned for End. A skipped main app
+sets manual ending; an optional main app that starts still ends the Session. The startup
+message names optional apps that didn't finish starting. Cancellation during End is never
+a skip. Required-app failures are unchanged. The editor adds the checkbox and explanation;
+detail roles show "Optional"; completion focus reports a skipped target. Library v6 writes
+the flag, v1–v5 load it as false, and the SESS-041 backup covers the upgrade.
+
+Finding fixed alongside (code inspection via review captures): the editor showed the
+force-quit warning under Run as administrator and the administrator explanation under
+Force quit. The swap dates from e04b00c (0.2.2) and is present in published 0.5.0.
+
+Validation: Debug solution build has zero warnings/errors (Rider's XAML previewer held
+Release); 150 Core and 266 App tests pass (31 opt-in native skips). Sixteen new Core cases: ten runner cases
+cover skipped launch failures without pauses, tracked apps missing their condition and
+closing at End, skipped main apps (launch failure and early exit) switching to manual End,
+an optional main app still ending the Session, a later required failure still cleaning up,
+concurrent launches, untracked and repeated optional entries, an unavailable plugin,
+and cancellation during an optional wait; six format cases add v6 fixture loading, the
+v5-to-v6 upgrade backup and v1/v3/v5 ignoring stray flags, and the round trip now checks
+readable `optional` JSON. Three App cases toggle the option by keyboard
+in both themes (1440×900, 640×480), save/reload plugin and main-app choices with Optional
+labels, and show the skipped status and unchanged focus after a run. Real app launches,
+UAC cancellation and real Steam plugin skips were not exercised.
+
+User confirmation (2026-09-15): after trying the source build, the user reported it
+"works" and asked to commit and push. The specific scenarios tried were not stated, so
+UAC cancellation, readiness timeouts and Steam skips remain unconfirmed in real use.
 
 ## SESS-041 — Saved-data compatibility commitment
 

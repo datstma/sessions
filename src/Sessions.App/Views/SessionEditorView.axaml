@@ -85,9 +85,9 @@
                     <StackPanel Spacing="{StaticResource Measure6}"><TextBlock Text="Working directory (optional)" /><TextBox Text="{Binding WorkingDirectory}" AutomationProperties.Name="App working directory" /></StackPanel>
                     <StackPanel Spacing="{StaticResource Measure4}">
                         <CheckBox Content="Run as administrator" IsChecked="{Binding RunAsAdministrator}" />
-                        <TextBlock Text="Off by default. Enable only if this app can safely stop without saving. After a normal close request, Sessions may force quit it and lose unsaved changes." Classes="muted" TextWrapping="Wrap" />
-                        <CheckBox IsChecked="{Binding AllowForceQuit}" AutomationProperties.Name="Force quit if this app stays open"><TextBlock Text="Force quit if this app stays open" TextWrapping="Wrap" /></CheckBox>
                         <TextBlock Text="Windows asks for approval when opening this app. Useful for apps that otherwise restart to elevate." Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
+                        <CheckBox IsChecked="{Binding AllowForceQuit}" AutomationProperties.Name="Force quit if this app stays open"><TextBlock Text="Force quit if this app stays open" TextWrapping="Wrap" /></CheckBox>
+                        <TextBlock Text="Off by default. Enable only if this app can safely stop without saving. After a normal close request, Sessions may force quit it and lose unsaved changes." Classes="muted" TextWrapping="Wrap" />
                     </StackPanel>
                     <TextBlock Text="Startup condition" FontWeight="{StaticResource WeightBody}" />
                     <ComboBox ItemsSource="{Binding ReadinessChoices}" SelectedIndex="{Binding ReadinessIndex}" HorizontalAlignment="Stretch"
@@ -103,6 +103,10 @@
                         <TextBlock Text="Starts after Windows returns the launch request. A timeout stops startup and asks before cleaning up opened apps."
                                    Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
                     </StackPanel>
+                    </StackPanel>
+                    <StackPanel Spacing="{StaticResource Measure4}">
+                        <CheckBox x:Name="OptionalApp" IsChecked="{Binding Optional}" AutomationProperties.Name="Continue if this app doesn't start"><TextBlock Text="Continue if this app doesn't start" TextWrapping="Wrap" /></CheckBox>
+                        <TextBlock Text="Off by default. If this app can't open or doesn't meet its startup condition, the Session continues without it and tells you. Anything it opened still closes when the Session ends. If this app ends the Session and doesn't start, use End Session instead." Classes="muted" FontSize="{DynamicResource FontMicroSize}" TextWrapping="Wrap" />
                     </StackPanel>
                     <CheckBox Content="Override the pause after this app" IsChecked="{Binding OverridePause}" />
                     <NumericUpDown Value="{Binding PauseAfterSeconds}" IsVisible="{Binding ShowPauseEditor}" Minimum="0" Maximum="300" Increment="1" FormatString="0"

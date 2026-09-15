@@ -71,11 +71,11 @@ public partial class SessionEditorViewModel : ViewModelBase
         LaunchModeIndex, PauseBetweenAppsSeconds, StartupFocusIndex, FocusApp?.Id, OutputAudio?.Choice, InputAudio?.Choice);
     private static AppDraft CaptureApp(AppEditorViewModel app) => new(app.Id, app.Name, app.ExecutablePath,
         app.Arguments, app.WorkingDirectory, app.RunAsAdministrator, app.AllowForceQuit,
-        app.ReadinessIndex, app.ReadinessTimeoutSeconds, app.OverridePause, app.PauseAfterSeconds, app.CloseOnEnd);
+        app.ReadinessIndex, app.ReadinessTimeoutSeconds, app.OverridePause, app.PauseAfterSeconds, app.CloseOnEnd, app.Optional);
     private sealed record DraftSettings(string Name, string Description, bool EndWithApp, Guid? MainAppId,
         int LaunchMode, decimal? Pause, int StartupFocus, Guid? FocusAppId, AudioDeviceChoice? Output, AudioDeviceChoice? Input);
     private sealed record AppDraft(Guid Id, string Name, string Path, string Arguments, string Directory,
-        bool Administrator, bool ForceQuit, int Readiness, decimal? Timeout, bool OverridePause, decimal? Pause, bool CloseOnEnd);
+        bool Administrator, bool ForceQuit, int Readiness, decimal? Timeout, bool OverridePause, decimal? Pause, bool CloseOnEnd, bool Optional);
     public bool IsNew { get; }
     /// <summary>The saved Session this new draft copies; the copy is placed after it.</summary>
     public Guid? DuplicateOf { get; private init; }
@@ -325,6 +325,7 @@ public partial class AppEditorViewModel : ViewModelBase
     [ObservableProperty] private decimal? _readinessTimeoutSeconds = 30;
     [ObservableProperty] private bool _overridePause;
     [ObservableProperty] private decimal? _pauseAfterSeconds = 0;
+    [ObservableProperty] private bool _optional;
     public string[] ReadinessChoices { get; } = ["Launch request completed", "Process is running", "A window appears"];
     public bool NeedsReadinessTimeout => ReadinessIndex != 0 || TimeoutError is not null;
     public bool ShowPauseEditor => OverridePause || PauseError is not null;
@@ -373,8 +374,9 @@ public partial class AppEditorViewModel : ViewModelBase
         _readinessTimeoutSeconds = app.ReadinessTimeoutSeconds;
         _overridePause = app.PauseAfterSeconds.HasValue;
         _pauseAfterSeconds = app.PauseAfterSeconds ?? 0;
+        _optional = app.Optional;
     }
 
     public StartProcessAction BuildAction() => new(Id, Name.Trim(), ExecutablePath.Trim(), Arguments, WorkingDirectory.Trim(), RunAsAdministrator,
-        (AppReadiness)ReadinessIndex, (int)ReadinessTimeoutSeconds!.Value, OverridePause ? (int)PauseAfterSeconds!.Value : null, AllowForceQuit, Plugin is null ? null : Plugin with { CloseOnEnd = CloseOnEnd });
+        (AppReadiness)ReadinessIndex, (int)ReadinessTimeoutSeconds!.Value, OverridePause ? (int)PauseAfterSeconds!.Value : null, AllowForceQuit, Plugin is null ? null : Plugin with { CloseOnEnd = CloseOnEnd }, Optional);
 }

@@ -206,6 +206,12 @@ public partial class MainViewModel : ViewModelBase, IDisposable
             StartupFocusMessage = "Startup finished. Focus was left unchanged while editing or showing a confirmation.";
             return;
         }
+        if (definition.FocusAfterStartup == StartupFocus.App &&
+            runtime.Apps.FirstOrDefault(app => app.AppId == definition.FocusAppId) is { State: SessionAppState.Skipped } skipped)
+        {
+            StartupFocusMessage = $"Startup finished. {skipped.Name} didn't start, so focus was left unchanged.";
+            return;
+        }
         _startupFocusCancellation.Cancel();
         _startupFocusCancellation.Dispose();
         _startupFocusCancellation = new CancellationTokenSource();

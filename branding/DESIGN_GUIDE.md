@@ -72,7 +72,8 @@ custom animation. Future animation must respect reduced-motion preferences.
   actions. The startup summary sits under the Apps in this Session heading; a start hint
   appears above it only when Start is blocked. One card per app: 44px tile with a 30px
   executable icon (initial fallback), name, order/path and status; the role line appears
-  only for the app that ends the Session. Cards and explainers use container spacing
+  only for the app that ends the Session and/or an optional app ("Ends with this app ·
+  Optional"). Cards and explainers use container spacing
   rather than trailing margins, so a typical three-app Session fits the default window.
   Full-width layouts place actions/status to the right; compact layouts move them
   below. Preserve status click behaviour and the distinction between already-open
@@ -91,6 +92,8 @@ custom animation. Future animation must respect reduced-motion preferences.
   controls. Description, selected-app options and Session startup options use inset
   expandable sections; Session audio and advanced startup sit together with the 8px card gap.
   Keep contextual headings and the end-condition choices, with the ending note inside that group.
+  App options place **Continue if this app doesn't start** with its muted explanation
+  before the pause override, for ordinary and plugin apps.
   Save/Cancel stay in the footer while the form scrolls. When fields prevent saving,
   a quiet Review fields action opens and focuses the first problem. Use existing error
   text tokens for wrapping nearby explanations and invalid app-row guidance; keep

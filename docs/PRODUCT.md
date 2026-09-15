@@ -42,7 +42,7 @@ its own backlog item that settles detailed behaviour before implementation.
 
 - Duplicate a Session (SESS-038, implemented).
 - Remember the window size, position and last selected Session (SESS-039, implemented).
-- Optional apps: let a Session continue when a chosen app fails to start (SESS-040).
+- Optional apps: let a Session continue when a chosen app fails to start (SESS-040, implemented).
 - A saved-data compatibility commitment: all earlier library formats stay readable,
   a backup is written before a save upgrades the format (implemented), and the format
   is frozen at Beta (SESS-041).
@@ -393,8 +393,8 @@ unavailable for plugin apps. Owned ordinary-app cleanup and audio restoration ar
 unchanged. Steam/log failures and delayed starts outside the capture window can still
 require manual management; a running indicator is not evidence that cleanup is available.
 
-Saving in this source build writes library v5. Formats v1–v4 still load without
-rewriting; published 0.4.0 and earlier cannot read v5. Preserve a library copy before
+Plugin apps were introduced in library v5; published 0.4.0 and earlier cannot read v5.
+Current source saves use v6 for optional apps (below). Preserve a library copy before
 saving if rollback to a published build is needed. Plugin preferences stay separately
 in `%LOCALAPPDATA%\Sessions\plugins.json`, outside shareable Session definitions.
 See [plugin implementation and validation](PLUGINS.md).
@@ -438,7 +438,7 @@ and back to the same device; Windows offers no atomic compare-and-set here.
 
 Audio choices were introduced in library v4. Formats v1–v3 load without rewriting
 and leave audio unchanged; published 0.2.3 and earlier cannot read v4. Current source
-saves use v5 for plugin compatibility, as described above.
+saves use v6, as described above.
 
 The editor's options headings follow the current draft: **[App name] options** for
 the selected app and **[Session name] advanced startup options** for the Session.
@@ -479,7 +479,7 @@ The app reads version-1 and version-2 libraries with automatic force quit disabl
 for every app. Existing startup settings are preserved. Version 3 introduced the
 compatibility boundary so older builds reject the library instead of silently
 applying their force-quit policy; loading alone does not rewrite the library.
-Published 0.2.1 and earlier builds cannot read version-3 files. Current saves use v5.
+Published 0.2.1 and earlier builds cannot read version-3 files. Current saves use v6.
 
 For a user-bound Session, End is explicit. For a tracked main app, closing its captured process (all captured instances if already open in several processes) opens an end-confirmation request. Other apps keep running until the user confirms. Cancelling keeps the Session active and switches this run to manual ending, without repeatedly prompting about the already-exited main app. A supporting app closing does not end the run. Empty Sessions can be saved and edited, but cannot be started from the app. Their detail view hides Start Session and startup hints, keeps Edit Session available, and asks the user to add apps. The start command also rejects empty Sessions. A verified self-restart into one child with the same executable path stays part of the run, including an elevation restart. Exiting the original process does not end a main-app Session while that replacement remains alive. General launcher handoffs, ambiguous multiple children, and inaccessible identities still require manual management; Sessions never adopts a new app just because its name/path matches.
 
@@ -493,7 +493,24 @@ Apps still open keep the run in **Apps still open**, blocking another Start. Nam
 
 If Windows denies access to an owned elevated app, Sessions requests Windows administrator approval for a separate cleanup helper limited to that exact process and the same normal/force permission. The main Sessions window remains unelevated. Cancelling approval, failed verification, or an app still running leaves the Session needing attention. Run as administrator remains a saved per-app launch option. Old saved forceClose flags are ignored and cannot enable automatic force quit; opening an old library does not rewrite it, and the obsolete field is omitted on its next normal save.
 
-A startup failure stops further launches and cancels readiness waits/pauses. In-flight concurrent acquisitions still finish and are retained before cleanup is offered. If owned apps were opened, their cleanup waits for the same save-work confirmation; Cancel leaves those apps running with a retryable attention state. If no owned apps need cleanup, startup can fail without a prompt after in-flight acquisitions settle. Confirmed End during startup prevents further launches, waits for all acquisitions already in flight, and then cleans up owned apps in reverse configured order. Repeated Start/End/Confirm clicks cannot create overlapping runs or duplicate cleanup. An automatic prompt waits until an unrelated editor/save or another confirmation is resolved. A minimized window may retain a pending prompt until the user returns; it must not silently stop apps.
+App options include **Continue if this app doesn't start**, off by default for ordinary
+and plugin apps. For an optional app, a launch failure (missing file or working folder,
+a Windows launch error, cancelled administrator approval, an unavailable or disabled
+plugin, or a repeated entry after an untracked launch) and a startup-condition failure
+(exited early, untrackable readiness or timeout) no longer stop startup. The app is
+**Skipped** when nothing from its launch is still running and tracked; its pause is not
+applied, and concurrent launches continue. If it opened but missed its condition, it stays
+tracked with an explanation, and End still closes it when this run owns it. When startup
+finishes, the Session is active and its status names the optional apps that didn't finish
+starting; each app's row explains why. There is no automatic retry during the run. A
+skipped app that ends the Session cannot end it: the run switches to manual End and says
+so. An optional main app that starts still ends the Session as usual. If the chosen
+completion-focus app was skipped, focus is left unchanged with a message. Required apps
+keep the behaviour below. Detail cards label optional apps. Library v6 stores the choice;
+formats v1–v5 load with it off, and published 0.5.0 and earlier cannot read v6 (the first
+save keeps the upgrade backup described earlier).
+
+A startup failure of a required app stops further launches and cancels readiness waits/pauses. In-flight concurrent acquisitions still finish and are retained before cleanup is offered. If owned apps were opened, their cleanup waits for the same save-work confirmation; Cancel leaves those apps running with a retryable attention state. If no owned apps need cleanup, startup can fail without a prompt after in-flight acquisitions settle. Confirmed End during startup prevents further launches, waits for all acquisitions already in flight, and then cleans up owned apps in reverse configured order. Repeated Start/End/Confirm clicks cannot create overlapping runs or duplicate cleanup. An automatic prompt waits until an unrelated editor/save or another confirmation is resolved. A minimized window may retain a pending prompt until the user returns; it must not silently stop apps.
 
 Closing Sessions during an active run offers **Keep Sessions open**, **End Session and close**, or **Leave apps open and close**. This close dialog explains normal closing and names any apps with automatic force quit enabled, so End Session and close is the confirmation rather than another intervening prompt. End-and-close keeps the window open when any app remains running. A later app exit finishes the run but does not unexpectedly close Sessions after returning to recovery. Leaving apps open is disabled while starting/stopping. Resolve any changed draft before choosing how to close an active run. Forced process termination cannot show a prompt or perform cleanup; independent apps remain open, and a later run treats surviving apps as pre-existing.
 

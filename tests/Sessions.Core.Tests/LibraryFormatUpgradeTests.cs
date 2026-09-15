@@ -2,7 +2,7 @@ namespace Sessions.Core.Tests;
 
 /// <summary>
 /// Fixtures follow the envelopes written by each release: v1 (0.1.0), v2 (0.2.0), v3 (0.2.2),
-/// v4 (0.3.0–0.4.0) and v5 (0.5.0). Stray newer fields in older files must stay ignored.
+/// v4 (0.3.0–0.4.0), v5 (0.5.0) and v6 (current source, optional apps). Stray newer fields in older files must stay ignored.
 /// </summary>
 public sealed class LibraryFormatUpgradeTests : IDisposable
 {
@@ -16,6 +16,7 @@ public sealed class LibraryFormatUpgradeTests : IDisposable
     [InlineData(3)]
     [InlineData(4)]
     [InlineData(5)]
+    [InlineData(6)]
     public async Task EveryReleasedFormatLoadsWithItsOwnSettingsAndIsLeftUnchanged(int version)
     {
         var original = CopyFixture(version);
@@ -42,6 +43,8 @@ public sealed class LibraryFormatUpgradeTests : IDisposable
         Assert.Equal(version >= 4 ? new AudioDeviceChoice("{0.0.0.00000000}.{headset}", "Headset") : null, flight.OutputAudioDevice);
         Assert.Equal(version >= 4 ? "Microphone" : null, flight.InputAudioDevice?.Name);
         Assert.Equal(version >= 5 ? new PluginAppReference("steam", "223850", CloseOnEnd: true) : null, flight.Apps.ElementAtOrDefault(2)?.Plugin);
+        Assert.Equal(version >= 6, flight.Apps.ElementAtOrDefault(2)?.Optional == true);
+        Assert.False(radio.Optional);
 
         Assert.Equal(original, await File.ReadAllBytesAsync(FilePath));
     }
@@ -51,6 +54,7 @@ public sealed class LibraryFormatUpgradeTests : IDisposable
     [InlineData(2)]
     [InlineData(3)]
     [InlineData(4)]
+    [InlineData(5)]
     public async Task FirstSaveOverAnOlderFormatKeepsAnExactCopyAndLaterSavesDoNot(int version)
     {
         var original = CopyFixture(version);
@@ -62,7 +66,7 @@ public sealed class LibraryFormatUpgradeTests : IDisposable
         var backup = Path.Combine(_directory, $"sessions.v{version}-backup-20260915-143012.json");
         Assert.Equal(backup, store.LastUpgradeBackupPath);
         Assert.Equal(original, await File.ReadAllBytesAsync(backup));
-        Assert.Contains("\"version\": 5", await File.ReadAllTextAsync(FilePath));
+        Assert.Contains("\"version\": 6", await File.ReadAllTextAsync(FilePath));
         Assert.Equal(sessions.Select(session => session.Name), (await store.LoadAsync()).Select(session => session.Name));
 
         await store.SaveAsync(sessions);
@@ -78,7 +82,7 @@ public sealed class LibraryFormatUpgradeTests : IDisposable
         await store.SaveAsync([new SessionDefinition(Guid.NewGuid(), "Work", "", [])]);
         Assert.Null(store.LastUpgradeBackupPath);
 
-        CopyFixture(5);
+        CopyFixture(6);
         await store.SaveAsync(await store.LoadAsync());
         Assert.Null(store.LastUpgradeBackupPath);
         Assert.Empty(Directory.GetFiles(_directory, "*backup*"));

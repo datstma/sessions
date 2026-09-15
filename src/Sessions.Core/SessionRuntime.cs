@@ -1,7 +1,7 @@
 namespace Sessions.Core;
 
 public enum SessionRunState { Starting, Running, AwaitingEndConfirmation, Stopping, NeedsAttention, Completed, Failed }
-public enum SessionAppState { Waiting, Starting, AlreadyRunning, Running, Exited, Untracked, Failed, Closing, Closed, LeftOpen }
+public enum SessionAppState { Waiting, Starting, AlreadyRunning, Running, Exited, Untracked, Failed, Closing, Closed, LeftOpen, Skipped }
 
 public sealed record SessionAppOutcome(Guid AppId, string Name, SessionAppState State, bool Owned, string Message,
     string ExecutablePath = "", bool AllowForceQuit = false);

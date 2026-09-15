@@ -140,8 +140,8 @@ public sealed class PluginExecutionTests
             Assert.True(JsonElement.DeepEquals(reference.Settings!.Value, retained.Settings!.Value));
             Assert.Equal(before, await File.ReadAllTextAsync(path));
             await store.SaveAsync([loaded with { Name = "Renamed" }]);
-            Assert.Contains("\"version\": 5", await File.ReadAllTextAsync(path));
-            await File.WriteAllTextAsync(path, before.Replace("\"version\": 5", "\"version\": 4"));
+            Assert.Contains("\"version\": 6", await File.ReadAllTextAsync(path));
+            await File.WriteAllTextAsync(path, before.Replace("\"version\": 6", "\"version\": 4"));
             await Assert.ThrowsAsync<InvalidDataException>(() => store.LoadAsync());
         }
         finally { if (Directory.Exists(directory)) Directory.Delete(directory, true); }

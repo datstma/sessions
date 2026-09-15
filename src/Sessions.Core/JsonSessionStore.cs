@@ -7,7 +7,7 @@ namespace Sessions.Core;
 /// <summary>Readable local storage; a failed load is never treated as an empty library.</summary>
 public sealed class JsonSessionStore(string filePath, TimeProvider? timeProvider = null) : ISessionStore
 {
-    private const int CurrentVersion = 5;
+    private const int CurrentVersion = 6;
     private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = true,
@@ -24,15 +24,19 @@ public sealed class JsonSessionStore(string filePath, TimeProvider? timeProvider
             await using var stream = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read,
                 4096, FileOptions.Asynchronous);
             var library = await JsonSerializer.DeserializeAsync<Library>(stream, Options, cancellationToken);
-            if (library is null || library.Version is not (1 or 2 or 3 or 4 or 5) || library.Sessions is null)
+            if (library is null || library.Version is < 1 or > CurrentVersion || library.Sessions is null)
                 throw new InvalidDataException("This Session library has an unsupported format.");
             Validate(library.Sessions);
             if (library.Version < 5 && library.Sessions.Any(session => session.Apps.Any(app => app.Plugin is not null)))
                 throw new InvalidDataException("Plugin apps require library format 5.");
-            // Old forceClose flags and unknown fields in older formats must not opt apps into force quit.
+            // Old forceClose flags and unknown fields in older formats must not opt apps into force quit or optional startup.
             return library.Sessions.Select(session => session with
             {
-                Apps = library.Version < 3 ? session.Apps.Select(app => app with { AllowForceQuit = false }).ToArray() : session.Apps,
+                Apps = session.Apps.Select(app => app with
+                {
+                    AllowForceQuit = library.Version >= 3 && app.AllowForceQuit,
+                    Optional = library.Version >= 6 && app.Optional
+                }).ToArray(),
                 OutputAudioDevice = library.Version < 4 ? null : session.OutputAudioDevice,
                 InputAudioDevice = library.Version < 4 ? null : session.InputAudioDevice
             }).ToArray();
@@ -61,7 +65,7 @@ public sealed class JsonSessionStore(string filePath, TimeProvider? timeProvider
             await using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write,
                              FileShare.None, 4096, FileOptions.Asynchronous))
             {
-                // Older builds must reject plugin libraries rather than treating their targets as executable paths.
+                // Older builds must reject newer libraries rather than silently dropping plugin apps (v5) or optional apps (v6).
                 await JsonSerializer.SerializeAsync(stream, new Library(CurrentVersion, sessions), Options, cancellationToken);
                 await stream.FlushAsync(cancellationToken);
             }
