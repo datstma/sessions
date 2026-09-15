@@ -74,9 +74,10 @@ and individual launches; no restart is needed. Existing runs retain their captur
 configuration. Missing/incompatible plugin references are preserved, with launch
 errors instead of executable fallback.
 
-**Saving any library in 0.5.0 writes format v5.** It reads v1–v5 without
-rewriting on load; published 0.4.0 and earlier cannot read v5. Keep a copy of your
-library before saving if you need to return to 0.4.0 or earlier.
+Plugin apps require library format v5 or later; published 0.4.0 and earlier cannot
+read them. **Saving in 0.6.0 writes format v6**, which 0.5.0 and earlier cannot read.
+Sessions reads v1–v6 without rewriting on load and keeps a copy of an older library
+on its first save (see the [release notes](release-notes/0.6.0.md#compatibility)).
 Steam entries store their name and stable app ID, not an installation path/account.
 
 ## Bundled extension boundary

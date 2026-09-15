@@ -35,7 +35,8 @@ public sealed class BrandingInteractionTests
         var definition = new SessionDefinition(Guid.NewGuid(), "Gaming", "Your simulator, radio and cockpit utilities, ready together.", apps);
         var presence = new Presence();
         var runner = new SessionRunner(new Host());
-        using var model = new MainViewModel(new Store(definition), presence, new ManualLauncher(), runner);
+        // A closer keeps public screenshots showing enabled Close actions; rendering never uses it.
+        using var model = new MainViewModel(new Store(definition), presence, new ManualLauncher(), runner, appCloser: new UnusedCloser());
         var window = new MainWindow { DataContext = model, Width = width, Height = height, RequestedThemeVariant = theme };
         window.Show();
         try
@@ -175,6 +176,10 @@ public sealed class BrandingInteractionTests
     private sealed class ManualLauncher : IIndividualAppLauncher
     {
         public Task<AppLaunchResult> LaunchAsync(StartProcessAction app, CancellationToken cancellationToken = default) => throw new InvalidOperationException("Rendering must not launch apps.");
+    }
+    private sealed class UnusedCloser : IIndividualAppCloser
+    {
+        public Task<IPreparedAppClose> PrepareAsync(StartProcessAction app, CancellationToken cancellationToken = default) => throw new InvalidOperationException("Rendering must not close apps.");
     }
     private sealed class Host : ISessionProcessHost
     {

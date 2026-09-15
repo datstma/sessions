@@ -35,7 +35,7 @@
 
 <p align="center"><em>Your apps, their order, and what's running—all in one place.</em></p>
 
-**Sessions 0.5.0 adds Steam plugin support and a Close action beside running apps.**
+**Sessions 0.6.0 adds optional apps, Duplicate Session and an About page, and reopens where you left off.**
 [Download the Windows alpha](#downloads) to try it with your own apps.
 
 | Make it yours | Start together | End with clarity |
@@ -70,7 +70,7 @@ A main app is optional.
 
 1. **Create a Session.** Give it a name you'll recognise in the sidebar.
 2. **Add your apps.** Search or scroll through Start menu apps, choose from running apps, or browse for an executable. Select several at once.
-3. **Make it yours.** Arrange the opening order, choose when the Session ends, and optionally select sound output and microphone devices. Arguments, working folders, and administrator launch settings are available when needed.
+3. **Make it yours.** Arrange the opening order, choose when the Session ends, and optionally select sound output and microphone devices. Arguments, working folders, administrator launch and optional-app settings are available when needed.
 4. **Start the Session.** Apps open using your chosen startup mode (in order by default). Matching apps that are already running stay open without becoming part of its cleanup.
 5. **End when you're ready.** Review which apps will stop, save your work, and confirm.
 
@@ -91,6 +91,10 @@ Later device changes are kept; missing devices and failed restoration show recov
 guidance. Apps with their own explicit audio selection may keep it. This changes
 Windows defaults, so other apps following those defaults are affected too.
 
+**Let optional apps be optional.** Turn on **Continue if this app doesn't start** for
+utilities you can do without. If one can't open or doesn't finish starting, the Session
+carries on and tells you why; anything it opened still closes when you end.
+
 **Choose your appearance.** Open **Settings** from the sidebar or empty-library
 header. Preview System / Light / Dark, interface sizes from 100–150% and separate
 text sizes from 100–125%, then apply. Interface enlargement fits the available
@@ -102,10 +106,12 @@ restores the defaults while keeping your saved Sessions.
 - **Find apps by name.** Start menu discovery keeps supported shortcuts' arguments, working folders, and administrator settings.
 - **Recognize your apps.** App cards show executable icons, with a name initial when an icon is unavailable.
 - **See what's running.** A green Running button brings an app's window forward. Outside an active Session, click Not running to open an individual app.
-- **Keep your place.** Search and switch between app sources without losing checked selections.
+- **Keep your place.** Search and switch between app sources without losing checked selections. Sessions reopens with its last window size and position and the Session you were viewing.
+- **Start from a copy.** Duplicate Session opens a new draft with the same apps and settings.
 - **Stay oriented.** An active Session remains visible while you browse your other saved setups.
 - **Make it comfortable.** Settings offers System / Light / Dark, interface and separate text sizing, a preview, and reset. Preferences stay local; drafts and active runs are preserved.
 - **Keep your edits.** Closing with a changed Session draft offers Keep editing, Discard and Save. Failed saves retain your edits. Deleting a Session requires confirmation and does not uninstall its apps.
+- **Know what you're running.** Settings → About Sessions shows the version, your data folder and the licenses and notices included with the app.
 
 ## What happens when a Session ends?
 
@@ -120,7 +126,7 @@ End Session requests a normal close and preserves apps that stay open, including
 If an app cannot be stopped or safely tracked, Sessions explains the problem and offers recovery where available. Closing Sessions during an active run lets you end the run or leave its apps open. Apps opened individually remain independent of a later Session's cleanup.
 
 [Browse the full screenshot gallery](docs/SCREENSHOTS.md). Images show the actual
-0.2.2 UI with real executable icons, isolated sample data and simulated process status.
+0.6.0 UI with real executable icons, isolated sample data and simulated process status.
 
 ## Downloads
 
@@ -128,23 +134,24 @@ If an app cannot be stopped or safely tracked, Sessions explains the problem and
 Features and saved-data formats may change, and some apps require manual handling.
 Feedback and bug reports are welcome.
 
-Download the Sessions 0.5.0
-[Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.5.0/Sessions-0.5.0-win-x64.msi)
-from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.5.0).
+Download the Sessions 0.6.0
+[Windows x64 MSI](https://github.com/datstma/sessions/releases/download/v0.6.0/Sessions-0.6.0-win-x64.msi)
+from [GitHub Releases](https://github.com/datstma/sessions/releases/tag/v0.6.0).
 The installer includes .NET and installs for your Windows user, with a Start menu
 shortcut. Installer and application binaries are unsigned.
 
-[What's new in 0.5.0](docs/release-notes/0.5.0.md): bundled Steam discovery, launching,
-running status and optional closing, plus individual app Close controls.
+[What's new in 0.6.0](docs/release-notes/0.6.0.md): optional apps, Duplicate Session,
+window and selection memory, About with in-app licenses, library upgrade backups and a
+roomier layout.
 
 Close Sessions before installing, updating, or uninstalling. Updates and uninstall
 preserve your saved Sessions and appearance preferences. To update, download and run a newer MSI; there is no
 automatic updater. The release page includes checksums, source, and validation limits.
 
-**Library compatibility:** saving in 0.5.0 uses v5, which 0.4.0 and earlier cannot
-open. Loading an older library alone does not rewrite it. Keep a copy of
-`%LOCALAPPDATA%\Sessions\sessions.json` before saving if you need to return to an
-older release.
+**Library compatibility:** saving in 0.6.0 uses v6, which 0.5.0 and earlier cannot
+open. Loading an older library alone does not rewrite it. On the first save, Sessions
+keeps the previous file beside your library as `sessions.v<old version>-backup-<date>-<time>.json`
+and shows where it is; restore it as `sessions.json` to return to an older release.
 
 See [Building and releasing Sessions](docs/RELEASING.md) for versioning and packaging.
 
@@ -161,7 +168,7 @@ See [Building and releasing Sessions](docs/RELEASING.md) for versioning and pack
 
 ## Build from source
 
-**Included in 0.5.0:** bundled plugin support, starting with Steam. Open
+**Plugins:** since 0.5.0, Sessions bundles plugin support, starting with Steam. Open
 Settings → Plugins, then use Add app → Plugins to select installed Steam games.
 Steam apps show running status and offer opt-in closing in each app’s options;
 already-running apps and the shared Steam client stay open during Session cleanup.
@@ -169,7 +176,7 @@ Use **Close…** beside a running app to close it individually after confirmatio
 including apps opened outside Sessions. [Plugin guide and limits](docs/PLUGINS.md).
 Third-party plugin loading, Hue and Home Assistant remain future work.
 
-Use Windows with **.NET SDK 10.0.400**, pinned in [global.json](global.json).
+Use Windows with **.NET SDK 10.0.401**, pinned in [global.json](global.json).
 Rider is optional; the command line is enough.
 
 Clone the repository and run these commands:
@@ -204,7 +211,7 @@ Your saved library is readable JSON at:
 %LOCALAPPDATA%\Sessions\sessions.json
 ```
 
-It stores Session definitions and launch settings. Live process ownership is kept only for the current run. Built-in import/export and cloud synchronisation are not implemented.
+It stores Session definitions and launch settings. Live process ownership is kept only for the current run. Built-in import/export and cloud synchronisation are not implemented. Settings → About Sessions → **Open data folder** opens this location.
 
 ## Project direction
 

@@ -1327,3 +1327,25 @@ setup, everyday use, data location, upgrades and known limitations.
 
 Done when: the matrix is recorded with outcomes, failures link to backlog IDs, and the
 guide matches the Beta build.
+
+## SESS-049 — Branded installer with Launch Sessions
+
+**P2 · Proposed · Awaiting the user's timing decision · 2026-09-15**
+Source: during 0.6.0 release preparation the user asked whether the installer can be
+branded with Sessions icons and typical installation information, and offer "Launch
+Sessions" after installation. Code inspection: the MSI has no authored UI (only Windows
+Installer's basic progress), already registers the product icon and an about link, and
+installs per-user to a fixed folder.
+
+Agent proposal: WiX standard dialogs (Welcome, progress, Finished) with a Sessions
+banner and side image generated from branding assets (light only, as installer dialogs
+do not follow dark mode); no folder or license-acceptance steps (fixed per-user location;
+GPL-3.0 needs no acceptance); a default-checked Launch Sessions option on the Finished
+page that starts the installed app as the user and is absent from silent installs and
+uninstall; fuller Installed apps details (publisher, help and update links, comments).
+The existing running-app refusal must remain visible in the new UI. Adds the WiX UI
+extension (review notices) and generated bitmaps to the branding pipeline.
+
+Done when: interactive install, upgrade from the previous release, launch option,
+refusal while running and uninstall are exercised on the built MSI (a Sandbox or manual
+run), ICE validation passes, and RELEASING and the release notes describe the change.

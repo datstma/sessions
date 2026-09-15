@@ -1,10 +1,10 @@
 # Sessions in pictures
 
-These screenshots show **Sessions 0.2.2**, including executable icons in the app
-list and the updated safer-closing confirmation. You can
-[download the Windows preview](https://github.com/datstma/sessions/releases/tag/v0.4.0).
-The screenshots show the system-following themes. Current releases also offer
-appearance preferences in Settings.
+These screenshots show **Sessions 0.6.0**, including executable icons in the app
+list, matching status chips and the safer-closing confirmation. You can
+[download the Windows alpha](https://github.com/datstma/sessions/releases/tag/v0.6.0).
+The screenshots show the system-following themes; Settings also offers appearance
+preferences.
 
 ## Your apps, ready together
 
@@ -25,8 +25,8 @@ advanced startup settings when you need more control.
 ## Know what will close
 
 Before ending, review the apps Sessions will close and those that will stay open.
-In 0.2.2, apps that remain open after a normal close are preserved so you can handle
-save prompts. Force quit is an explicit choice unless enabled in an app's options.
+Apps that remain open after a normal close are preserved so you can handle save
+prompts. Force quit is an explicit choice unless enabled in an app's options.
 
 ![End confirmation separates Playnite, SR-ClientRadio and TobiiGameHub under Asked to close from Discord under Stays open, explaining that apps waiting for you remain open; Cancel has focus.](images/end-dark.png)
 

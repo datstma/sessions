@@ -2,7 +2,38 @@
 
 Project continuity and dated findings. [PRODUCT.md](PRODUCT.md) remains authoritative for product behaviour and scope; [ARCHITECTURE.md](ARCHITECTURE.md) remains authoritative for technical decisions. Track actionable follow-up in [BACKLOG.md](BACKLOG.md), rather than leaving tasks buried in these notes.
 
-## Resume next session — layout density and alignment 2026-09-15
+## Resume next session — 0.6.0 release preparation 2026-09-15
+
+After SESS-040 (7c1f0b6) the user asked to prepare 0.6.0. Shared version is now 0.6.0
+(minor bump for features). Added docs/release-notes/0.6.0.md (optional apps, Duplicate,
+window/selection memory, About and licenses viewer, upgrade backups, layout, swapped
+option explanations fix; v6 compatibility and backup restore guidance). README,
+PLUGINS and SCREENSHOTS now describe 0.6.0 and v6; README SDK text is 10.0.401.
+
+Public screenshots were regenerated with Update-PublicScreenshots.ps1 using icons read
+from the user's installed Discord (%LOCALAPPDATA%\Discord\app-1.0.9256), Playnite
+(C:\Games\Playnite), SR-ClientRadio (Program Files\DCS-SimpleRadio-Standalone\Client)
+and Tobii Game Hub (%LOCALAPPDATA%\TobiiGameHub\current); nothing was launched. The
+branding fixture now supplies an unused app closer so Close buttons render enabled.
+With the user's permission, only Rider's two Avalonia.Designer.HostApp processes were
+stopped to free bin/Release.
+
+Local Build-Installer.ps1 passed: clean Release solution/MSI builds with zero
+warnings/errors, 150 Core and 266 App tests (31 native skips), self-contained publish,
+notices and WiX validation. artifacts/releases/0.6.0/Sessions-0.6.0-win-x64.msi SHA-256
+ba1e364aab0ebf61676a4b40a3f2fe36840be09ec1a93e4962073ebb01e9f3c7 matches its sidecar;
+MSI ProductVersion 0.6.0; app 0.6.0.0 with informational 0.6.0+7c1f0b6 (pre-release
+HEAD; the published MSI comes from the tagged CI build); ReleaseStage Alpha and
+RepositoryUrl embedded; payload has LICENSE, THIRD-PARTY-NOTICES.txt, dependencies.json
+and 20 notice texts. Links (110) and diff checks pass. Log in the session scratchpad.
+
+Not committed, tagged or published. Remaining: commit/push, tag v0.6.0, run the workflow,
+verify exact assets, add CI evidence to the notes/RELEASING and publish, all on explicit
+request. The v6 format-upgrade release check needs an installed build (Sandbox checks
+are waived); disclose or perform it. Open user question: branded installer UI with a
+Launch Sessions option (SESS-049); agent recommended 0.6.1 rather than delaying 0.6.0.
+
+## Previous checkpoint — layout density and alignment 2026-09-15
 
 The user reviewed 0.5.0 Alpha with screenshots and reported three UI problems:
 opening the app always needs scrolling, field/button text is not consistently
