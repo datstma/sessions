@@ -37,11 +37,11 @@ metadata follow [RELEASING.md](RELEASING.md#versioning).
 ### 1.0 feature set
 
 Agreed with the maintainer on 2026-09-15 (SESS-037). Everything already implemented
-above remains part of 1.0. The additions below are planned, not implemented; each has
+above remains part of 1.0. The additions below are planned unless marked implemented; each has
 its own backlog item that settles detailed behaviour before implementation.
 
 - Duplicate a Session (SESS-038).
-- Remember the window size, position and last selected Session (SESS-039).
+- Remember the window size, position and last selected Session (SESS-039, implemented).
 - Optional apps: let a Session continue when a chosen app fails to start (SESS-040).
 - A saved-data compatibility commitment: all earlier library formats stay readable,
   a backup is written before a save upgrades the format, and the format is frozen at
@@ -59,7 +59,7 @@ recorded real-app validation matrix and an up-to-date user guide with known limi
 
 Not part of 1.0: gaming utility profile integrations (SESS-028), Philips Hue, Home
 Assistant, third-party plugins, command/PowerShell items, starting with Windows or tray
-behaviour, notifications, launch stages, window placement, crash recovery of ownership
+behaviour, notifications, launch stages, arranging launched apps' windows, crash recovery of ownership
 and audio, diagnostic export, localization, and the out-of-scope list below.
 
 ## Vision
@@ -190,7 +190,13 @@ advanced settings and recovery flows remain.
 
 The main window supports a 640×480 logical-pixel minimum and uses a narrower sidebar
 and smaller content margins below 900 logical pixels. Main and picker windows limit
-their initial size to the display's working area, within their minimum sizes. Content
+their initial size to the display's working area, within their minimum sizes. The main
+window reopens with its last size, position and maximized state, and reselects the last
+selected Session; selection never starts it. If that display has changed, the window
+moves or shrinks to fit the display it mostly overlaps, or centres on the primary display
+when that display is gone. A deleted Session falls back to the first. Minimized windows
+reopen normally. Unreadable window state is ignored, and Reset preferences does not
+change it. Content
 scrolls while editor Save/Cancel stay available; long runtime/error messages share a
 bounded scroll area. Keyboard focus starts at creation or the Session list, enters
 the name field when editing, and returns to the initiating action after saving or

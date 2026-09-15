@@ -388,6 +388,19 @@ nor invokes execution operations. Reopening activates the existing window. Closi
 either window is blocked during a preferences operation; other main-window close,
 draft and runtime rules remain in force. Preferences controls unsubscribe on close.
 
+Main-window state is not a preference. `JsonMainWindowStateStore` keeps a version-1
+envelope in `%LOCALAPPDATA%\Sessions\window.json` with the normal (restored) bounds,
+maximized flag and last selected Session ID. It is read synchronously before the window
+is shown, so the window opens in place, and written with temporary-file replacement when
+the window closes. Missing, unreadable or unsupported files and failed writes are ignored
+and never block starting or closing. Position is physical pixels; size is logical.
+`WindowPlacementPolicy` fits saved bounds to current working areas: the most-overlapped
+screen at its own scaling, otherwise centred on the primary screen, capped by the working
+area minus the existing decoration allowances and never below the minimum window size.
+`MainWindow` records normal bounds after resize/move events settle, because Windows
+reports a maximized size before the state change. Selection is restored after the library
+loads; an unloaded library keeps the earlier saved ID.
+
 `WindowAppearance` applies window-level theme variants and token-derived dynamic
 font-size/line-height resources, keeping application theme inheritance at System.
 Main and picker content use layout transforms, not Windows DPI changes. The effective

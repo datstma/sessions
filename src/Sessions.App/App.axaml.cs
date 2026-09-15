@@ -32,7 +32,9 @@ public partial class App : Application
             var launcher = new IndividualAppLauncher(presence, new WindowsProcessStarter(), plugins: plugins);
             var preferences = new PreferencesService(new JsonPreferencesStore(Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Sessions", "preferences.json")));
-            var window = new MainWindow { Preferences = preferences, Plugins = plugins };
+            var window = new MainWindow { Preferences = preferences, Plugins = plugins, StateStore = new JsonMainWindowStateStore(Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Sessions", "window.json")) };
+            window.RestoreSavedState();
             window.Opened += async (_, _) => { await preferences.LoadAsync(); await plugins.LoadAsync(); };
             window.DataContext = new MainViewModel(new JsonSessionStore(Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),

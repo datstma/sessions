@@ -1,7 +1,9 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using System.ComponentModel;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Sessions.App.ViewModels;
@@ -13,6 +15,10 @@ public partial class MainWindow : Window
 {
     public PreferencesService? Preferences { get; init; }
     public PluginService? Plugins { get; init; }
+    public JsonMainWindowStateStore? StateStore { get; init; }
+    private MainWindowState? _savedState;
+    private WindowPlacement? _normalPlacement;
+    private bool _maximized;
     private SettingsWindow? _settingsWindow;
     private WindowAppearance? _appearance;
     private Control? _settingsReturnFocus;
@@ -37,6 +43,57 @@ public partial class MainWindow : Window
         _settingsWindow.Show(this);
     }
 
+    /// <summary>Applies the saved placement before the window is first shown, so it opens where it was left.</summary>
+    public void RestoreSavedState()
+    {
+        _savedState = StateStore?.Load();
+        if (_savedState?.Placement is not { } saved || Screens is null) return;
+        var screens = Screens.All.Select(screen => new ScreenArea(screen.WorkingArea, screen.Scaling, screen.IsPrimary)).ToArray();
+        var allowance = new Size((double)this.FindResource("WindowHorizontalAllowance")!, (double)this.FindResource("WindowVerticalAllowance")!);
+        if (WindowPlacementPolicy.Fit(saved, screens, new Size(MinWidth, MinHeight), allowance) is not { } placement) return;
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        Position = new PixelPoint(placement.X, placement.Y);
+        Width = placement.Width;
+        Height = placement.Height;
+        _normalPlacement = placement with { IsMaximized = false };
+        _maximized = placement.IsMaximized;
+        if (placement.IsMaximized) WindowState = WindowState.Maximized;
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property != WindowStateProperty) return;
+        // Minimizing keeps whether the window should come back maximized.
+        if (WindowState is WindowState.Normal or WindowState.Maximized) _maximized = WindowState == WindowState.Maximized;
+        RememberNormalBoundsSoon();
+    }
+
+    private void RememberNormalBoundsSoon() => Dispatcher.UIThread.Post(() =>
+    {
+        // Maximizing reports its new size and position before the state change, so read once events settle.
+        if (WindowState == WindowState.Normal && IsVisible)
+            _normalPlacement = new WindowPlacement(Position.X, Position.Y, ClientSize.Width, ClientSize.Height, false);
+    }, DispatcherPriority.Background);
+
+    private void RememberState()
+    {
+        var selected = DataContext switch
+        {
+            MainViewModel { SelectedSession: { } session } => session.Definition.Id,
+            MainViewModel { IsEmpty: true } => (Guid?)null,
+            _ => _savedState?.SelectedSessionId // The library did not load, so keep the earlier choice.
+        };
+        var placement = _normalPlacement is { } normal ? normal with { IsMaximized = _maximized } : _savedState?.Placement;
+        StateStore?.Save(new MainWindowState(placement, selected));
+    }
+
+    private void RestoreSelectedSession()
+    {
+        if (_savedState?.SelectedSessionId is not { } id || DataContext is not MainViewModel { CanBrowse: true } model) return;
+        if (model.Sessions.FirstOrDefault(session => session.Definition.Id == id) is { } saved) model.SelectedSession = saved;
+    }
+
     private void PreferencesChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(PreferencesService.HasLoadError))
@@ -52,7 +109,12 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        SizeChanged += (_, _) => Classes.Set("compact", Bounds.Width < (double)this.FindResource("CompactBreakpoint")!);
+        SizeChanged += (_, _) =>
+        {
+            Classes.Set("compact", Bounds.Width < (double)this.FindResource("CompactBreakpoint")!);
+            RememberNormalBoundsSoon();
+        };
+        PositionChanged += (_, _) => RememberNormalBoundsSoon();
         _presenceTimer.Tick += async (_, _) => await RefreshPresenceAsync();
         Activated += async (_, _) => await RefreshPresenceAsync();
         MainViewModel? observedModel = null;
@@ -83,6 +145,7 @@ public partial class MainWindow : Window
         };
         Closed += (_, _) =>
         {
+            if (StateStore is not null) RememberState();
             _settingsWindow?.Close();
             _appearance?.Dispose();
             if (Preferences is not null) Preferences.PropertyChanged -= PreferencesChanged;
@@ -112,6 +175,7 @@ public partial class MainWindow : Window
             }
             if (DataContext is MainViewModel viewModel && viewModel.LoadCommand.CanExecute(null))
                 await viewModel.LoadCommand.ExecuteAsync(null);
+            RestoreSelectedSession();
             if (!_presenceLifetime.IsCancellationRequested)
             {
                 _presenceTimer.Start();
@@ -120,7 +184,11 @@ public partial class MainWindow : Window
                 {
                     if (DataContext is not MainViewModel { IsMainContentEnabled: true, IsEditing: false } ready) return;
                     if (ready.IsEmpty) CreateFirstButton.Focus();
-                    else SessionList.Focus();
+                    else
+                    {
+                        if (SessionList.SelectedItem is { } selected) SessionList.ScrollIntoView(selected);
+                        SessionList.Focus();
+                    }
                 });
             }
         };

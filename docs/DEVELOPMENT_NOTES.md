@@ -34,8 +34,15 @@ source build and reported it "looks better"; SESS-036 is done. Committed and pus
 the drafted must list plus export/import, website items, shortcut/command-line start and
 packaged apps; signing decided near Beta; gaming integrations after 1.0. PRODUCT.md
 records the set; SESS-038–048 hold each item with open design questions and a suggested
-order in BACKLOG. None is implemented, and the 1.0 docs change is not yet committed.
-Continue from the user's choice of item.
+order in BACKLOG. The 1.0 docs are committed as 167f49c.
+
+The user then selected SESS-039. The main window now restores its size, position,
+maximized state and last selected Session from a separate `%LOCALAPPDATA%\Sessions\window.json`
+(not preferences: those load after showing and have Apply/Reset/recovery rules). Build
+is clean; 119 Core and 244 App tests pass (31 native skips). The user ran it natively,
+reported it "works" and asked to commit and push; the specific checks performed were not
+stated, so multi-monitor/DPI changes remain unconfirmed. SESS-039 is done. Continue from
+the user's choice; the suggested next 1.0 items are SESS-038 and SESS-042.
 
 ## Previous checkpoint — Alpha designation 2026-09-10
 

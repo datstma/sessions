@@ -1059,18 +1059,42 @@ identity remapping, plugin/audio settings and keyboard access in both themes.
 
 ## SESS-039 — Remember window size, position and last selected Session
 
-**P1 · Open · 1.0 feature (S) · 2026-09-15**
+**P1 · Done · Implemented, validated and user-confirmed · 2026-09-15**
 Source: SESS-031 candidate; the user included it in 1.0 via SESS-037, following the
-SESS-036 report that the app opens with too little usable space.
+SESS-036 report that the app opens with too little usable space. The user selected it
+for implementation on 2026-09-15.
 
-Restore the last normal size, position and maximized state, and reselect the last
-Session. Never restore off-screen or below the 640×480 minimum after monitor, DPI or
-resolution changes; fall back to the current working-area sizing. Selection never starts
-anything, and a deleted Session falls back to the first. Store this with appearance
-preferences (a preferences format change) and keep failures non-blocking.
+Design change from the original entry: the state lives in a separate `window.json`
+rather than appearance preferences. Preferences load after the window is visible (a
+restored placement would jump), use explicit Apply/Reset and block saving after a load
+error; window state is automatic, read before showing and ignored when unreadable.
+Reset preferences therefore leaves it unchanged.
 
-Done when: restart restores these values, with tests for missing monitors, oversized
-bounds, maximized state, deleted Sessions and unreadable preferences.
+Implemented: the main window restores its normal size, position and maximized state
+and reselects the last Session after the library loads. Saved bounds fit the display
+the window mostly overlaps (moved inside its working area and shrunk at that display's
+scaling), or centre on the primary display when that display is gone; the 640×480
+minimum and existing decoration allowances apply. Normal bounds are recorded once
+resize/move events settle, so maximizing does not overwrite them; minimized windows
+reopen in their last normal or maximized state. Deleted Sessions fall back to the first;
+an unreadable library keeps the earlier saved Session. Selection never starts anything.
+The picker window is unchanged. See [product behaviour](PRODUCT.md#product-and-ux-principles)
+and [architecture](ARCHITECTURE.md#application-preferences-and-appearance).
+
+Validation: clean full Release build with zero warnings/errors; 119 Core and 244 App
+tests pass (31 opt-in native skips). Fourteen new cases cover kept bounds, the
+most-overlapped screen at mixed scaling, partly hidden windows, oversized and tiny
+working areas, a removed display with primary-screen centring, invalid sizes, no screens,
+store round trip, missing/malformed/unsupported files left untouched, save failure, and
+two headless main windows restoring size, position, selection, maximized normal bounds,
+a deleted Session and an unreadable library. Headless windows cannot reproduce Windows'
+maximize event ordering, real multi-monitor/DPI changes or native position semantics;
+those need the user's trial.
+
+User confirmation (2026-09-15): after running the source build natively, the user
+reported it "works". Which suggested checks were performed (maximize/restore, a second
+monitor, a deleted Session) was not stated, so multi-monitor and DPI-change behaviour
+remain unconfirmed.
 
 ## SESS-040 — Optional apps: continue when an app fails to start
 
